@@ -55,27 +55,25 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
   const getThemeColors = () => {
     switch (cosmetics.theme) {
       case 'sunny':
-        // Gorgeous, crisp golden hour / bright sunny morning in Swiss Alps
         return {
           bgGradStart: '#0284c7', // Deep blue sky
           bgGradMid: '#38bdf8',  // Crisp sky blue
           bgGradEnd: '#bae6fd',   // Soft warm light on horizon
           mountainFar: '#1e293b',
-          mountainMid: '#475569',
-          mountainNear: '#334155',
+          mountainMid: '#334155',
+          mountainNear: '#1e293b',
           snowColor: '#ffffff',
           accentColor: '#f59e0b',  // Golden sun rays
           snowCrust: '#f1f5f9',
         };
       case 'rain':
-        // Overcast, hyper-detailed wet mountain storm
         return {
           bgGradStart: '#0f172a',
           bgGradMid: '#1e293b',
           bgGradEnd: '#334155',
           mountainFar: '#020617',
           mountainMid: '#0f172a',
-          mountainNear: '#1e293b',
+          mountainNear: '#111827',
           snowColor: '#94a3b8',
           accentColor: '#38bdf8',
           snowCrust: '#64748b',
@@ -85,8 +83,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           bgGradStart: '#060112',
           bgGradMid: '#120224',
           bgGradEnd: '#010005',
-          mountainFar: '#1c0330',
-          mountainMid: '#39025e',
+          mountainFar: '#120024',
+          mountainMid: '#1e0038',
           mountainNear: '#0c0017',
           snowColor: '#00ffff',
           accentColor: '#ec4899',
@@ -97,8 +95,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           bgGradStart: '#140101',
           bgGradMid: '#2b0303',
           bgGradEnd: '#000000',
-          mountainFar: '#2b0404',
-          mountainMid: '#4d0202',
+          mountainFar: '#1a0101',
+          mountainMid: '#2d0202',
           mountainNear: '#170101',
           snowColor: '#f97316',
           accentColor: '#ef4444',
@@ -109,8 +107,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           bgGradStart: '#010414',
           bgGradMid: '#0a1033',
           bgGradEnd: '#020208',
-          mountainFar: '#0d1a3c',
-          mountainMid: '#172f6a',
+          mountainFar: '#081026',
+          mountainMid: '#0e1b3d',
           mountainNear: '#020617',
           snowColor: '#e9d5ff',
           accentColor: '#a855f7',
@@ -118,14 +116,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         };
       case 'everest':
       default:
-        // Updated "Swiss Alps" preset: Beautiful sparkling alpine morning sunshine with vibrant blue gradient sky
         return {
           bgGradStart: '#0ea5e9', // Majestic bright azure
           bgGradMid: '#38bdf8',  // Crisp alpine sky
           bgGradEnd: '#e0f2fe',   // Sunny glowing snowy horizon
-          mountainFar: '#1e293b',
-          mountainMid: '#475569',
-          mountainNear: '#334155',
+          mountainFar: '#0f172a',
+          mountainMid: '#1e293b',
+          mountainNear: '#111827',
           snowColor: '#ffffff',
           accentColor: '#f59e0b',  // Vibrant golden sunshine
           snowCrust: '#f8fafc',
@@ -139,7 +136,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = 960; // Upgraded resolution for true hero presentation
+    canvas.width = 960; 
     canvas.height = 460;
 
     // Build responsive meteorological wind particle engine
@@ -239,7 +236,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
       // Overcast Clouds scrolling for Rain/Everest scenery
       if (cosmetics.theme === 'rain' || cosmetics.theme === 'everest') {
-        // Soft white clouds for a sunny Swiss morning vs dark storm clouds for rain
         ctx.fillStyle = cosmetics.theme === 'rain' ? 'rgba(71, 85, 105, 0.25)' : 'rgba(255, 255, 255, 0.85)';
         for (let i = 0; i < 4; i++) {
           const cloudX = (i * 320 - verticalScrollRef.current * 0.2) % (canvas.width + 200);
@@ -280,17 +276,17 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         });
       }
 
-      // HIGH FIDELITY GEOMETRY: Far Mountains Silhouette scrolling down-left
+      // HIGH FIDELITY GEOMETRY: Far Mountains Silhouette scrolling smoothly with organic peaks
       ctx.fillStyle = themeColors.mountainFar;
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
       const farScrollX = (verticalScrollRef.current * 0.12) % canvas.width;
       const farScrollY = (verticalScrollRef.current * 0.08) % 350;
-      for (let x = -40; x <= canvas.width + 40; x += 40) {
+      for (let x = -40; x <= canvas.width + 40; x += 20) {
         const testX = x + farScrollX;
-        const baseHeight = 190 + Math.sin(testX * 0.006) * 35;
-        const peak = (Math.abs(Math.floor(testX / 130)) % 3 === 0) ? 130 : 25;
-        const finalHeight = baseHeight + peak - farScrollY;
+        // Organic, gorgeous mountain landscape generation using multiple sine/cosine frequencies to eliminate plateaus
+        const mountainWave = Math.sin(testX * 0.005) * 60 + Math.cos(testX * 0.015) * 30 + Math.sin(testX * 0.03) * 10;
+        const finalHeight = 220 + mountainWave - farScrollY;
         ctx.lineTo(x, canvas.height - Math.max(10, finalHeight));
       }
       ctx.lineTo(canvas.width, canvas.height);
@@ -305,10 +301,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       const midScrollY = (verticalScrollRef.current * 0.18) % 280;
       
       const midPoints: Array<{ x: number; y: number }> = [];
-      for (let x = -30; x <= canvas.width + 30; x += 30) {
+      for (let x = -30; x <= canvas.width + 30; x += 15) {
         const testX = x + midScrollX;
-        const baseHeight = 140 + Math.cos(testX * 0.012) * 25;
-        const finalHeight = baseHeight - midScrollY;
+        // Clean, steep peaks with natural slopes
+        const wave = Math.sin(testX * 0.008) * 45 + Math.cos(testX * 0.02) * 20;
+        const finalHeight = 160 + wave - midScrollY;
         midPoints.push({ x, y: canvas.height - Math.max(10, finalHeight) });
       }
 
@@ -323,11 +320,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       // Mid peak alpineglow snow highlights
       ctx.fillStyle = themeColors.snowCrust;
       midPoints.forEach((pt, idx) => {
-        if (idx > 0 && idx < midPoints.length - 1 && pt.y < 300) {
+        if (idx > 0 && idx < midPoints.length - 1 && pt.y < 320) {
           ctx.beginPath();
           ctx.moveTo(pt.x, pt.y);
-          ctx.lineTo(pt.x - 15, pt.y + 25);
-          ctx.lineTo(pt.x + 15, pt.y + 25);
+          ctx.lineTo(pt.x - 12, pt.y + 18);
+          ctx.lineTo(pt.x + 12, pt.y + 18);
           ctx.closePath();
           ctx.fill();
         }
@@ -397,7 +394,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         const goat = goatRef.current;
         if (!goat.active) {
           goat.timer++;
-          // High spawn chance every 400 animation cycles
           if (goat.timer > 400 && Math.random() < 0.012) {
             goat.active = true;
             goat.direction = Math.random() > 0.5 ? 1 : -1;
@@ -405,53 +401,43 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
             goat.timer = 0;
           }
         } else {
-          // Slow scenic alpine trot
           goat.x += goat.direction * 0.85;
           const goatY = getSlopeY(goat.x);
 
-          // Draw Cute Mountain Goat Vector Shape
           ctx.save();
-          ctx.translate(goat.x, goatY - 14); // Offset slightly above the ground slope
+          ctx.translate(goat.x, goatY - 14); 
           ctx.scale(goat.direction, 1);
 
-          // Cute curved black horns
           ctx.strokeStyle = '#334155';
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(3, -6, 5, Math.PI, Math.PI * 1.5);
           ctx.stroke();
 
-          // Animated little legs
           ctx.strokeStyle = '#1e293b';
           ctx.lineWidth = 2.2;
           const legBob = Math.sin(t * 0.12) * 3.5;
           ctx.beginPath();
-          // Front legs
           ctx.moveTo(3, 3); ctx.lineTo(3 + legBob, 10);
           ctx.moveTo(5, 3); ctx.lineTo(5 - legBob, 10);
-          // Back legs
           ctx.moveTo(-5, 3); ctx.lineTo(-5 - legBob, 10);
           ctx.moveTo(-3, 3); ctx.lineTo(-3 + legBob, 10);
           ctx.stroke();
 
-          // Fluffy white body
           ctx.fillStyle = '#ffffff';
           ctx.beginPath();
           ctx.ellipse(0, 0, 9, 6, 0, 0, Math.PI * 2);
           ctx.fill();
 
-          // Head & Neck
           ctx.beginPath();
           ctx.arc(5, -4, 3.5, 0, Math.PI * 2);
           ctx.fill();
 
-          // Little black eye
           ctx.fillStyle = '#000000';
           ctx.beginPath();
           ctx.arc(6, -5, 0.7, 0, Math.PI * 2);
           ctx.fill();
 
-          // Mountain Goat Goatee beard
           ctx.fillStyle = '#e2e8f0';
           ctx.beginPath();
           ctx.moveTo(3, -1);
@@ -462,7 +448,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
           ctx.restore();
 
-          // Remove offscreen
           if ((goat.direction === 1 && goat.x > canvas.width + 80) || 
               (goat.direction === -1 && goat.x < -80)) {
             goat.active = false;
@@ -508,16 +493,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           ctx.arc(flagX, flagY - 60, 3, 0, Math.PI * 2);
           ctx.fill();
 
-          // At each whole number, make the flag purple
           const isWholeNumber = milestone.mult % 1 === 0;
-          const flagColor = isWholeNumber ? '#a855f7' : '#10b981'; // Purple for whole numbers, Emerald Green for others
+          const flagColor = isWholeNumber ? '#a855f7' : '#10b981'; 
 
-          // Flag size details (Bigger flag: 48px width, 26px height)
           const flagTop = flagY - 55;
           const flagHeight = 26;
           const flagWidth = 48;
           
-          // Realistic waving coordinate paths
           ctx.fillStyle = flagColor;
           ctx.beginPath();
           ctx.moveTo(flagX, flagTop);
@@ -531,19 +513,16 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           ctx.closePath();
           ctx.fill();
 
-          // Highlight flag border outline
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
           ctx.lineWidth = 1.5;
           ctx.stroke();
 
-          // Render the whole number or half number directly on the flag
           ctx.save();
           ctx.font = 'black 11px system-ui, -apple-system, sans-serif';
           ctx.fillStyle = '#ffffff';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Soft drop shadow directly on text
           ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
           ctx.shadowBlur = 1.5;
           ctx.shadowOffsetX = 1;
