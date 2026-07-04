@@ -372,19 +372,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.closePath();
       ctx.fill();
 
-      // Granite rock shards on the mountain slopes
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-      for (let i = 0; i < 8; i++) {
-        const rockX = (i * 140 - verticalScrollRef.current * 0.6) % (canvas.width + 100);
-        const rockY = getSlopeY(rockX) + 12;
-        ctx.beginPath();
-        ctx.moveTo(rockX, rockY);
-        ctx.lineTo(rockX + 15, rockY - 8);
-        ctx.lineTo(rockX + 25, rockY + 4);
-        ctx.closePath();
-        ctx.fill();
-      }
-
       // Draw shiny snow or grass crust depending on theme
       ctx.strokeStyle = themeColors.snowColor;
       ctx.lineWidth = 5;
