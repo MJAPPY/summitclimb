@@ -361,72 +361,77 @@ const Index = () => {
 
               {/* HERO VISUAL AREA: Canvas spans 100% of the workspace container */}
               <div className="space-y-6">
-                <div className="relative">
+                <div>
                   <GameCanvas
                     multiplier={multiplier}
                     gameState={gameState}
                     cosmetics={cosmetics}
                   />
+                </div>
 
-                  {/* Ultra stand-out, dramatic overlay multiplier panel */}
-                  <div className="absolute bottom-8 left-8 bg-slate-900/95 backdrop-blur-md border-2 border-slate-600 px-8 py-5 rounded-2xl flex items-center gap-6 pointer-events-none shadow-2xl">
+                {/* Highly dramatic telemetry and current altitude statistics banner */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                  
+                  {/* Dedicated Altitude Display panel (Repositioned below the game) */}
+                  <div className="md:col-span-5 p-6 bg-slate-900 border-2 border-slate-700 rounded-2xl shadow-xl flex items-center justify-between">
                     <div className="flex flex-col">
                       <span className="text-[11px] text-amber-400 font-black tracking-widest uppercase flex items-center gap-1.5 font-mono">
                         <Flame className="h-4 w-4 text-amber-400 animate-pulse" /> CURRENT ALTITUDE
                       </span>
-                      <div className="text-5xl md:text-6xl font-black text-white font-mono tracking-tighter mt-1">
-                        {multiplier.toFixed(2)}<span className="text-amber-400 text-3xl font-black ml-0.5">x</span>
+                      <div className="text-4xl md:text-5xl font-black text-white font-mono tracking-tighter mt-1">
+                        {multiplier.toFixed(2)}<span className="text-amber-400 text-2xl font-black ml-0.5">x</span>
                       </div>
                     </div>
-                    <div className="h-14 w-[2px] bg-slate-700" />
-                    <div className="flex flex-col">
+                    <div className="h-12 w-[1px] bg-slate-800" />
+                    <div className="flex flex-col text-right">
                       <span className="text-[11px] text-slate-400 font-black tracking-widest uppercase font-mono">EST. RECOVERED</span>
-                      <div className="text-2xl md:text-3xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
+                      <div className="text-xl md:text-2xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
                         {(betAmount * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold">{tokenType}</span>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Highly dramatic telemetry statistics banner */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-6 bg-gradient-to-r from-slate-900 to-slate-950 border-2 border-slate-800 rounded-2xl shadow-xl">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl">
-                      <Mountain className="h-6 w-6 text-amber-400" />
+                  {/* Environment details */}
+                  <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 bg-gradient-to-r from-slate-900 to-slate-950 border-2 border-slate-800 rounded-2xl shadow-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
+                        <Mountain className="h-5 w-5 text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SLOPE</span>
+                        <span className="text-xs font-bold text-white block mt-1 truncate capitalize">{cosmetics.theme}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-xs text-slate-400 uppercase font-mono font-black block leading-none">EXPEDITION SLOPE</span>
-                      <div className="text-lg font-black text-white mt-1.5 capitalize">{cosmetics.theme} slopes</div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-4 border-y md:border-y-0 md:border-x-2 border-slate-800 py-4 md:py-0 md:px-6">
-                    <div className="p-4 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl">
-                      <Sparkles className="h-6 w-6 text-amber-400" />
+                    <div className="flex items-center gap-3 border-y sm:border-y-0 sm:border-x border-slate-800 py-3 sm:py-0 sm:px-4">
+                      <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
+                        <Sparkles className="h-5 w-5 text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">RISK</span>
+                        <span className={`text-xs font-black block mt-1 truncate ${
+                          multiplier < 1.5 ? 'text-emerald-400' :
+                          multiplier < 3.0 ? 'text-amber-400' : 'text-rose-500 animate-pulse'
+                        }`}>
+                          {multiplier < 1.5 ? 'SAFE' :
+                           multiplier < 3.0 ? 'VELOCITY' : 'AVALANCHE'}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-xs text-slate-400 uppercase font-mono font-black block leading-none">RISK ASSESSMENT</span>
-                      <div className={`text-lg font-black mt-1.5 ${
-                        multiplier < 1.5 ? 'text-emerald-400' :
-                        multiplier < 3.0 ? 'text-amber-400' : 'text-rose-500 animate-pulse'
-                      }`}>
-                        {multiplier < 1.5 ? 'SAFE ZONE' :
-                         multiplier < 3.0 ? 'CREST VELOCITY' : 'WARNING: AVALANCHE BOUND'}
+
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
+                        <ShieldAlert className="h-5 w-5 text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SPEED</span>
+                        <span className="text-xs font-bold text-amber-400 font-mono block mt-1 truncate">
+                          {Math.floor(multiplier * 18)} km/h
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl">
-                      <ShieldAlert className="h-6 w-6 text-amber-400" />
-                    </div>
-                    <div>
-                      <span className="text-xs text-slate-400 uppercase font-mono font-black block leading-none">PEAK ACCELERATION</span>
-                      <div className="text-lg font-black text-amber-400 font-mono mt-1.5">
-                        {Math.floor(multiplier * 18)} km/h
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
 
