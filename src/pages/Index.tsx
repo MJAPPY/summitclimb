@@ -52,7 +52,7 @@ const Index = () => {
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(45);
 
-  // Remaining climbs / goes (each climb costs exactly 1 Go)
+  // Remaining climbs / goes (each climb costs exactly 1 Go, bought at 2 XPR per Go)
   const [remainingGoes, setRemainingGoes] = useState<number>(5);
 
   // Dynamic live growing Weekly Prize Pool (increases directly as players purchase goes!)
@@ -106,14 +106,15 @@ const Index = () => {
     audioSynth.setMute(nextMuted);
   };
 
-  // Bulk buy goes transaction handler
+  // Bulk buy goes transaction handler (Rate: 2 XPR per Go)
   const handleBuyGoes = async (count: number) => {
     if (count <= 0) return;
+    const cost = count * 2;
 
-    if (balance < count) {
+    if (balance < cost) {
       toast({
         title: "Insufficient Balance",
-        description: `You need ${count} XPR to purchase ${count} goes. Deposit more tokens.`,
+        description: `You need ${cost} XPR to purchase ${count} goes. Deposit more tokens.`,
         variant: "destructive"
       });
       return;
@@ -126,7 +127,7 @@ const Index = () => {
           title: "Sending Signature Request",
           description: "Authorize the XPR goes purchase in your WebAuth app...",
         });
-        await protonService.transfer('tripseven', count, 'XPR', `Purchase ${count} climbs bundle - GUYS Summit`);
+        await protonService.transfer('tripseven', cost, 'XPR', `Purchase ${count} climbs bundle - GUYS Summit`);
       } catch (e) {
         toast({
           title: "Transaction Failed",
@@ -138,16 +139,16 @@ const Index = () => {
     }
 
     // Process payment success (Retain 5% for developer @tripseven, send 95% directly to weekly leaderboard pot)
-    const devCut = count * 0.05;
-    const poolContribution = count * 0.95;
+    const devCut = cost * 0.05;
+    const poolContribution = cost * 0.95;
 
-    setBalance(prev => prev - count);
+    setBalance(prev => prev - cost);
     setRemainingGoes(prev => prev + count);
     setPrizePool(prev => prev + poolContribution);
 
     toast({
       title: "Climbs Added!",
-      description: `Bought ${count} goes for ${count} XPR. Paid to @tripseven (5% retained, 95% added to Weekly Prize Pool!)`,
+      description: `Bought ${count} goes for ${cost} XPR. Paid to @tripseven (5% retained, 95% added to Weekly Prize Pool!)`,
     });
   };
 
@@ -471,7 +472,7 @@ const Index = () => {
             <div className="space-y-1">
               <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Climb runs cost 1 XPR. Stake tokens pool into the grand pot. At Sunday reset, 95% is distributed to the Top 15 players on the cabinet ledger. 5% developer cut to @tripseven.
+                Climb runs cost exactly 2 XPR. Stake tokens pool into the grand pot. At Sunday reset, 95% is distributed to the Top 15 players on the cabinet ledger. 5% developer cut to @tripseven.
               </p>
             </div>
 
@@ -604,7 +605,7 @@ const Index = () => {
                       <span className="text-[10px] text-slate-400 font-retro">CREDITS SLOTS</span>
                     </div>
                     <div className="text-[9px] text-slate-500 font-retro leading-relaxed mt-1">
-                      1 XPR inserts exactly 1 play. Feed the coin slots below to load climber goes.
+                      2 XPR inserts exactly 1 play. Feed the coin slots below to load climber goes.
                     </div>
                   </div>
 
@@ -615,7 +616,7 @@ const Index = () => {
                         <Coins className="h-4 w-4 text-yellow-400" /> COIN CHUTE
                       </span>
                       <span className="text-[9px] text-yellow-400 font-retro bg-yellow-400/10 px-2 py-1 rounded">
-                        1 XPR = 1 COIN
+                        2 XPR = 1 COIN
                       </span>
                     </div>
 
@@ -658,7 +659,7 @@ const Index = () => {
                             className="p-3 bg-slate-900 hover:bg-slate-800 border-2 border-cyan-500 text-xs font-retro text-cyan-400 hover:text-cyan-300 transition-all flex flex-col items-center justify-center gap-1 active:scale-95"
                           >
                             <span className="text-[11px] text-white">{amt} COINS</span>
-                            <span className="text-[8px] text-yellow-400">{amt} XPR</span>
+                            <span className="text-[8px] text-yellow-400">{amt * 2} XPR</span>
                           </button>
                         ))}
                       </div>
