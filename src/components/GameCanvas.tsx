@@ -21,6 +21,18 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
   // Track continuous parallax scrolls and particle dynamics
   const particlesRef = useRef<Array<{ x: number; y: number; speedY: number; speedX: number; size: number; color: string; alpha?: number }>>([]);
   const climberTrailRef = useRef<Array<{ x: number; y: number; alpha: number; color: string }>>([]);
+  
+  // Flying birds state engine
+  const birdsRef = useRef<Array<{ x: number; y: number; speedX: number; speedY: number; size: number; wingAngle: number; wingDir: number }>>([]);
+  
+  // Mountain goat state engine
+  const goatRef = useRef<{ x: number; active: boolean; timer: number; direction: number }>({
+    x: 0,
+    active: false,
+    timer: 0,
+    direction: 1
+  });
+
   const guyYOffsetRef = useRef<number>(240);
   const guyXRef = useRef<number>(250);
   const timeRef = useRef<number>(0);
@@ -106,17 +118,17 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         };
       case 'everest':
       default:
-        // Beautiful realistic Switzerland sunset fading from deep violet twilight to warm golden alpineglow
+        // Updated "Swiss Alps" preset: Beautiful sparkling alpine morning sunshine with vibrant blue gradient sky
         return {
-          bgGradStart: '#080f26',
-          bgGradMid: '#17183b',
-          bgGradEnd: '#502040',
-          mountainFar: '#0e111a',
-          mountainMid: '#171b29',
-          mountainNear: '#0c0f1a',
-          snowColor: '#f8fafc',
-          accentColor: '#38bdf8',
-          snowCrust: '#e2e8f0',
+          bgGradStart: '#0ea5e9', // Majestic bright azure
+          bgGradMid: '#38bdf8',  // Crisp alpine sky
+          bgGradEnd: '#e0f2fe',   // Sunny glowing snowy horizon
+          mountainFar: '#1e293b',
+          mountainMid: '#475569',
+          mountainNear: '#334155',
+          snowColor: '#ffffff',
+          accentColor: '#f59e0b',  // Vibrant golden sunshine
+          snowCrust: '#f8fafc',
         };
     }
   };
@@ -144,6 +156,20 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         alpha: 0.2 + Math.random() * 0.8
       });
     }
+
+    // Populate initial flying birds
+    birdsRef.current = [];
+    for (let b = 0; b < 3; b++) {
+      birdsRef.current.push({
+        x: Math.random() * canvas.width,
+        y: 50 + Math.random() * 80,
+        speedX: 0.8 + Math.random() * 1.2,
+        speedY: -0.15 + Math.random() * 0.3,
+        size: 5 + Math.random() * 3,
+        wingAngle: Math.random() * Math.PI,
+        wingDir: 0.08 + Math.random() * 0.08
+      });
+    }
   }, [cosmetics.weather]);
 
   useEffect(() => {
@@ -169,8 +195,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // SUNNY Presets: Volumetric solar flares, sun burst rays and detailed atmosphere
-      if (cosmetics.theme === 'sunny') {
+      // SUNNY & SWISS ALPS Presets: Volumetric solar flares, sun burst rays and detailed atmosphere
+      if (cosmetics.theme === 'sunny' || cosmetics.theme === 'everest') {
         const sunX = 750 - (verticalScrollRef.current * 0.04) % 150;
         const sunY = 80 + (verticalScrollRef.current * 0.01) % 50;
 
@@ -178,7 +204,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         const sunGrad = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, 90);
         sunGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
         sunGrad.addColorStop(0.1, 'rgba(254, 240, 138, 0.9)');
-        sunGrad.addColorStop(0.4, 'rgba(251, 191, 36, 0.2)');
+        sunGrad.addColorStop(0.4, 'rgba(251, 191, 36, 0.25)');
         sunGrad.addColorStop(1, 'rgba(251, 191, 36, 0)');
         ctx.fillStyle = sunGrad;
         ctx.beginPath();
@@ -201,7 +227,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       }
 
       // TWINKLING Starry Sky (For dark twilight/cosmic themes)
-      if (cosmetics.theme !== 'sunny' && cosmetics.theme !== 'rain') {
+      if (cosmetics.theme !== 'sunny' && cosmetics.theme !== 'everest' && cosmetics.theme !== 'rain') {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
         for (let i = 0; i < 55; i++) {
           const starX = (i * 97 - verticalScrollRef.current * 0.1) % canvas.width;
@@ -213,17 +239,45 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
       // Overcast Clouds scrolling for Rain/Everest scenery
       if (cosmetics.theme === 'rain' || cosmetics.theme === 'everest') {
-        ctx.fillStyle = cosmetics.theme === 'rain' ? 'rgba(71, 85, 105, 0.25)' : 'rgba(255, 255, 255, 0.06)';
+        // Soft white clouds for a sunny Swiss morning vs dark storm clouds for rain
+        ctx.fillStyle = cosmetics.theme === 'rain' ? 'rgba(71, 85, 105, 0.25)' : 'rgba(255, 255, 255, 0.85)';
         for (let i = 0; i < 4; i++) {
           const cloudX = (i * 320 - verticalScrollRef.current * 0.2) % (canvas.width + 200);
           const finalCloudX = cloudX < -150 ? cloudX + canvas.width + 300 : cloudX;
           ctx.beginPath();
-          ctx.arc(finalCloudX, 40 + i * 20, 60, 0, Math.PI * 2);
-          ctx.arc(finalCloudX + 40, 30 + i * 20, 75, 0, Math.PI * 2);
-          ctx.arc(finalCloudX - 40, 50 + i * 20, 55, 0, Math.PI * 2);
+          ctx.arc(finalCloudX, 40 + i * 15, 25, 0, Math.PI * 2);
+          ctx.arc(finalCloudX + 20, 35 + i * 15, 35, 0, Math.PI * 2);
+          ctx.arc(finalCloudX - 20, 45 + i * 15, 20, 0, Math.PI * 2);
           ctx.closePath();
           ctx.fill();
         }
+      }
+
+      // flying alpine birds animation engine
+      if (cosmetics.theme === 'everest' || cosmetics.theme === 'sunny') {
+        birdsRef.current.forEach((bird) => {
+          bird.x += bird.speedX;
+          bird.y += bird.speedY + Math.sin(t * 0.04 + bird.wingAngle) * 0.1;
+          bird.wingAngle += bird.wingDir;
+
+          // Wrap around screen
+          if (bird.x > canvas.width + 50) {
+            bird.x = -50;
+            bird.y = 40 + Math.random() * 90;
+          }
+
+          // Draw minimalist flying bird (V wings)
+          ctx.save();
+          ctx.strokeStyle = 'rgba(15, 23, 42, 0.6)';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          const flapY = Math.sin(bird.wingAngle) * bird.size * 0.7;
+          ctx.moveTo(bird.x - bird.size, bird.y + flapY);
+          ctx.lineTo(bird.x, bird.y);
+          ctx.lineTo(bird.x + bird.size, bird.y + flapY);
+          ctx.stroke();
+          ctx.restore();
+        });
       }
 
       // HIGH FIDELITY GEOMETRY: Far Mountains Silhouette scrolling down-left
@@ -350,6 +404,84 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         else ctx.lineTo(x, getSlopeY(x) + 8);
       }
       ctx.stroke();
+
+      // MOUNTAIN GOAT ENGINE (Occasionally climbs & stands on Swiss peaks)
+      if (cosmetics.theme === 'everest' || cosmetics.theme === 'sunny') {
+        const goat = goatRef.current;
+        if (!goat.active) {
+          goat.timer++;
+          // High spawn chance every 400 animation cycles
+          if (goat.timer > 400 && Math.random() < 0.012) {
+            goat.active = true;
+            goat.direction = Math.random() > 0.5 ? 1 : -1;
+            goat.x = goat.direction === 1 ? -60 : canvas.width + 60;
+            goat.timer = 0;
+          }
+        } else {
+          // Slow scenic alpine trot
+          goat.x += goat.direction * 0.85;
+          const goatY = getSlopeY(goat.x);
+
+          // Draw Cute Mountain Goat Vector Shape
+          ctx.save();
+          ctx.translate(goat.x, goatY - 14); // Offset slightly above the ground slope
+          ctx.scale(goat.direction, 1);
+
+          // Cute curved black horns
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(3, -6, 5, Math.PI, Math.PI * 1.5);
+          ctx.stroke();
+
+          // Animated little legs
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 2.2;
+          const legBob = Math.sin(t * 0.12) * 3.5;
+          ctx.beginPath();
+          // Front legs
+          ctx.moveTo(3, 3); ctx.lineTo(3 + legBob, 10);
+          ctx.moveTo(5, 3); ctx.lineTo(5 - legBob, 10);
+          // Back legs
+          ctx.moveTo(-5, 3); ctx.lineTo(-5 - legBob, 10);
+          ctx.moveTo(-3, 3); ctx.lineTo(-3 + legBob, 10);
+          ctx.stroke();
+
+          // Fluffy white body
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 9, 6, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Head & Neck
+          ctx.beginPath();
+          ctx.arc(5, -4, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Little black eye
+          ctx.fillStyle = '#000000';
+          ctx.beginPath();
+          ctx.arc(6, -5, 0.7, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Mountain Goat Goatee beard
+          ctx.fillStyle = '#e2e8f0';
+          ctx.beginPath();
+          ctx.moveTo(3, -1);
+          ctx.lineTo(2, 4);
+          ctx.lineTo(5, 2);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.restore();
+
+          // Remove offscreen
+          if ((goat.direction === 1 && goat.x > canvas.width + 80) || 
+              (goat.direction === -1 && goat.x < -80)) {
+            goat.active = false;
+          }
+        }
+      }
 
       // Milestone flags
       const milestones = [
