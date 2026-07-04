@@ -492,10 +492,223 @@ const Index = () => {
           
           {/* Standard Climb Screen */}
           {activeTab === 'climb' && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               
-              {/* Short explainer game hero section */}
-              <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border-2 border-indigo-500/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl">
+              {/* Live Apex ticker right at the top for real-time vibe */}
+              <HighScoresTicker />
+
+              {/* Side-by-Side Classic Crash Layout: Game on Left, Controller Console on Right */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                
+                {/* Left Area: Canvas screen & Instant altitude details */}
+                <div className="xl:col-span-8 space-y-6">
+                  <GameCanvas
+                    multiplier={multiplier}
+                    gameState={gameState}
+                    cosmetics={cosmetics}
+                  />
+
+                  {/* Altitude metrics & dynamic details stacked immediately below canvas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Altitude Display Panel */}
+                    <div className="p-5 bg-slate-905 border border-slate-800/80 rounded-2xl shadow-xl flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-yellow-400 font-black tracking-wider uppercase flex items-center gap-1 font-mono">
+                          <Flame className="h-4 w-4 text-yellow-400 animate-pulse" /> ALTITUDE
+                        </span>
+                        <div className="text-4xl font-black text-white font-mono tracking-tighter mt-0.5">
+                          {multiplier.toFixed(2)}<span className="text-yellow-400 text-2xl font-black ml-0.5">x</span>
+                        </div>
+                      </div>
+                      <div className="h-10 w-[1px] bg-slate-800" />
+                      <div className="flex flex-col text-right">
+                        <span className="text-[10px] text-slate-400 font-black tracking-wider uppercase font-mono">RECOVERED</span>
+                        <div className="text-2xl font-black text-emerald-400 font-mono tracking-tight mt-0.5">
+                          {(betAmount * multiplier).toFixed(2)} <span className="text-[10px] text-slate-400 font-bold font-sans">XPR</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Slope & Environment details */}
+                    <div className="grid grid-cols-2 gap-4 p-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl shadow-xl">
+                      <div className="flex items-center gap-2.5">
+                        <Mountain className="h-4 w-4 text-yellow-400 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] text-slate-400 uppercase font-mono font-black block leading-none">SLOPE</span>
+                          <span className="text-xs font-bold text-white block mt-0.5 truncate capitalize">{cosmetics.theme}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 border-l border-slate-850 pl-3">
+                        <ShieldAlert className="h-4 w-4 text-yellow-400 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] text-slate-400 uppercase font-mono font-black block leading-none">RISK</span>
+                          <span className={`text-xs font-black block mt-0.5 truncate ${
+                            multiplier < 1.5 ? 'text-emerald-400' :
+                            multiplier < 3.0 ? 'text-yellow-400' : 'text-rose-500 animate-pulse'
+                          }`}>
+                            {multiplier < 1.5 ? 'SAFE' :
+                             multiplier < 3.0 ? 'VELOCITY' : 'AVALANCHE'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Area: Ascent Controller action console right next to canvas */}
+                <div className="xl:col-span-4 space-y-6">
+                  
+                  {/* Ascent Console Control Box */}
+                  <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-5 shadow-2xl">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                      <span className="text-xs font-black text-white uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <Coins className="h-4 w-4 text-yellow-400" /> Ascent Console
+                      </span>
+                      <span className="text-[9px] text-yellow-400 font-mono bg-yellow-400/10 px-2 py-0.5 rounded border border-yellow-400/20 font-black">
+                        XPR EXCLUSIVE
+                      </span>
+                    </div>
+
+                    {/* Synced Custom XPR input field directly replacing the auto-secure field */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-300 uppercase tracking-wider block">Custom Stake (XPR)</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.0001"
+                          min="0.0001"
+                          placeholder="Enter customized XPR amount..."
+                          value={betInputText}
+                          onChange={(e) => handleInputChange(e.target.value)}
+                          disabled={gameState === 'climbing'}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-yellow-500 placeholder-slate-600"
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-mono font-black text-slate-500 uppercase">
+                          XPR
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stake Selector */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-300 uppercase tracking-wider block">Or Select Preset</label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[10, 25, 50, 100].map((amt) => (
+                          <button
+                            key={amt}
+                            onClick={() => handlePresetSelect(amt)}
+                            disabled={gameState === 'climbing'}
+                            className={`py-2 rounded-lg text-xs font-black transition-all border ${
+                              betAmount === amt
+                                ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
+                                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
+                            }`}
+                          >
+                            {amt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Large High-Contrast Climb Trigger Action */}
+                    <div className="pt-1">
+                      {gameState === 'climbing' ? (
+                        <button
+                          onClick={handleBank}
+                          className="w-full py-4.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:opacity-95 text-slate-950 font-black tracking-wider text-xs shadow-2xl border border-emerald-300 transition-all flex flex-col items-center justify-center gap-1.5 animate-pulse"
+                        >
+                          <span className="text-[9px] uppercase font-black tracking-widest text-slate-900 opacity-90 leading-none">SECURE HARNESS & RETREAT</span>
+                          <span className="text-sm font-mono font-black text-slate-950 leading-none">
+                            BANK NOW: {(betAmount * multiplier).toFixed(4)} XPR
+                          </span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleStartClimb}
+                          className="w-full py-4.5 rounded-xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-widest text-xs shadow-2xl border border-yellow-300 transition-all flex items-center justify-center gap-2 uppercase"
+                        >
+                          <span>LAUNCH EXPEDITION</span>
+                          <ArrowUpRight className="h-4.5 w-4.5 text-slate-950" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Climber Atmosphere Selector */}
+                  <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-4 shadow-2xl">
+                    <span className="text-xs font-black text-white uppercase tracking-wider font-mono flex items-center gap-1.5 pb-2 border-b border-slate-800">
+                      <Sparkles className="h-4 w-4 text-yellow-400" /> Environment
+                    </span>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => handleSceneryPreset('sunny', 'clear')}
+                        className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between h-[75px] ${
+                          cosmetics.theme === 'sunny' && cosmetics.weather === 'clear'
+                            ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
+                            : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+                        }`}
+                      >
+                        <Sun className="h-4 w-4 text-yellow-400" />
+                        <div>
+                          <div className="text-[10px] font-black">Sunny Peak</div>
+                          <div className="text-[8px] text-slate-500 leading-none mt-0.5">Clear Skies</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSceneryPreset('rain', 'rain')}
+                        className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between h-[75px] ${
+                          cosmetics.theme === 'rain' && cosmetics.weather === 'rain'
+                            ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
+                            : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+                        }`}
+                      >
+                        <CloudRain className="h-4 w-4 text-slate-300" />
+                        <div>
+                          <div className="text-[10px] font-black">Storm Slabs</div>
+                          <div className="text-[8px] text-slate-500 leading-none mt-0.5">Overcast Wet</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSceneryPreset('everest', 'snow')}
+                        className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between h-[75px] ${
+                          cosmetics.theme === 'everest' && cosmetics.weather === 'snow'
+                            ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
+                            : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+                        }`}
+                      >
+                        <Mountain className="h-4 w-4 text-slate-300" />
+                        <div>
+                          <div className="text-[10px] font-black">Swiss Alps</div>
+                          <div className="text-[8px] text-slate-500 leading-none mt-0.5">Snow Twilight</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSceneryPreset('cyber', 'neonrain')}
+                        className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between h-[75px] ${
+                          cosmetics.theme === 'cyber' && cosmetics.weather === 'neonrain'
+                            ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
+                            : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+                        }`}
+                      >
+                        <Sparkles className="h-4 w-4 text-yellow-400" />
+                        <div>
+                          <div className="text-[10px] font-black">Neon Ridge</div>
+                          <div className="text-[8px] text-slate-500 leading-none mt-0.5">Showers</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Informative game description moved out of the way of the live gameplay action */}
+              <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border-2 border-indigo-500/10 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl mt-6">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
                 <div className="space-y-3 max-w-xl">
                   <div className="flex items-center gap-2">
@@ -521,236 +734,6 @@ const Index = () => {
                 </div>
               </div>
 
-              <HighScoresTicker />
-
-              <div className="space-y-6">
-                <div>
-                  <GameCanvas
-                    multiplier={multiplier}
-                    gameState={gameState}
-                    cosmetics={cosmetics}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                  
-                  {/* Dedicated Altitude Display panel */}
-                  <div className="md:col-span-5 p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-[11px] text-yellow-400 font-black tracking-wider uppercase flex items-center gap-1.5 font-mono">
-                        <Flame className="h-4 w-4 text-yellow-400 animate-pulse" /> CURRENT ALTITUDE
-                      </span>
-                      <div className="text-5xl md:text-6xl font-black text-white font-mono tracking-tighter mt-1">
-                        {multiplier.toFixed(2)}<span className="text-yellow-400 text-3xl font-black ml-0.5">x</span>
-                      </div>
-                    </div>
-                    <div className="h-12 w-[1px] bg-slate-800" />
-                    <div className="flex flex-col text-right">
-                      <span className="text-[11px] text-slate-400 font-black tracking-wider uppercase font-mono">EST. RECOVERED</span>
-                      <div className="text-2xl md:text-3xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
-                        {(betAmount * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold font-sans">XPR</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Environment details */}
-                  <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-2xl shadow-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
-                        <Mountain className="h-5 w-5 text-yellow-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SLOPE</span>
-                        <span className="text-sm font-bold text-white block mt-1 truncate capitalize">{cosmetics.theme}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 border-y sm:border-y-0 sm:border-x border-slate-850 py-3 sm:py-0 sm:px-4">
-                      <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
-                        <Sparkles className="h-5 w-5 text-yellow-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">RISK</span>
-                        <span className={`text-sm font-black block mt-1 truncate ${
-                          multiplier < 1.5 ? 'text-emerald-400' :
-                          multiplier < 3.0 ? 'text-yellow-400' : 'text-rose-500 animate-pulse'
-                        }`}>
-                          {multiplier < 1.5 ? 'SAFE' :
-                           multiplier < 3.0 ? 'VELOCITY' : 'AVALANCHE'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
-                        <ShieldAlert className="h-5 w-5 text-yellow-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SPEED</span>
-                        <span className="text-sm font-bold text-yellow-400 font-mono block mt-1 truncate">
-                          {Math.floor(multiplier * 18)} km/h
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* CONTROLS AREA */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                
-                {/* Climber Controller Action Box */}
-                <div className="md:col-span-7 p-7 bg-slate-900 border border-slate-800 rounded-2xl space-y-6 shadow-2xl">
-                  <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
-                    <span className="text-base font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
-                      <Coins className="h-5 w-5 text-yellow-400" /> Ascent Console
-                    </span>
-                    <span className="text-xs text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded border border-yellow-400/20 font-black">
-                      XPR EXCLUSIVE
-                    </span>
-                  </div>
-
-                  {/* Stake Selector */}
-                  <div className="space-y-4">
-                    <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Expedition Stake presets (XPR)</label>
-                    <div className="grid grid-cols-4 gap-2.5">
-                      {[10, 25, 50, 100].map((amt) => (
-                        <button
-                          key={amt}
-                          onClick={() => handlePresetSelect(amt)}
-                          disabled={gameState === 'climbing'}
-                          className={`py-4 rounded-xl text-base font-black transition-all border ${
-                            betAmount === amt
-                              ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
-                              : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
-                          }`}
-                        >
-                          {amt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Synced Custom XPR input field directly replacing the auto-secure field */}
-                  <div className="space-y-3">
-                    <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Custom Stake (XPR)</label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        step="0.0001"
-                        min="0.0001"
-                        placeholder="Enter customized XPR amount..."
-                        value={betInputText}
-                        onChange={(e) => handleInputChange(e.target.value)}
-                        disabled={gameState === 'climbing'}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
-                      />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-black text-slate-500 uppercase">
-                        XPR
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-slate-500 block font-mono">
-                      XPR Network Token Explorer contract reference: <a href="https://explorer.xprnetwork.org/tokens/XPR-proton-eosio.token" target="_blank" rel="noopener noreferrer" className="text-yellow-500/80 hover:text-yellow-400 underline">eosio.token</a>
-                    </span>
-                  </div>
-
-                  {/* Large High-Contrast Climb Trigger Action */}
-                  <div className="pt-3">
-                    {gameState === 'climbing' ? (
-                      <button
-                        onClick={handleBank}
-                        className="w-full py-6 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:opacity-95 text-slate-950 font-black tracking-wider text-base shadow-2xl border-2 border-emerald-300 transition-all flex flex-col items-center justify-center gap-2 animate-pulse"
-                      >
-                        <span className="text-xs uppercase font-black tracking-widest text-slate-900 opacity-90">SECURE HARNESS & RETREAT</span>
-                        <span className="text-xl font-mono font-black text-slate-950">
-                          BANK NOW: {(betAmount * multiplier).toFixed(4)} XPR
-                        </span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleStartClimb}
-                        className="w-full py-6.5 rounded-2xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-widest text-base shadow-2xl border border-yellow-300 transition-all flex items-center justify-center gap-3 uppercase"
-                      >
-                        <span>LAUNCH EXPEDITION</span>
-                        <ArrowUpRight className="h-6 w-6 text-slate-950" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Scenic Controller Presets Box */}
-                <div className="md:col-span-5 p-7 bg-slate-900 border border-slate-800 rounded-2xl space-y-5 shadow-2xl">
-                  <div className="pb-3.5 border-b border-slate-800">
-                    <span className="text-sm font-black text-white uppercase tracking-wider font-mono flex items-center gap-2.5">
-                      <Sparkles className="h-5 w-5 text-yellow-400" /> Climber Environment
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => handleSceneryPreset('sunny', 'clear')}
-                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
-                        cosmetics.theme === 'sunny' && cosmetics.weather === 'clear'
-                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
-                      }`}
-                    >
-                      <Sun className="h-5 w-5 text-yellow-400" />
-                      <div>
-                        <div className="text-xs font-black">Sunny Peak</div>
-                        <div className="text-[10px] text-slate-500 leading-none mt-1">Clear Skies</div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => handleSceneryPreset('rain', 'rain')}
-                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
-                        cosmetics.theme === 'rain' && cosmetics.weather === 'rain'
-                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
-                      }`}
-                    >
-                      <CloudRain className="h-5 w-5 text-slate-300" />
-                      <div>
-                        <div className="text-xs font-black">Storm Slabs</div>
-                        <div className="text-[10px] text-slate-500 leading-none mt-1">Overcast Wet</div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => handleSceneryPreset('everest', 'snow')}
-                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
-                        cosmetics.theme === 'everest' && cosmetics.weather === 'snow'
-                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
-                      }`}
-                    >
-                      <Mountain className="h-5 w-5 text-slate-300" />
-                      <div>
-                        <div className="text-xs font-black">Swiss Alps</div>
-                        <div className="text-[10px] text-slate-500 leading-none mt-1">Snow Twilight</div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => handleSceneryPreset('cyber', 'neonrain')}
-                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
-                        cosmetics.theme === 'cyber' && cosmetics.weather === 'neonrain'
-                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
-                      }`}
-                    >
-                      <Sparkles className="h-5 w-5 text-yellow-400" />
-                      <div>
-                        <div className="text-xs font-black">Neon Ridge</div>
-                        <div className="text-[10px] text-slate-500 leading-none mt-1">Showers</div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-              </div>
             </div>
           )}
 
