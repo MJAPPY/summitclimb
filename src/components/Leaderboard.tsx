@@ -19,7 +19,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
   const [timeLeft, setTimeLeft] = useState<string>('04d : 12h : 38m : 45s');
   const participants = 1420;
 
-  // Custom mock high-tier players representing global climbs - expanded to 15 with precise % splits summing to 100%
+  // Custom mock high-tier players representing global climbs
   const [competitors, setCompetitors] = useState<Competitor[]>([
     { rank: 1, username: 'SummitGoat_99', bestScore: 28.42, gamesPlayed: 85, country: '🇨🇦 CA', avatar: '🏔', prizeFraction: 25.0 },
     { rank: 2, username: 'GUY_Enjoyer_X', bestScore: 22.15, gamesPlayed: 142, country: '🇺🇸 US', avatar: '🦁', prizeFraction: 16.0 },
@@ -118,7 +118,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
         <div className="flex items-center gap-2.5">
           <ShieldAlert className="h-5 w-5 text-violet-400" />
           <div className="text-xs text-slate-300">
-            Current payout breakdown utilizes <span className="font-bold text-violet-300">Admin Config: top-15-decay-v1</span>
+            Current pool represents 95% of total goes purchased, with <span className="font-bold text-violet-300">@tripseven retaining a 5% distribution fee.</span>
           </div>
         </div>
         <div className="flex gap-2 flex-wrap justify-center">
@@ -132,7 +132,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
       {/* Leaderboard Table list */}
       <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-5 overflow-hidden shadow-xl">
         <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <Award className="h-5 w-5 text-yellow-500" /> Top Altitude Leaderboard (Top 15 Split)
+          <Award className="h-5 w-5 text-yellow-500" /> Top Altitude Leaderboard (95% Prize Split)
         </h3>
 
         <div className="overflow-x-auto">

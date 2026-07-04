@@ -30,7 +30,8 @@ import {
   Coins,
   ChevronRight,
   Gift,
-  Award
+  Award,
+  Zap
 } from 'lucide-react';
 
 const Index = () => {
@@ -51,7 +52,11 @@ const Index = () => {
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(45);
 
-  // Dynamic live growing Weekly Prize Pool (increases directly as players stake entry fees!)
+  // Remaining climbs / goes (each climb costs exactly 1 Go)
+  const [remainingGoes, setRemainingGoes] = useState<number>(5);
+
+  // Dynamic live growing Weekly Prize Pool (increases directly as players purchase goes!)
+  // Calculated dynamically as 95% of total purchases added to base pool
   const [prizePool, setPrizePool] = useState<number>(25000);
 
   // Stats
@@ -62,10 +67,9 @@ const Index = () => {
   // Active climb mechanics state
   const [gameState, setGameState] = useState<'idle' | 'climbing' | 'banked' | 'collapsed'>('idle');
   const [multiplier, setMultiplier] = useState<number>(1.00);
-  
-  // Stake states - single synced state for intuitive control
-  const [betAmount, setBetAmount] = useState<number>(10);
-  const [betInputText, setBetInputText] = useState<string>('10');
+
+  // Custom bulk goes purchase custom amount state
+  const [customGoesInput, setCustomGoesInput] = useState<string>('10');
 
   // Hidden crash point calculation
   const [hiddenCollapsePoint, setHiddenCollapsePoint] = useState<number>(0);
@@ -102,48 +106,66 @@ const Index = () => {
     audioSynth.setMute(nextMuted);
   };
 
-  // Sync preset clicks to the main input field
-  const handlePresetSelect = (amount: number) => {
-    setBetAmount(amount);
-    setBetInputText(amount.toString());
-  };
+  // Bulk buy goes transaction handler
+  const handleBuyGoes = async (count: number) => {
+    if (count <= 0) return;
 
-  // Sync typing input back to numerical value
-  const handleInputChange = (val: string) => {
-    setBetInputText(val);
-    const parsed = parseFloat(val);
-    if (!isNaN(parsed) && parsed > 0) {
-      setBetAmount(parsed);
-    } else {
-      setBetAmount(0);
+    if (balance < count) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You need ${count} XPR to purchase ${count} goes. Deposit more tokens.`,
+        variant: "destructive"
+      });
+      return;
     }
+
+    // Attempt real mainnet transfer to @tripseven if wallet is connected
+    if (walletConnected) {
+      try {
+        toast({
+          title: "Sending Signature Request",
+          description: "Authorize the XPR goes purchase in your WebAuth app...",
+        });
+        await protonService.transfer('tripseven', count, 'XPR', `Purchase ${count} climbs bundle - GUYS Summit`);
+      } catch (e) {
+        toast({
+          title: "Transaction Failed",
+          description: "Signature request was rejected by WebAuth link.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Process payment success (Retain 5% for developer @tripseven, send 95% directly to weekly leaderboard pot)
+    const devCut = count * 0.05;
+    const poolContribution = count * 0.95;
+
+    setBalance(prev => prev - count);
+    setRemainingGoes(prev => prev + count);
+    setPrizePool(prev => prev + poolContribution);
+
+    toast({
+      title: "Climbs Added!",
+      description: `Bought ${count} goes for ${count} XPR. Paid to @tripseven (5% retained, 95% added to Weekly Prize Pool!)`,
+    });
   };
 
-  // Start ascending summit climb
+  // Start ascending summit climb (costs exactly 1 remaining go)
   const handleStartClimb = () => {
     if (gameState === 'climbing') return;
 
-    if (betAmount <= 0) {
+    if (remainingGoes <= 0) {
       toast({
-        title: "Invalid Bet Amount",
-        description: "Please specify a valid stake greater than 0.",
+        title: "No Goes Left",
+        description: "Please buy more goes using the console on the right to start climbing!",
         variant: "destructive"
       });
       return;
     }
 
-    if (balance < betAmount) {
-      toast({
-        title: "Insufficient Balance",
-        description: "Deposit more tokens using the wallet interface above.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Entry Fee committed - Deduct balance and directly feed it into the Live Weekly Pot!
-    setBalance(prev => prev - betAmount);
-    setPrizePool(prev => prev + betAmount);
+    // Deduct exactly 1 climb go
+    setRemainingGoes(prev => prev - 1);
     
     setMultiplier(1.00);
     setGameState('climbing');
@@ -163,7 +185,7 @@ const Index = () => {
 
     toast({
       title: "Climb Initiated",
-      description: `Bet of ${betAmount.toFixed(4)} XPR contributed to the Weekly Prize Pool. GUY is climbing!`,
+      description: "1 go consumed. Get ready to lock in before the avalanche!",
     });
   };
 
@@ -241,7 +263,7 @@ const Index = () => {
     }
 
     return () => clearInterval(interval);
-  }, [gameState, hiddenCollapsePoint, betAmount]);
+  }, [gameState, hiddenCollapsePoint]);
 
   const handleSceneryPreset = (
     theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic',
@@ -453,9 +475,9 @@ const Index = () => {
             </div>
 
             <div className="space-y-1">
-              <h4 className="text-lg font-black text-white">Top 15 Climbers Split</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Reach the highest altitude multipliers! When the weekly countdown ends, the entire prize pool is decay-split to the Top 15 players on the leaderboard automatically.
+              <h4 className="text-lg font-black text-white">95% Pool Payoff Model</h4>
+              <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                Climb goes cost exactly 1 XPR. Bulk goes purchases fund the Weekly Prize Pool (95% distributed to Top 15 players, 5% retained by developer @tripseven).
               </p>
             </div>
 
@@ -583,51 +605,72 @@ const Index = () => {
                 {/* Right Area: Ascent Controller settings panel next to canvas */}
                 <div className="xl:col-span-4 space-y-6">
                   
-                  {/* Ascent Console Control Box */}
+                  {/* Expedition Go Counter Panel */}
+                  <div className="p-6 bg-gradient-to-br from-violet-900/10 via-slate-900 to-slate-950 border-2 border-violet-500/20 rounded-2xl space-y-4 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-violet-500/5 rounded-full blur-md" />
+                    <span className="text-xs font-black text-violet-400 uppercase tracking-widest font-mono block">
+                      EXPEDITION STOCK
+                    </span>
+                    <div className="flex items-baseline justify-between mt-2">
+                      <span className="text-3xl font-black text-white font-mono">{remainingGoes}</span>
+                      <span className="text-xs text-slate-400 font-bold uppercase font-sans">Remaining Climbs</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono leading-relaxed mt-1">
+                      Each climb costs exactly 1 Go. Purchase goes below using your XPR balance.
+                    </div>
+                  </div>
+
+                  {/* Bulk Goes Purchase Console */}
                   <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-5 shadow-2xl">
                     <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                       <span className="text-sm font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
-                        <Coins className="h-5 w-5 text-yellow-400" /> Stake Console
+                        <Coins className="h-5 w-5 text-yellow-400" /> Bulk Purchase Goes
                       </span>
                       <span className="text-xs text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-1 rounded border border-yellow-400/20 font-black">
-                        XPR NATIVE
+                        1 XPR = 1 GO
                       </span>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Custom Stake (XPR)</label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          step="0.0001"
-                          min="0.0001"
-                          placeholder="Enter customized XPR amount..."
-                          value={betInputText}
-                          onChange={(e) => handleInputChange(e.target.value)}
-                          disabled={gameState === 'climbing'}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-black text-slate-550 uppercase">
-                          XPR
+                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Or Custom Goes Count</label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="number"
+                            placeholder="Goes amount..."
+                            value={customGoesInput}
+                            onChange={(e) => setCustomGoesInput(e.target.value)}
+                            disabled={gameState === 'climbing'}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
+                          />
                         </div>
+                        <button
+                          onClick={() => {
+                            const parsed = parseInt(customGoesInput);
+                            if (!isNaN(parsed) && parsed > 0) {
+                              handleBuyGoes(parsed);
+                            }
+                          }}
+                          disabled={gameState === 'climbing'}
+                          className="px-5 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-all"
+                        >
+                          Buy
+                        </button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Or Select Preset</label>
-                      <div className="grid grid-cols-4 gap-2.5">
-                        {[10, 25, 50, 100].map((amt) => (
+                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Standard Bundles</label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {[5, 15, 50, 100].map((amt) => (
                           <button
                             key={amt}
-                            onClick={() => handlePresetSelect(amt)}
+                            onClick={() => handleBuyGoes(amt)}
                             disabled={gameState === 'climbing'}
-                            className={`py-3 rounded-lg text-sm font-black transition-all border ${
-                              betAmount === amt
-                                ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
-                                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
+                            className="p-3 bg-slate-950 hover:bg-slate-850 border border-slate-850 rounded-xl text-xs font-black text-slate-300 hover:text-white transition-all flex flex-col items-center justify-center gap-1"
                           >
-                            {amt}
+                            <span className="text-base text-white">{amt} Goes</span>
+                            <span className="text-[10px] text-yellow-400 font-mono font-bold">{amt} XPR</span>
                           </button>
                         ))}
                       </div>

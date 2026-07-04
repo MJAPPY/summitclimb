@@ -112,9 +112,9 @@ export const AdminPanel: React.FC = () => {
 
         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {[
+            { tag: 'COMMISSION', desc: 'Web3 payout set to 95% prize pool, @tripseven retains 5%', date: 'Just now' },
             { tag: 'SEED', desc: 'Secure hash cycled successfully', date: '5 mins ago' },
             { tag: 'WALLET', desc: 'Payment contract audit confirmed with zero flags', date: '1 hour ago' },
-            { tag: 'POOL', desc: 'Season 4 pool initialized with 12,500 CLIMB', date: 'Yesterday' },
           ].map((log, i) => (
             <div key={i} className="p-2.5 bg-slate-950/40 rounded-lg border border-white/5 text-[11px]">
               <div className="flex justify-between font-bold text-white">
