@@ -375,7 +375,7 @@ const Index = () => {
               onClick={handleConnectWallet}
               className="bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-retro px-4 py-2.5 text-xs tracking-wider transition-all flex items-center gap-2 border-2 border-black shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none"
             >
-              <Wallet className="h-4 w-4" /> LINK WALLET
+              <Wallet className="h-4 w-4" /> CONNECT WEBAUTH
             </button>
           )}
         </div>
