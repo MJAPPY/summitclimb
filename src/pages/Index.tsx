@@ -148,8 +148,8 @@ const Index = () => {
       }
     }
 
-    // Process payment success (Retain 5% operator fee, send 95% directly to weekly leaderboard pot)
-    const poolContribution = cost * 0.95;
+    // Process payment success (Retain 7% operator fee, send 93% directly to weekly leaderboard pot)
+    const poolContribution = cost * 0.93;
 
     setBalance(prev => prev - cost);
     setRemainingGoes(prev => prev + count);
@@ -157,7 +157,7 @@ const Index = () => {
 
     toast({
       title: "Climbs Added!",
-      description: `Bought ${count} games for ${cost} XPR. (5% operator fee retained, 95% added to Weekly Prize Pool!)`,
+      description: `Bought ${count} games for ${cost} XPR. (7% operator fee retained, 93% added to Weekly Prize Pool!)`,
     });
   };
 
@@ -492,7 +492,7 @@ const Index = () => {
             <div className="space-y-1">
               <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Climb runs cost exactly 2 XPR. Stake tokens pool into the grand pot. At Sunday reset, 95% is distributed to the Top 15 players on the cabinet ledger. 5% developer cut to payment contract.
+                Climb runs cost exactly 2 XPR. Stake tokens pool into the grand pot. At Sunday reset, 93% is distributed to the Top 15 players on the cabinet ledger. 7% developer cut to payment contract.
               </p>
             </div>
 

@@ -34,7 +34,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
             <span className="text-xs font-retro text-cyan-400 ml-1">XPR</span>
           </div>
           <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
-            95% redistributed to top climbers
+            93% redistributed to top climbers
           </div>
         </div>
 

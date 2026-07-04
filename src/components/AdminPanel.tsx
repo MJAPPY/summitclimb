@@ -112,7 +112,7 @@ export const AdminPanel: React.FC = () => {
 
         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {[
-            { tag: 'COMMISSION', desc: 'Web3 payout set to 95% prize pool, operator retains 5%', date: 'Just now' },
+            { tag: 'COMMISSION', desc: 'Web3 payout set to 93% prize pool, operator retains 7%', date: 'Just now' },
             { tag: 'SEED', desc: 'Secure hash cycled successfully', date: '5 mins ago' },
             { tag: 'WALLET', desc: 'Payment contract audit confirmed with zero flags', date: '1 hour ago' },
           ].map((log, i) => (
