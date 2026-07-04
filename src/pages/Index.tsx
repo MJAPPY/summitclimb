@@ -29,9 +29,7 @@ import {
   CheckCircle2,
   Coins,
   ChevronRight,
-  Info,
   Gift,
-  Zap,
   Award
 } from 'lucide-react';
 
@@ -303,7 +301,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Wallet trigger & settings with askguy.app dynamic header credentials */}
+        {/* Wallet trigger & settings with askguy.app credentials */}
         <div className="flex items-center gap-4">
           <button
             onClick={toggleMute}
@@ -348,7 +346,7 @@ const Index = () => {
         
         {/* Responsive, highly stylized Sidebar Navigation */}
         <aside className="lg:col-span-3 space-y-6">
-          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-800/80 rounded-3xl p-6 space-y-4 shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-800/80 rounded-3xl p-5 space-y-4 shadow-2xl relative overflow-hidden">
             <div className="absolute -top-12 -left-12 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -364,77 +362,77 @@ const Index = () => {
             <div className="space-y-2">
               <button
                 onClick={() => setActiveTab('climb')}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
                   activeTab === 'climb' 
                     ? 'bg-gradient-to-r from-yellow-500/15 via-amber-500/10 to-transparent border-yellow-500/30 text-white shadow-xl shadow-yellow-500/5' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <Compass className={`h-4.5 w-4.5 ${activeTab === 'climb' ? 'text-yellow-400' : 'text-slate-500 group-hover:text-white'}`} /> 
-                  Launch Expedition
+                <span className="flex items-center gap-3 min-w-0">
+                  <Compass className={`h-4.5 w-4.5 shrink-0 ${activeTab === 'climb' ? 'text-yellow-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  <span className="truncate">Launch Expedition</span>
                 </span>
-                <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
               <button
                 onClick={() => setActiveTab('leaderboard')}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
                   activeTab === 'leaderboard' 
                     ? 'bg-gradient-to-r from-violet-500/15 via-indigo-500/10 to-transparent border-violet-500/30 text-white shadow-xl shadow-violet-500/5' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <Trophy className={`h-4.5 w-4.5 ${activeTab === 'leaderboard' ? 'text-violet-400' : 'text-slate-500 group-hover:text-white'}`} /> 
-                  Leaderboards
+                <span className="flex items-center gap-3 min-w-0">
+                  <Trophy className={`h-4.5 w-4.5 shrink-0 ${activeTab === 'leaderboard' ? 'text-violet-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  <span className="truncate">Leaderboards</span>
                 </span>
-                <span className="text-[10px] bg-violet-500/20 text-violet-300 font-mono px-2 py-0.5 rounded-md font-bold">TOP 15</span>
+                <span className="text-[9px] bg-violet-500/20 text-violet-300 font-mono px-1.5 py-0.5 rounded font-bold shrink-0">TOP 15</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
                   activeTab === 'profile' 
                     ? 'bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border-emerald-500/30 text-white shadow-xl shadow-emerald-500/5' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <User className={`h-4.5 w-4.5 ${activeTab === 'profile' ? 'text-emerald-400' : 'text-slate-500 group-hover:text-white'}`} /> 
-                  Achievements
+                <span className="flex items-center gap-3 min-w-0">
+                  <User className={`h-4.5 w-4.5 shrink-0 ${activeTab === 'profile' ? 'text-emerald-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  <span className="truncate">Achievements</span>
                 </span>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono px-2 py-0.5 rounded-md font-bold">5 Lvl</span>
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
               <button
                 onClick={() => setActiveTab('replays')}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
                   activeTab === 'replays' 
                     ? 'bg-gradient-to-r from-indigo-500/15 via-blue-500/10 to-transparent border-indigo-500/30 text-white shadow-xl shadow-indigo-500/5' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <History className={`h-4.5 w-4.5 ${activeTab === 'replays' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-white'}`} /> 
-                  Ascent Replays
+                <span className="flex items-center gap-3 min-w-0">
+                  <History className={`h-4.5 w-4.5 shrink-0 ${activeTab === 'replays' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  <span className="truncate">Ascent Replays</span>
                 </span>
-                <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
                   activeTab === 'admin' 
                     ? 'bg-gradient-to-r from-rose-500/15 via-pink-500/10 to-transparent border-rose-500/30 text-white shadow-xl shadow-rose-500/5' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <Settings className={`h-4.5 w-4.5 ${activeTab === 'admin' ? 'text-rose-400' : 'text-slate-500 group-hover:text-white'}`} /> 
-                  Admin Control
+                <span className="flex items-center gap-3 min-w-0">
+                  <Settings className={`h-4.5 w-4.5 shrink-0 ${activeTab === 'admin' ? 'text-rose-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  <span className="truncate">Admin Control</span>
                 </span>
-                <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>
@@ -469,21 +467,26 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Mini active player badge */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4.5 relative overflow-hidden shadow-xl">
+          {/* Mini active player badge - FIXED OVERLAP & ALIGNMENT */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/5 rounded-full blur-xl" />
-            <div className="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-4xl shadow-inner relative">
+            
+            {/* Cleaned up avatar position container to avoid overlap issues */}
+            <div className="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-4xl shadow-inner relative shrink-0">
               🧗
-              <span className="absolute -top-1.5 -right-1.5 bg-yellow-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
+              <span className="absolute -top-1.5 -right-1.5 bg-yellow-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-md z-10 leading-none">
                 PRO
               </span>
             </div>
-            <div>
-              <div className="text-base font-black text-white flex items-center gap-1.5">
+
+            <div className="min-w-0">
+              <div className="text-sm font-black text-white flex items-center gap-1.5 truncate">
                 {walletConnected ? `@${walletAddress}` : "GUY Climber"}{" "}
-                <span className="text-xs text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded">Lv.{level}</span>
+                <span className="text-[10px] text-yellow-400 font-mono bg-yellow-400/10 px-1.5 py-0.5 rounded shrink-0 leading-none">Lv.{level}</span>
               </div>
-              <p className="text-xs text-slate-400 mt-1.5 font-medium">Best altitude: <span className="text-emerald-400 font-black text-sm">{highestMultiplier.toFixed(2)}x</span></p>
+              <p className="text-xs text-slate-400 mt-1 font-medium leading-tight">
+                Best altitude: <span className="text-emerald-400 font-black">{highestMultiplier.toFixed(2)}x</span>
+              </p>
             </div>
           </div>
         </aside>
