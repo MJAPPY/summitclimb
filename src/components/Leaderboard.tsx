@@ -170,12 +170,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
                       </div>
                     </td>
 
-                    {/* Username & Avatar */}
+                    {/* Username & Avatar (Now clean text without square emoji blocks) */}
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
-                        <span className="text-xl p-2 bg-slate-900 border-2 border-pink-500/30 rounded-none leading-none select-none shadow-[0_0_8px_rgba(236,72,153,0.1)] group-hover:scale-110 transition-transform">
-                          {player.avatar}
-                        </span>
                         <div>
                           <span className={`font-black text-white group-hover:text-cyan-400 transition-colors text-xs tracking-wide ${isTopThree ? 'text-gradient-neon' : ''}`}>
                             {player.username}
