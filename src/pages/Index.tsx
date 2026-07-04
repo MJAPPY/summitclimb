@@ -312,7 +312,7 @@ const Index = () => {
           <SummitLogo size="sm" className="shrink-0 border-2 border-cyan-400 rounded-none w-14 h-14" />
           <div>
             <h1 className="text-xl md:text-2xl font-black tracking-tight text-white uppercase font-retro leading-none">
-              SUMMIT <span className="text-gradient-neon flash-fast">GUYS</span>
+              SUMMIT <span className="text-gradient-neon flash-fast">CLIMB</span>
             </h1>
             <span className="text-[10px] font-retro text-cyan-400 tracking-wider block leading-none mt-2 uppercase">
               INSERT COIN • CLIMB THE PEAK
