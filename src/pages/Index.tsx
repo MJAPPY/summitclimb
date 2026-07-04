@@ -59,10 +59,10 @@ const Index = () => {
   // Active climb mechanics state
   const [gameState, setGameState] = useState<'idle' | 'climbing' | 'banked' | 'collapsed'>('idle');
   const [multiplier, setMultiplier] = useState<number>(1.00);
+  
+  // Stake states - single synced state for intuitive control
   const [betAmount, setBetAmount] = useState<number>(10);
-  const [customBetInput, setCustomBetInput] = useState<string>('');
-  const [useCustomBet, setUseCustomBet] = useState<boolean>(false);
-  const [autoCashOut, setAutoCashOut] = useState<string>('');
+  const [betInputText, setBetInputText] = useState<string>('10');
 
   // Hidden crash point calculation
   const [hiddenCollapsePoint, setHiddenCollapsePoint] = useState<number>(0);
@@ -99,30 +99,37 @@ const Index = () => {
     audioSynth.setMute(nextMuted);
   };
 
-  // Get active bet amount based on selection or custom input
-  const getActiveBetAmount = () => {
-    if (useCustomBet) {
-      const parsed = parseFloat(customBetInput);
-      return isNaN(parsed) || parsed <= 0 ? 0 : parsed;
+  // Sync preset clicks to the main input field
+  const handlePresetSelect = (amount: number) => {
+    setBetAmount(amount);
+    setBetInputText(amount.toString());
+  };
+
+  // Sync typing input back to numerical value
+  const handleInputChange = (val: string) => {
+    setBetInputText(val);
+    const parsed = parseFloat(val);
+    if (!isNaN(parsed) && parsed > 0) {
+      setBetAmount(parsed);
+    } else {
+      setBetAmount(0);
     }
-    return betAmount;
   };
 
   // Start ascending summit climb
   const handleStartClimb = () => {
     if (gameState === 'climbing') return;
-    const currentBet = getActiveBetAmount();
 
-    if (currentBet <= 0) {
+    if (betAmount <= 0) {
       toast({
         title: "Invalid Bet Amount",
-        description: "Please specify or type a valid stake greater than 0.",
+        description: "Please specify a valid stake greater than 0.",
         variant: "destructive"
       });
       return;
     }
 
-    if (balance < currentBet) {
+    if (balance < betAmount) {
       toast({
         title: "Insufficient Balance",
         description: "Deposit more tokens using the wallet interface above.",
@@ -132,7 +139,7 @@ const Index = () => {
     }
 
     // Deduct bet amount
-    setBalance(prev => prev - currentBet);
+    setBalance(prev => prev - betAmount);
     setMultiplier(1.00);
     setGameState('climbing');
 
@@ -151,7 +158,7 @@ const Index = () => {
 
     toast({
       title: "Climb Initiated",
-      description: `Bet of ${currentBet.toFixed(4)} XPR committed. GUY is climbing!`,
+      description: `Bet of ${betAmount.toFixed(4)} XPR committed. GUY is climbing!`,
     });
   };
 
@@ -164,8 +171,7 @@ const Index = () => {
     audioSynth.stopYodelMusic();
     audioSynth.playBankSound();
 
-    const currentBet = getActiveBetAmount();
-    const winnings = currentBet * multiplier;
+    const winnings = betAmount * multiplier;
     setBalance(prev => prev + winnings);
 
     // Progression XP reward calculations
@@ -210,13 +216,6 @@ const Index = () => {
           audioSynth.updateWindIntensity(nextVal);
           audioSynth.playHeartbeat(nextVal);
 
-          const autoVal = parseFloat(autoCashOut);
-          if (!isNaN(autoVal) && autoVal > 1.01 && nextVal >= autoVal) {
-            handleBank();
-            clearInterval(interval);
-            return autoVal;
-          }
-
           if (nextVal >= hiddenCollapsePoint) {
             setGameState('collapsed');
             setLifetimeGames(prev => prev + 1);
@@ -238,7 +237,7 @@ const Index = () => {
     }
 
     return () => clearInterval(interval);
-  }, [gameState, hiddenCollapsePoint, autoCashOut, betAmount, customBetInput, useCustomBet]);
+  }, [gameState, hiddenCollapsePoint, betAmount]);
 
   const handleSceneryPreset = (
     theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic',
@@ -549,7 +548,7 @@ const Index = () => {
                     <div className="flex flex-col text-right">
                       <span className="text-[11px] text-slate-400 font-black tracking-wider uppercase font-mono">EST. RECOVERED</span>
                       <div className="text-2xl md:text-3xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
-                        {(getActiveBetAmount() * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold font-sans">XPR</span>
+                        {(betAmount * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold font-sans">XPR</span>
                       </div>
                     </div>
                   </div>
@@ -614,67 +613,46 @@ const Index = () => {
 
                   {/* Stake Selector */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Expedition Stake (XPR)</label>
-                      <button 
-                        onClick={() => setUseCustomBet(!useCustomBet)}
-                        disabled={gameState === 'climbing'}
-                        className="text-xs text-yellow-400 hover:text-yellow-300 font-black uppercase tracking-wider font-mono border-b border-yellow-500/30 pb-0.5"
-                      >
-                        {useCustomBet ? 'Use Presets' : 'Custom Amount'}
-                      </button>
-                    </div>
-
-                    {useCustomBet ? (
-                      <div className="relative">
-                        <input
-                          type="number"
-                          step="0.0001"
-                          min="0.0001"
-                          placeholder="Enter custom stake in XPR..."
-                          value={customBetInput}
-                          onChange={(e) => setCustomBetInput(e.target.value)}
+                    <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Expedition Stake presets (XPR)</label>
+                    <div className="grid grid-cols-4 gap-2.5">
+                      {[10, 25, 50, 100].map((amt) => (
+                        <button
+                          key={amt}
+                          onClick={() => handlePresetSelect(amt)}
                           disabled={gameState === 'climbing'}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-black text-slate-500 uppercase">
-                          XPR
-                        </div>
+                          className={`py-4 rounded-xl text-base font-black transition-all border ${
+                            betAmount === amt
+                              ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
+                              : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
+                          }`}
+                        >
+                          {amt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Synced Custom XPR input field directly replacing the auto-secure field */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Custom Stake (XPR)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.0001"
+                        min="0.0001"
+                        placeholder="Enter customized XPR amount..."
+                        value={betInputText}
+                        onChange={(e) => handleInputChange(e.target.value)}
+                        disabled={gameState === 'climbing'}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-black text-slate-500 uppercase">
+                        XPR
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-4 gap-2.5">
-                        {[10, 25, 50, 100].map((amt) => (
-                          <button
-                            key={amt}
-                            onClick={() => setBetAmount(amt)}
-                            disabled={gameState === 'climbing'}
-                            className={`py-4 rounded-xl text-base font-black transition-all border ${
-                              betAmount === amt
-                                ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
-                                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                          >
-                            {amt}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    </div>
                     <span className="text-[10px] text-slate-500 block font-mono">
                       XPR Network Token Explorer contract reference: <a href="https://explorer.xprnetwork.org/tokens/XPR-proton-eosio.token" target="_blank" rel="noopener noreferrer" className="text-yellow-500/80 hover:text-yellow-400 underline">eosio.token</a>
                     </span>
-                  </div>
-
-                  {/* Auto Cashout Multiplier Value */}
-                  <div className="space-y-3">
-                    <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Auto Secure Altitude (Multiplier)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 2.00 (optional)"
-                      value={autoCashOut}
-                      onChange={(e) => setAutoCashOut(e.target.value)}
-                      disabled={gameState === 'climbing'}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
-                    />
                   </div>
 
                   {/* Large High-Contrast Climb Trigger Action */}
@@ -686,7 +664,7 @@ const Index = () => {
                       >
                         <span className="text-xs uppercase font-black tracking-widest text-slate-900 opacity-90">SECURE HARNESS & RETREAT</span>
                         <span className="text-xl font-mono font-black text-slate-950">
-                          BANK NOW: {(getActiveBetAmount() * multiplier).toFixed(4)} XPR
+                          BANK NOW: {(betAmount * multiplier).toFixed(4)} XPR
                         </span>
                       </button>
                     ) : (
