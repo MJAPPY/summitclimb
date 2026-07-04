@@ -519,7 +519,6 @@ const Index = () => {
                   <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
                     25,000 XPR
                   </div>
-                  <span className="text-[10px] text-slate-500 block font-mono">Decay-Split to Top 15</span>
                 </div>
               </div>
 
