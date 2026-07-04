@@ -227,11 +227,11 @@ const Index = () => {
             />
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-100">
-              SUMMIT
+            <h1 className="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-100 uppercase">
+              GUYS Summit
             </h1>
-            <span className="text-xs font-black text-amber-400 tracking-wider block leading-none mt-1">
-              METALLICUS GUY EXPEDITIONS
+            <span className="text-xs font-black text-amber-400 tracking-wider block leading-none mt-1 uppercase">
+              climb the pinnacle
             </span>
           </div>
         </div>
