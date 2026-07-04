@@ -2,8 +2,8 @@ import React, { useRef, useEffect } from 'react';
 
 export interface CosmeticSettings {
   climber: 'standard' | 'gold' | 'neon' | 'astro';
-  theme: 'everest' | 'cyber' | 'volcanic' | 'cosmic';
-  weather: 'snow' | 'storm' | 'blizzard' | 'neonrain';
+  theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic';
+  weather: 'clear' | 'snow' | 'rain' | 'storm' | 'blizzard' | 'neonrain';
   flag: 'summit' | 'gold777' | 'pirate' | 'cyber';
   trail: 'none' | 'rainbow' | 'gold' | 'fire' | 'neon';
 }
@@ -19,7 +19,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
   const animationFrameRef = useRef<number | null>(null);
   
   // Track continuous parallax scrolls and particle dynamics
-  const particlesRef = useRef<Array<{ x: number; y: number; speedY: number; speedX: number; size: number; color: string }>>([]);
+  const particlesRef = useRef<Array<{ x: number; y: number; speedY: number; speedX: number; size: number; color: string; alpha?: number }>>([]);
   const climberTrailRef = useRef<Array<{ x: number; y: number; alpha: number; color: string }>>([]);
   const guyYOffsetRef = useRef<number>(240);
   const guyXRef = useRef<number>(250);
@@ -42,6 +42,32 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
   // Theme-specific colors and twilight sunset/dusk sky gradients for maximum realism
   const getThemeColors = () => {
     switch (cosmetics.theme) {
+      case 'sunny':
+        // Gorgeous, crisp golden hour / bright sunny morning in Swiss Alps
+        return {
+          bgGradStart: '#0284c7', // Deep blue sky
+          bgGradMid: '#38bdf8',  // Crisp sky blue
+          bgGradEnd: '#bae6fd',   // Soft warm light on horizon
+          mountainFar: '#1e293b',
+          mountainMid: '#475569',
+          mountainNear: '#334155',
+          snowColor: '#ffffff',
+          accentColor: '#f59e0b',  // Golden sun rays
+          snowCrust: '#f1f5f9',
+        };
+      case 'rain':
+        // Overcast, hyper-detailed wet mountain storm
+        return {
+          bgGradStart: '#0f172a',
+          bgGradMid: '#1e293b',
+          bgGradEnd: '#334155',
+          mountainFar: '#020617',
+          mountainMid: '#0f172a',
+          mountainNear: '#1e293b',
+          snowColor: '#94a3b8',
+          accentColor: '#38bdf8',
+          snowCrust: '#64748b',
+        };
       case 'cyber':
         return {
           bgGradStart: '#060112',
@@ -104,19 +130,27 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
     canvas.width = 800;
     canvas.height = 420;
 
-    // Set up particles blowing from the top-right to bottom-left (wind hitting climber)
-    if (particlesRef.current.length === 0) {
-      for (let i = 0; i < 120; i++) {
-        particlesRef.current.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          speedY: 2 + Math.random() * 3,
-          speedX: -2 - Math.random() * 4, // Moving leftwards
-          size: 1 + Math.random() * 3,
-          color: '#ffffff',
-        });
-      }
+    // Build responsive meteorological wind particle engine
+    particlesRef.current = [];
+    const count = cosmetics.weather === 'blizzard' || cosmetics.weather === 'storm' ? 180 : 80;
+    for (let i = 0; i < count; i++) {
+      particlesRef.current.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        speedY: 2 + Math.random() * 4,
+        speedX: -2 - Math.random() * 4,
+        size: 1 + Math.random() * 2.5,
+        color: cosmetics.weather === 'rain' || cosmetics.weather === 'storm' ? 'rgba(156, 163, 175, 0.4)' : '#ffffff',
+        alpha: 0.2 + Math.random() * 0.8
+      });
     }
+  }, [cosmetics.weather]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     const render = () => {
       timeRef.current += 1;
@@ -127,7 +161,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       const climbSpeed = gameState === 'climbing' ? Math.max(3, multiplier * 4) : 0.6;
       verticalScrollRef.current += climbSpeed;
 
-      // Realistic Sky Twilight Gradient
+      // Realistic Sky Twilight/Sunny Gradient
       const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
       skyGrad.addColorStop(0, themeColors.bgGradStart);
       skyGrad.addColorStop(0.5, themeColors.bgGradMid);
@@ -135,38 +169,72 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Twinkling starry sky drifting down-left (climbing up-right)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      for (let i = 0; i < 45; i++) {
-        const starX = (i * 83 - verticalScrollRef.current * 0.1) % canvas.width;
-        const starY = (i * 41 + verticalScrollRef.current * 0.05) % (canvas.height - 120);
-        // Twinkle factor
-        const starSize = 0.5 + Math.abs(Math.sin((t + i * 8) * 0.04)) * 1.5;
-        ctx.fillRect(starX >= 0 ? starX : starX + canvas.width, starY, starSize, starSize);
+      // SUNNY Presets: Volumetric solar flares, sun burst rays and detailed atmosphere
+      if (cosmetics.theme === 'sunny') {
+        const sunX = 650 - (verticalScrollRef.current * 0.04) % 150;
+        const sunY = 80 + (verticalScrollRef.current * 0.01) % 50;
+
+        // Draw Sun Core
+        const sunGrad = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, 80);
+        sunGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        sunGrad.addColorStop(0.1, 'rgba(254, 240, 138, 0.9)');
+        sunGrad.addColorStop(0.4, 'rgba(251, 191, 36, 0.2)');
+        sunGrad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+        ctx.fillStyle = sunGrad;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 80, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Solar rays
+        ctx.save();
+        ctx.translate(sunX, sunY);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 4;
+        for (let r = 0; r < 8; r++) {
+          ctx.rotate(Math.PI / 4 + t * 0.001);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(0, 240);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
 
-      // Volumetric Glowing Moon
-      const moonX = 160 - (verticalScrollRef.current * 0.05) % 300;
-      const moonY = 90 + (verticalScrollRef.current * 0.02) % 150;
-      const moonGrad = ctx.createRadialGradient(moonX, moonY, 1, moonX, moonY, 60);
-      moonGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      moonGrad.addColorStop(0.2, 'rgba(238, 242, 255, 0.3)');
-      moonGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = moonGrad;
-      ctx.beginPath();
-      ctx.arc(moonX, moonY, 60, 0, Math.PI * 2);
-      ctx.fill();
+      // TWINKLING Starry Sky (For dark twilight/cosmic themes)
+      if (cosmetics.theme !== 'sunny' && cosmetics.theme !== 'rain') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        for (let i = 0; i < 45; i++) {
+          const starX = (i * 83 - verticalScrollRef.current * 0.1) % canvas.width;
+          const starY = (i * 41 + verticalScrollRef.current * 0.05) % (canvas.height - 120);
+          const starSize = 0.5 + Math.abs(Math.sin((t + i * 8) * 0.04)) * 1.5;
+          ctx.fillRect(starX >= 0 ? starX : starX + canvas.width, starY, starSize, starSize);
+        }
+      }
 
-      // Far Mountains Silhouette (Matterhorn) scrolling down-left
+      // Overcast Clouds scrolling for Rain/Everest scenery
+      if (cosmetics.theme === 'rain' || cosmetics.theme === 'everest') {
+        ctx.fillStyle = cosmetics.theme === 'rain' ? 'rgba(71, 85, 105, 0.25)' : 'rgba(255, 255, 255, 0.06)';
+        for (let i = 0; i < 3; i++) {
+          const cloudX = (i * 300 - verticalScrollRef.current * 0.2) % (canvas.width + 200);
+          const finalCloudX = cloudX < -150 ? cloudX + canvas.width + 300 : cloudX;
+          ctx.beginPath();
+          ctx.arc(finalCloudX, 40 + i * 20, 60, 0, Math.PI * 2);
+          ctx.arc(finalCloudX + 40, 30 + i * 20, 70, 0, Math.PI * 2);
+          ctx.arc(finalCloudX - 40, 50 + i * 20, 50, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      // HIGH FIDELITY GEOMETRY: Far Mountains Silhouette scrolling down-left
       ctx.fillStyle = themeColors.mountainFar;
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
       const farScrollX = (verticalScrollRef.current * 0.12) % canvas.width;
       const farScrollY = (verticalScrollRef.current * 0.08) % 350;
       for (let x = -40; x <= canvas.width + 40; x += 40) {
-        const testX = x + farScrollX; // shifting left/right
+        const testX = x + farScrollX;
         const baseHeight = 170 + Math.sin(testX * 0.006) * 35;
-        // Peak spikes representing deep ridges
         const peak = (Math.abs(Math.floor(testX / 130)) % 3 === 0) ? 120 : 20;
         const finalHeight = baseHeight + peak - farScrollY;
         ctx.lineTo(x, canvas.height - Math.max(10, finalHeight));
@@ -175,56 +243,76 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.closePath();
       ctx.fill();
 
-      // Mid Mountains Silhouette scrolling down-left
+      // Detailed Mountain Ridges (adding snow highlights on the peaks for realistic depth)
       ctx.fillStyle = themeColors.mountainMid;
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
       const midScrollX = (verticalScrollRef.current * 0.28) % canvas.width;
       const midScrollY = (verticalScrollRef.current * 0.18) % 280;
+      
+      const midPoints: Array<{ x: number; y: number }> = [];
       for (let x = -30; x <= canvas.width + 30; x += 30) {
         const testX = x + midScrollX;
-        const baseHeight = 120 + Math.cos(testX * 0.012) * 22;
+        const baseHeight = 120 + Math.cos(testX * 0.012) * 25;
         const finalHeight = baseHeight - midScrollY;
-        ctx.lineTo(x, canvas.height - Math.max(10, finalHeight));
+        midPoints.push({ x, y: canvas.height - Math.max(10, finalHeight) });
       }
+
+      midPoints.forEach((pt, idx) => {
+        if (idx === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
       ctx.lineTo(canvas.width, canvas.height);
       ctx.closePath();
       ctx.fill();
+
+      // Mid peak alpineglow snow highlights
+      ctx.fillStyle = themeColors.snowCrust;
+      midPoints.forEach((pt, idx) => {
+        if (idx > 0 && idx < midPoints.length - 1 && pt.y < 260) {
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.lineTo(pt.x - 15, pt.y + 25);
+          ctx.lineTo(pt.x + 15, pt.y + 25);
+          ctx.closePath();
+          ctx.fill();
+        }
+      });
 
       // Pine trees cluster scrolling away
       if (verticalScrollRef.current < 750) {
         const treesFade = Math.max(0, 1 - verticalScrollRef.current / 750);
         ctx.save();
         ctx.globalAlpha = treesFade;
-        ctx.fillStyle = '#064e3b';
+        ctx.fillStyle = cosmetics.theme === 'sunny' ? '#14532d' : '#064e3b';
         const forestScrollX = verticalScrollRef.current * 0.35;
         const forestScrollY = verticalScrollRef.current * 0.15;
-        for (let i = 0; i < 5; i++) {
-          const treeX = 140 + i * 35 - forestScrollX;
+        for (let i = 0; i < 7; i++) {
+          const treeX = 140 + i * 40 - forestScrollX;
           const treeY = canvas.height - 25 + forestScrollY;
           ctx.beginPath();
-          ctx.moveTo(treeX, treeY - 25);
-          ctx.lineTo(treeX - 8, treeY);
-          ctx.lineTo(treeX + 8, treeY);
+          ctx.moveTo(treeX, treeY - 30);
+          ctx.lineTo(treeX - 10, treeY);
+          ctx.lineTo(treeX + 10, treeY);
           ctx.closePath();
           ctx.fill();
         }
         ctx.restore();
       }
 
-      // NEAR SNOW SLOPE (Ascending up to the right!)
-      // The curve starts low on the left (X=0) and goes steeply up to the right (X=800)
+      // NEAR SNOW/ROCK SLOPE (Ascending steeply up to the right!)
+      // Realistic elevation curve
       const getSlopeY = (x: number) => {
         // base height rises from left to right
         const baseHeight = 50 + x * 0.44;
         
-        // Continuous waves shifting leftwards as we climb up-right
+        // Continuous wave shifts simulating natural ridges
         const waveScroll = Math.sin((x + verticalScrollRef.current * 0.5) * 0.012) * 12;
         
         return canvas.height - (baseHeight + waveScroll);
       };
 
-      // Draw Main Snowy Surface Geometry
+      // Draw Main Near Rocky/Snowy Ground Geometry
       ctx.fillStyle = themeColors.mountainNear;
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
@@ -235,7 +323,20 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.closePath();
       ctx.fill();
 
-      // Draw White snowy ridge lining for high realism
+      // Hyper-detailed: Granite rock shards on the mountain slopes
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      for (let i = 0; i < 6; i++) {
+        const rockX = (i * 150 - verticalScrollRef.current * 0.6) % (canvas.width + 100);
+        const rockY = getSlopeY(rockX) + 12;
+        ctx.beginPath();
+        ctx.moveTo(rockX, rockY);
+        ctx.lineTo(rockX + 15, rockY - 8);
+        ctx.lineTo(rockX + 25, rockY + 4);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Draw shiny snow or grass crust depending on theme
       ctx.strokeStyle = themeColors.snowColor;
       ctx.lineWidth = 5;
       ctx.beginPath();
@@ -245,7 +346,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       }
       ctx.stroke();
 
-      // Secondary ice crust shading
+      // Secondary layered ice shading
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
       ctx.lineWidth = 14;
       ctx.beginPath();
@@ -256,7 +357,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.stroke();
 
       // DEFINE MILESTONE FLAGS PASSING BY
-      // Since climbing up-right, flags scroll leftwards (down the slope) as multiplier rises.
       const milestones = [
         { mult: 1.5, label: '1.5x Peak' },
         { mult: 2.0, label: '2.0x Crest' },
@@ -267,19 +367,16 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         { mult: 25.0, label: '25.0x Apex' },
       ];
 
-      // Draw milestone flags
+      // Draw milestone flags passing past GUY down-left
       milestones.forEach((milestone) => {
-        // Calculate flag X relative to multiplier progress
-        // A flag at 'mult' will pass GUY when the multiplier reaches 'mult'
         const baseOffset = (milestone.mult - multiplier) * 260;
         const flagX = guyXRef.current + baseOffset;
         
-        // Only render flags that are on screen
         if (flagX > -50 && flagX < canvas.width + 50) {
           const flagY = getSlopeY(flagX);
 
-          // Shadow under flag
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+          // Realistic soft shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
           ctx.beginPath();
           ctx.ellipse(flagX, flagY + 2, 8, 3, 0, 0, Math.PI * 2);
           ctx.fill();
@@ -292,7 +389,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           ctx.lineTo(flagX, flagY - 45);
           ctx.stroke();
 
-          // Milestone Pennant flag
+          // Flag Pennant
           ctx.fillStyle = cosmetics.flag === 'gold777' ? '#eab308' :
                           cosmetics.flag === 'pirate' ? '#111827' :
                           cosmetics.flag === 'cyber' ? '#ec4899' : '#10b981';
@@ -300,39 +397,35 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           ctx.beginPath();
           ctx.moveTo(flagX, flagY - 45);
           const bannerWave = Math.sin(t * 0.1 + milestone.mult) * 6;
-          // Flags fly backward to the left as wind blows left
           ctx.lineTo(flagX - 32, flagY - 38 + bannerWave);
           ctx.lineTo(flagX, flagY - 30);
           ctx.closePath();
           ctx.fill();
 
-          // Flag banner text labels
+          // Text labels
           ctx.fillStyle = '#ffffff';
           ctx.font = 'bold 9px sans-serif';
           ctx.fillText(milestone.label, flagX - 30, flagY - 34 + bannerWave / 2);
         }
       });
 
-      // CLIMBER "GUY" positioning & posture scaling up-right
+      // GUY CLIMBER positioning & steps
       let targetX = 260;
       if (gameState === 'climbing') {
-        // Climbs further up-right (higher X coordinate) as altitude multiplier scales
         targetX = Math.min(620, 260 + (multiplier - 1) * 20);
       } else if (gameState === 'collapsed') {
-        targetX = 260; // fallen
+        targetX = 260;
       } else if (gameState === 'banked') {
-        targetX = 540; // secured summit
+        targetX = 540;
       }
 
-      // Smooth step coordinate lerp
       guyXRef.current += (targetX - guyXRef.current) * 0.1;
       const guyBaseY = getSlopeY(guyXRef.current);
 
-      // Leaning forward & jumping bobs matching climb speeds
       const climbBob = gameState === 'climbing' ? Math.abs(Math.sin(t * 0.24)) * 14 : 0;
       guyYOffsetRef.current = guyBaseY - 26 - climbBob;
 
-      // Draw custom climbing trails (drifting leftward/downward)
+      // Draw custom trail
       if (cosmetics.trail !== 'none' && gameState === 'climbing') {
         let trailColor = '#38bdf8';
         if (cosmetics.trail === 'rainbow') {
@@ -353,10 +446,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         });
       }
 
-      // Update & render Trails
       climberTrailRef.current.forEach((pt, i) => {
         pt.alpha -= 0.05;
-        // Trails drift left and down
         pt.x -= (gameState === 'climbing' ? 2.8 : 0.6);
         pt.y += (gameState === 'climbing' ? 0.8 : 0.2);
         if (pt.alpha <= 0) {
@@ -372,10 +463,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.restore();
       });
 
-      // DRAW SUPERHERO GUY (facing and leaning to the right)
+      // DRAW SUPERHERO CLIMBER GUY
       ctx.save();
       
-      // Real shadow / glowing aura effects
       ctx.shadowBlur = 18;
       ctx.shadowColor = cosmetics.climber === 'gold' ? 'rgba(234, 179, 8, 0.8)' :
                         cosmetics.climber === 'neon' ? 'rgba(236, 72, 153, 0.8)' :
@@ -389,7 +479,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
                         cosmetics.climber === 'neon' ? '#a855f7' :
                         cosmetics.climber === 'astro' ? '#2563eb' : '#dc2626';
 
-      // 1. Cape fluttering behind him to the left (wind blows leftwards)
+      // Cape fluttering backwards left
       ctx.fillStyle = capeColor;
       ctx.beginPath();
       ctx.moveTo(guyXRef.current - 8, guyYOffsetRef.current + 4);
@@ -400,10 +490,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.closePath();
       ctx.fill();
 
-      // Mirror horizontal translation to face Right
       if (guyImageRef.current) {
         ctx.save();
-        // Translate and scale horizontally to mirror GUY to face the climb direction (right)
         ctx.translate(guyXRef.current, guyYOffsetRef.current);
         ctx.scale(-1, 1);
         ctx.drawImage(
@@ -430,7 +518,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.fillStyle = climberColor;
         ctx.fillRect(guyXRef.current - 8, guyYOffsetRef.current - 4, 16, 20);
 
-        // Blonde legendary hair
+        // Blonde hair
         ctx.fillStyle = '#facc15';
         ctx.beginPath();
         ctx.arc(guyXRef.current, guyYOffsetRef.current - 18, 9, Math.PI, 0);
@@ -448,58 +536,63 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
       ctx.restore();
 
-      // WEATHER WIND PARTICLES (Blowing leftward, hitting climber head-on!)
-      ctx.fillStyle = themeColors.snowColor;
-      const weatherSetting = cosmetics.weather;
+      // WEATHER WIND AND METEOROLOGICAL ENGINE (Supports clear, snow, rain, blizzard, storm, neonrain)
+      if (cosmetics.weather !== 'clear') {
+        particlesRef.current.forEach((p) => {
+          let dragX = p.speedX;
+          let dragY = p.speedY;
 
-      particlesRef.current.forEach((p) => {
-        let dragX = p.speedX;
-        let dragY = p.speedY;
+          if (gameState === 'climbing') {
+            dragY += climbSpeed * 1.5;
+            dragX -= climbSpeed * 1.2;
+          }
 
-        // Extra forces added when climbing up-right to emphasize progress speed
-        if (gameState === 'climbing') {
-          dragY += climbSpeed * 1.5; // continuous downward fall
-          dragX -= climbSpeed * 1.2; // heavy leftward push
-        }
+          if (cosmetics.weather === 'blizzard') {
+            dragX = -12 - Math.random() * 5;
+            dragY = 4 + Math.random() * 3;
+          } else if (cosmetics.weather === 'storm' || cosmetics.weather === 'rain') {
+            // Rain/Storm vertical drop mechanics
+            dragX = -4 - Math.random() * 2;
+            dragY = 14 + Math.random() * 6;
+          } else if (cosmetics.weather === 'neonrain') {
+            dragX = -2;
+            dragY = 16 + Math.random() * 4;
+          }
 
-        if (weatherSetting === 'blizzard') {
-          dragX = -10 - Math.random() * 5;
-          dragY = 3 + Math.random() * 3;
-        } else if (weatherSetting === 'storm') {
-          dragX = -6 - Math.random() * 3;
-          dragY = 9 + Math.random() * 5;
-        } else if (weatherSetting === 'neonrain') {
-          dragX = -2;
-          dragY = 16 + Math.random() * 4;
-        }
+          p.x += dragX;
+          p.y += dragY;
 
-        p.x += dragX;
-        p.y += dragY;
+          if (p.y > canvas.height) {
+            p.y = 0;
+            p.x = Math.random() * canvas.width;
+          }
+          if (p.x < 0) {
+            p.x = canvas.width;
+            p.y = Math.random() * canvas.height;
+          }
 
-        // Wrap particles
-        if (p.y > canvas.height) {
-          p.y = 0;
-          p.x = Math.random() * canvas.width;
-        }
-        if (p.x < 0) {
-          p.x = canvas.width;
-          p.y = Math.random() * canvas.height;
-        }
-
-        let particleColor = themeColors.snowColor;
-        if (weatherSetting === 'neonrain') {
-          particleColor = `hsl(${(t * 2 + p.x) % 360}, 100%, 65%)`;
-        }
-
-        ctx.fillStyle = particleColor;
-        ctx.beginPath();
-        if (weatherSetting === 'neonrain') {
-          ctx.fillRect(p.x, p.y, 1.8, p.size * 4);
-        } else {
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
+          ctx.save();
+          if (cosmetics.weather === 'rain' || cosmetics.weather === 'storm') {
+            // Slanted blueish translucent raindrop lines
+            ctx.strokeStyle = 'rgba(186, 230, 253, 0.4)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + dragX * 0.6, p.y + dragY * 0.6);
+            ctx.stroke();
+          } else if (cosmetics.weather === 'neonrain') {
+            ctx.fillStyle = `hsl(${(t * 2 + p.x) % 360}, 100%, 65%)`;
+            ctx.fillRect(p.x, p.y, 1.8, p.size * 4);
+          } else {
+            // Soft white snow circles
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + (p.alpha || 0.8) + ')';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        });
+      }
 
       // Avalanche collapse
       if (gameState === 'collapsed') {
@@ -516,7 +609,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.arc(guyXRef.current, guyYOffsetRef.current, 85, 0, Math.PI * 2);
         ctx.fill();
 
-        // Fallen avalanche blocks swept leftwards
         ctx.fillStyle = '#cbd5e1';
         for (let i = 0; i < 7; i++) {
           const debrisX = guyXRef.current - (t % 20) * 3 + Math.sin(i) * 30;
@@ -544,7 +636,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         className="w-full aspect-[2/1] max-h-[440px] object-cover block"
       />
       <div className="absolute top-4 right-4 text-xs font-semibold px-3 py-1 bg-black/60 backdrop-blur border border-white/10 rounded-full text-slate-300 pointer-events-none capitalize">
-        Swiss Peak ({cosmetics.weather})
+        Theme: {cosmetics.theme} ({cosmetics.weather})
       </div>
     </div>
   );

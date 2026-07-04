@@ -17,7 +17,11 @@ import {
   Settings, 
   History, 
   ArrowUpRight,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  CloudRain,
+  Mountain,
+  Sparkles
 } from 'lucide-react';
 
 const Index = () => {
@@ -48,8 +52,8 @@ const Index = () => {
   // Hidden crash point calculation (simulating server-side cryptographically secure random value)
   const [hiddenCollapsePoint, setHiddenCollapsePoint] = useState<number>(0);
 
-  // Cosmetics fixed to high-quality defaults
-  const [cosmetics] = useState<CosmeticSettings>({
+  // Cosmetics control (with new theme + weather configuration options)
+  const [cosmetics, setCosmetics] = useState<CosmeticSettings>({
     climber: 'standard',
     theme: 'everest',
     weather: 'snow',
@@ -187,6 +191,22 @@ const Index = () => {
 
     return () => clearInterval(interval);
   }, [gameState, hiddenCollapsePoint, autoCashOut, betAmount, tokenType]);
+
+  // Utility to easily preset Scenery settings
+  const handleSceneryPreset = (
+    theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic',
+    weather: 'clear' | 'snow' | 'rain' | 'storm' | 'blizzard' | 'neonrain'
+  ) => {
+    setCosmetics(prev => ({
+      ...prev,
+      theme,
+      weather
+    }));
+    toast({
+      title: "Scenery Dispatched",
+      description: `Scenic atmospheric theme changed to ${theme} with ${weather} weather!`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-indigo-500 selection:text-white">
@@ -333,77 +353,128 @@ const Index = () => {
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 
                 {/* Left section: Climber Game Controller */}
-                <div className="xl:col-span-4 p-5 bg-slate-900/50 border border-white/5 rounded-2xl space-y-5">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono block pb-2 border-b border-white/5">
-                    Climber Controller
-                  </span>
+                <div className="xl:col-span-4 space-y-6">
+                  <div className="p-5 bg-slate-900/50 border border-white/5 rounded-2xl space-y-5">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono block pb-2 border-b border-white/5">
+                      Climber Controller
+                    </span>
 
-                  {/* Bet Amount selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs text-slate-300">Expedition Stake ({tokenType})</label>
-                    <div className="grid grid-cols-4 gap-1">
-                      {[10, 25, 50, 100].map((amt) => (
+                    {/* Bet Amount selector */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-slate-300">Expedition Stake ({tokenType})</label>
+                      <div className="grid grid-cols-4 gap-1">
+                        {[10, 25, 50, 100].map((amt) => (
+                          <button
+                            key={amt}
+                            onClick={() => setBetAmount(amt)}
+                            disabled={gameState === 'climbing'}
+                            className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                              betAmount === amt
+                                ? 'bg-violet-600 text-white'
+                                : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
+                            }`}
+                          >
+                            {amt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom manual custom auto-cashout multiplier trigger value */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-slate-300">Auto Secure Altitude (Multiplier)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 2.00 (optional)"
+                        value={autoCashOut}
+                        onChange={(e) => setAutoCashOut(e.target.value)}
+                        disabled={gameState === 'climbing'}
+                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl p-3 text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 placeholder-slate-600"
+                      />
+                    </div>
+
+                    {/* Ultimate high-visibility climb / BANK controls */}
+                    <div className="pt-2">
+                      {gameState === 'climbing' ? (
                         <button
-                          key={amt}
-                          onClick={() => setBetAmount(amt)}
-                          disabled={gameState === 'climbing'}
-                          className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            betAmount === amt
-                              ? 'bg-violet-600 text-white'
-                              : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
-                          }`}
+                          onClick={handleBank}
+                          className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black tracking-widest text-sm shadow-xl shadow-emerald-950/50 transition-all flex flex-col items-center justify-center gap-1 animate-pulse"
                         >
-                          {amt}
+                          <span>SECURE BANK NOW</span>
+                          <span className="text-xs font-mono font-black text-slate-900 opacity-90">
+                            {(betAmount * multiplier).toFixed(2)} {tokenType}
+                          </span>
                         </button>
-                      ))}
+                      ) : (
+                        <button
+                          onClick={handleStartClimb}
+                          className="w-full py-4 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-600 hover:opacity-90 text-white font-black tracking-widest text-sm shadow-xl shadow-violet-950/50 transition-all flex items-center justify-center gap-2"
+                        >
+                          <span>START ASCENT</span>
+                          <ArrowUpRight className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {/* Custom manual custom auto-cashout multiplier trigger value */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs text-slate-300">Auto Secure Altitude (Multiplier)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 2.00 (optional)"
-                      value={autoCashOut}
-                      onChange={(e) => setAutoCashOut(e.target.value)}
-                      disabled={gameState === 'climbing'}
-                      className="w-full bg-slate-950/80 border border-white/10 rounded-xl p-3 text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 placeholder-slate-600"
-                    />
-                  </div>
+                  {/* Atmospheric Scenery & Preset Weather selectors */}
+                  <div className="p-5 bg-slate-900/50 border border-white/5 rounded-2xl space-y-4">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono block pb-2 border-b border-white/5 flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-yellow-400" /> Scenery Control
+                    </span>
 
-                  {/* Ultimate high-visibility climb / BANK controls */}
-                  <div className="pt-2">
-                    {gameState === 'climbing' ? (
+                    <div className="grid grid-cols-2 gap-2">
                       <button
-                        onClick={handleBank}
-                        className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black tracking-widest text-sm shadow-xl shadow-emerald-950/50 transition-all flex flex-col items-center justify-center gap-1 animate-pulse"
+                        onClick={() => handleSceneryPreset('sunny', 'clear')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          cosmetics.theme === 'sunny' && cosmetics.weather === 'clear'
+                            ? 'border-yellow-500 bg-yellow-500/10 text-white'
+                            : 'border-white/5 bg-slate-950/40 text-slate-400 hover:border-white/10'
+                        }`}
                       >
-                        <span>SECURE BANK NOW</span>
-                        <span className="text-xs font-mono font-black text-slate-900 opacity-90">
-                          {(betAmount * multiplier).toFixed(2)} {tokenType}
-                        </span>
+                        <Sun className="h-4 w-4 text-yellow-500 mb-1" />
+                        <div className="text-xs font-black">Sunny Peak</div>
+                        <div className="text-[9px] text-slate-500 leading-none mt-1">Clear Skies</div>
                       </button>
-                    ) : (
-                      <button
-                        onClick={handleStartClimb}
-                        className="w-full py-4 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-600 hover:opacity-90 text-white font-black tracking-widest text-sm shadow-xl shadow-violet-950/50 transition-all flex items-center justify-center gap-2"
-                      >
-                        <span>START ASCENT</span>
-                        <ArrowUpRight className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
 
-                  {/* Safe indicator ticker details */}
-                  <div className="p-3 bg-slate-950/40 rounded-xl border border-white/5 text-[11px] text-slate-400 space-y-1 font-mono">
-                    <div className="flex justify-between">
-                      <span>Multiplier speed:</span>
-                      <span className="text-slate-300">Exponential</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Wallet pool:</span>
-                      <span className="text-slate-300">Abstract secure</span>
+                      <button
+                        onClick={() => handleSceneryPreset('rain', 'rain')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          cosmetics.theme === 'rain' && cosmetics.weather === 'rain'
+                            ? 'border-blue-500 bg-blue-500/10 text-white'
+                            : 'border-white/5 bg-slate-950/40 text-slate-400 hover:border-white/10'
+                        }`}
+                      >
+                        <CloudRain className="h-4 w-4 text-blue-400 mb-1" />
+                        <div className="text-xs font-black">Rain Storm</div>
+                        <div className="text-[9px] text-slate-500 leading-none mt-1">Overcast Wet</div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSceneryPreset('everest', 'snow')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          cosmetics.theme === 'everest' && cosmetics.weather === 'snow'
+                            ? 'border-violet-500 bg-violet-500/10 text-white'
+                            : 'border-white/5 bg-slate-950/40 text-slate-400 hover:border-white/10'
+                        }`}
+                      >
+                        <Mountain className="h-4 w-4 text-violet-400 mb-1" />
+                        <div className="text-xs font-black">Swiss Alps</div>
+                        <div className="text-[9px] text-slate-500 leading-none mt-1">Snow Twilight</div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSceneryPreset('cyber', 'neonrain')}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          cosmetics.theme === 'cyber' && cosmetics.weather === 'neonrain'
+                            ? 'border-pink-500 bg-pink-500/10 text-white'
+                            : 'border-white/5 bg-slate-950/40 text-slate-400 hover:border-white/10'
+                        }`}
+                      >
+                        <Sparkles className="h-4 w-4 text-pink-400 mb-1" />
+                        <div className="text-xs font-black">Cyber Dusk</div>
+                        <div className="text-[9px] text-slate-500 leading-none mt-1">Neon Showers</div>
+                      </button>
                     </div>
                   </div>
                 </div>
