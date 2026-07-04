@@ -580,6 +580,90 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.restore();
       }
 
+      // Procedural realistic shaded rocks scattered along the mountain slope
+      ctx.save();
+      const rockSpacing = 220;
+      const scrollOffset = scrollRef.current;
+      const startIdx = Math.floor(scrollOffset / rockSpacing) - 1;
+      const endIdx = startIdx + Math.ceil(canvas.width / rockSpacing) + 2;
+
+      for (let i = startIdx; i <= endIdx; i++) {
+        // Deterministic size and offset calculations based on indices to guarantee smooth scrolling
+        const pseudoRandSize = 13 + Math.abs(Math.sin(i * 743.21)) * 16;
+        const pseudoRandOffset = Math.sin(i * 321.09) * 75;
+        const rockX = (i * rockSpacing) - scrollOffset + pseudoRandOffset;
+        const rockY = getSlopeY(rockX, scrollRef.current);
+
+        if (rockX > -50 && rockX < canvas.width + 50) {
+          ctx.save();
+          ctx.translate(rockX, rockY);
+          
+          // Slightly embed rock body into natural soil slope
+          ctx.translate(0, pseudoRandSize * 0.15);
+
+          // Render high-contrast ground shadow
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, pseudoRandSize * 1.1, pseudoRandSize * 0.35, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Smoothly calculated jagged facet points
+          const pts = [
+            { x: -pseudoRandSize, y: 0 },
+            { x: -pseudoRandSize * 0.7, y: -pseudoRandSize * 0.5 },
+            { x: -pseudoRandSize * 0.25, y: -pseudoRandSize * 0.95 },
+            { x: pseudoRandSize * 0.35, y: -pseudoRandSize * 0.9 },
+            { x: pseudoRandSize * 0.8, y: -pseudoRandSize * 0.35 },
+            { x: pseudoRandSize, y: 0 }
+          ];
+
+          const lightFromRight = (sunX > rockX);
+
+          // Left Facet
+          ctx.fillStyle = lightFromRight ? '#0f172a' : '#475569';
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          ctx.lineTo(pts[1].x, pts[1].y);
+          ctx.lineTo(pts[2].x, pts[2].y);
+          ctx.lineTo(0, 0);
+          ctx.closePath();
+          ctx.fill();
+
+          // Center Upper Facet
+          ctx.fillStyle = '#64748b';
+          ctx.beginPath();
+          ctx.moveTo(pts[2].x, pts[2].y);
+          ctx.lineTo(pts[3].x, pts[3].y);
+          ctx.lineTo(0, 0);
+          ctx.closePath();
+          ctx.fill();
+
+          // Right Facet
+          ctx.fillStyle = lightFromRight ? '#cbd5e1' : '#1e293b';
+          ctx.beginPath();
+          ctx.moveTo(pts[3].x, pts[3].y);
+          ctx.lineTo(pts[4].x, pts[4].y);
+          ctx.lineTo(pts[5].x, pts[5].y);
+          ctx.lineTo(0, 0);
+          ctx.closePath();
+          ctx.fill();
+
+          // Highlight face outline edges for crisp vector resolution
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let p = 1; p < pts.length; p++) {
+            ctx.lineTo(pts[p].x, pts[p].y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      }
+      ctx.restore();
+
       // 7. ANIMATED WILD BIRDS & SWAYING MOUNTAIN FAUNA
       birdsRef.current.forEach((bird) => {
         bird.x += bird.speedX;
