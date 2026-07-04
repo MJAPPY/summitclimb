@@ -452,7 +452,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         }
       }
 
-      // Milestone flags
+      // Milestone flags - RETRO 8-BIT STYLE WITH ARCADE PRESS START 2P FONTS
       const milestones = [
         { mult: 1.5, label: '1.5x' },
         { mult: 2.0, label: '2.0x' },
@@ -470,63 +470,76 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         if (flagX > -120 && flagX < canvas.width + 120) {
           const flagY = getSlopeY(flagX);
 
-          // Shadow
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-          ctx.beginPath();
-          ctx.ellipse(flagX, flagY + 2, 12, 5, 0, 0, Math.PI * 2);
-          ctx.fill();
+          // Retro Pixel Shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillRect(flagX - 10, flagY + 1, 20, 4);
 
-          // Flagpole
-          ctx.strokeStyle = '#cbd5e1';
-          ctx.lineWidth = 4.5;
-          ctx.beginPath();
-          ctx.moveTo(flagX, flagY);
-          ctx.lineTo(flagX, flagY - 75);
-          ctx.stroke();
+          // 8-bit Striped Caution Flagpole
+          const poleWidth = 6;
+          const poleHeight = 85;
+          const segmentHeight = 10;
+          
+          for (let pY = 0; pY < poleHeight; pY += segmentHeight) {
+            const isRed = (Math.floor(pY / segmentHeight) % 2 === 0);
+            ctx.fillStyle = isRed ? '#ef4444' : '#ffffff';
+            ctx.fillRect(flagX - poleWidth / 2, flagY - pY - segmentHeight, poleWidth, segmentHeight);
+            
+            // Retro Black Outline
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(flagX - poleWidth / 2, flagY - pY - segmentHeight, poleWidth, segmentHeight);
+          }
 
-          // Gold ball ornament
-          ctx.fillStyle = '#eab308';
-          ctx.beginPath();
-          ctx.arc(flagX, flagY - 75, 4, 0, Math.PI * 2);
-          ctx.fill();
+          // Pixel block ornament at top of pole
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(flagX - 5, flagY - poleHeight - 8, 10, 8);
+          ctx.strokeStyle = '#000000';
+          ctx.strokeRect(flagX - 5, flagY - poleHeight - 8, 10, 8);
 
+          // Blocky Rectangular Flag Shape
           const isWholeNumber = milestone.mult % 1 === 0;
-          const flagColor = isWholeNumber ? '#a855f7' : '#10b981'; 
-
-          const flagTop = flagY - 68;
-          const flagHeight = 32;
-          const flagWidth = 56;
+          const flagColor = isWholeNumber ? '#ec4899' : '#06b6d4'; // Hot Pink or Neon Cyan
+          const flagTop = flagY - poleHeight + 5;
+          const flagHeight = 28;
+          const flagWidth = 65;
           
+          // Outer Flag Border
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(flagX - flagWidth - 2, flagTop - 2, flagWidth + 4, flagHeight + 4);
+
+          // Inner flag color
           ctx.fillStyle = flagColor;
-          ctx.beginPath();
-          ctx.moveTo(flagX, flagTop);
-          
-          const wave1 = Math.sin(t * 0.12 + flagX * 0.05) * 4;
-          const wave2 = Math.sin(t * 0.12 + (flagX - flagWidth) * 0.05) * 4;
-          
-          ctx.quadraticCurveTo(flagX - flagWidth / 2, flagTop + wave1, flagX - flagWidth, flagTop + wave2);
-          ctx.lineTo(flagX - flagWidth, flagTop + flagHeight + wave2);
-          ctx.quadraticCurveTo(flagX - flagWidth / 2, flagTop + flagHeight + wave1, flagX, flagTop + flagHeight);
-          ctx.closePath();
-          ctx.fill();
+          ctx.fillRect(flagX - flagWidth, flagTop, flagWidth, flagHeight);
 
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-          ctx.lineWidth = 2;
-          ctx.stroke();
+          // Classic 90s warning stripe pattern on the left edge of the flag
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(flagX - 8, flagTop, 4, flagHeight);
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(flagX - 4, flagTop, 2, flagHeight);
 
+          // DRAW RETRO TYPOGRAPHY NUMBERS INSIDE THE FLAG
           ctx.save();
-          ctx.font = 'black 12px system-ui, -apple-system, sans-serif';
+          // Uses standard custom-injected arcade Press Start 2P imported font
+          ctx.font = 'bold 8px "Press Start 2P", monospace, sans-serif';
           ctx.fillStyle = '#ffffff';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-          ctx.shadowBlur = 2;
-          ctx.shadowOffsetX = 1;
-          ctx.shadowOffsetY = 1;
 
+          // Authentic retro double dropshadow effect
+          const textX = flagX - flagWidth / 2 - 2;
+          const textY = flagTop + flagHeight / 2 + 1;
           const displayLabel = isWholeNumber ? `${Math.floor(milestone.mult)}x` : `${milestone.mult}x`;
-          ctx.fillText(displayLabel, flagX - flagWidth / 2, flagTop + flagHeight / 2 + wave1);
+
+          // Black Shadow layer 1
+          ctx.fillStyle = '#000000';
+          ctx.fillText(displayLabel, textX + 1.5, textY + 1.5);
+          // Neon Glow back layer
+          ctx.fillStyle = isWholeNumber ? '#a855f7' : '#0891b2';
+          ctx.fillText(displayLabel, textX - 0.5, textY - 0.5);
+          // Foreground Crisp text
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(displayLabel, textX, textY);
+          
           ctx.restore();
         }
       });
