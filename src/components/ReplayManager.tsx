@@ -14,14 +14,10 @@ interface ClimbRun {
 export const ReplayManager: React.FC = () => {
   const { toast } = useToast();
   
-  // High quality runs list
-  const runs: ClimbRun[] = [
-    { id: 'RUN-777A', date: 'Just now', bankedPoint: 4.82, collapsePoint: 12.43, duration: 8, cosmeticsUsed: 'Standard GUY' },
-    { id: 'RUN-554B', date: '2 hours ago', bankedPoint: null, collapsePoint: 3.12, duration: 4, cosmeticsUsed: 'Golden GUY' },
-    { id: 'RUN-129X', date: 'Yesterday', bankedPoint: 15.40, collapsePoint: 18.25, duration: 15, cosmeticsUsed: 'Cyber GUY' },
-  ];
+  // Clear mock history runs
+  const [runs, setRuns] = useState<ClimbRun[]>([]);
 
-  const [activeRun, setActiveRun] = useState<ClimbRun>(runs[0]);
+  const [activeRun, setActiveRun] = useState<ClimbRun | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1); // multiplier speed
@@ -29,7 +25,7 @@ export const ReplayManager: React.FC = () => {
   // Run the playback progression loop
   useEffect(() => {
     let interval: any = null;
-    if (isPlaying) {
+    if (isPlaying && activeRun) {
       interval = setInterval(() => {
         setCurrentTime((prev) => {
           const nextVal = prev + 0.1 * playbackSpeed;
@@ -49,6 +45,7 @@ export const ReplayManager: React.FC = () => {
   };
 
   const handleShare = () => {
+    if (!activeRun) return;
     navigator.clipboard.writeText(`https://summit.game/replay/${activeRun.id}`);
     toast({
       title: "Replay Link Copied",
@@ -63,11 +60,25 @@ export const ReplayManager: React.FC = () => {
 
   // Convert time to exact multiplier simulation point
   const getMultiplierAtTime = (time: number) => {
-    // Math curve matching crash: accelerating speed
     return parseFloat((1 + Math.pow(time, 1.6) * 0.15).toFixed(2));
   };
 
-  const currentMultiplier = getMultiplierAtTime(currentTime);
+  const currentMultiplier = activeRun ? getMultiplierAtTime(currentTime) : 1.00;
+
+  if (runs.length === 0) {
+    return (
+      <div className="p-12 text-center bg-slate-950/40 border-4 border-dashed border-purple-500/30 rounded-none max-w-2xl mx-auto space-y-4">
+        <Compass className="h-12 w-12 text-purple-400 mx-auto animate-spin" style={{ animationDuration: '8s' }} />
+        <h3 className="font-retro text-sm text-white tracking-wider">NO REPLAY TAPES RECORDED</h3>
+        <p className="text-[10px] font-retro text-slate-400 uppercase tracking-widest leading-relaxed">
+          Launch a climber run onto the slopes. Once complete, your flight recording tape will sync here securely for dynamic video playback!
+        </p>
+      </div>
+    );
+  }
+
+  // Safe fallback if runs exist (for any future items user records dynamically)
+  const selectedRun = activeRun || runs[0];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -87,7 +98,7 @@ export const ReplayManager: React.FC = () => {
                 setIsPlaying(false);
               }}
               className={`w-full p-4 rounded-xl border text-left transition-all relative overflow-hidden ${
-                activeRun.id === run.id
+                selectedRun.id === run.id
                   ? 'border-violet-500 bg-violet-500/10'
                   : 'border-white/5 bg-slate-950/40 hover:border-white/10'
               }`}
@@ -117,7 +128,7 @@ export const ReplayManager: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <span className="text-[10px] font-mono text-violet-400 uppercase tracking-widest font-bold">REPLAY CONSOLE</span>
-              <h2 className="text-lg font-black text-white mt-1">Ascent #{activeRun.id}</h2>
+              <h2 className="text-lg font-black text-white mt-1">Ascent #{selectedRun.id}</h2>
             </div>
             <button
               onClick={handleShare}
@@ -135,16 +146,16 @@ export const ReplayManager: React.FC = () => {
             </div>
 
             {/* Display bank event checkpoint on the timeline overlay */}
-            {activeRun.bankedPoint && currentMultiplier >= activeRun.bankedPoint && (
+            {selectedRun.bankedPoint && currentMultiplier >= selectedRun.bankedPoint && (
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-12 scale-110 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-black px-3 py-1 rounded">
-                SECURED BANK AT {activeRun.bankedPoint.toFixed(2)}x!
+                SECURED BANK AT {selectedRun.bankedPoint.toFixed(2)}x!
               </div>
             )}
             
             {/* Display collapse marker */}
-            {currentTime >= activeRun.duration && (
+            {currentTime >= selectedRun.duration && (
               <div className="text-xs font-bold text-rose-500 bg-rose-500/10 px-3 py-1.5 rounded inline-block mt-4">
-                💥 MOUNTAIN COLLAPSED AT {activeRun.collapsePoint.toFixed(2)}x
+                💥 MOUNTAIN COLLAPSED AT {selectedRun.collapsePoint.toFixed(2)}x
               </div>
             )}
           </div>
@@ -154,7 +165,7 @@ export const ReplayManager: React.FC = () => {
             <input
               type="range"
               min="0"
-              max={activeRun.duration}
+              max={selectedRun.duration}
               step="0.05"
               value={currentTime}
               onChange={handleSeek}
@@ -196,7 +207,7 @@ export const ReplayManager: React.FC = () => {
               </div>
 
               <div className="text-right text-[10px] text-slate-400 font-mono">
-                {currentTime.toFixed(1)}s / {activeRun.duration.toFixed(1)}s
+                {currentTime.toFixed(1)}s / {selectedRun.duration.toFixed(1)}s
               </div>
             </div>
           </div>

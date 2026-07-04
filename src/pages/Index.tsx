@@ -47,23 +47,22 @@ const Index = () => {
   const [walletConnected, setWalletConnected] = useState<boolean>(false);
   const [walletAddress, setWalletAddress] = useState<string>('');
 
-  // Currency & Player progression states - Strictly XPR Native Token
-  const [balance, setBalance] = useState<number>(350);
+  // Currency & Player progression states starting completely fresh!
+  const [balance, setBalance] = useState<number>(0);
   const tokenType = 'XPR';
   const [level, setLevel] = useState<number>(1);
-  const [xp, setXp] = useState<number>(45);
+  const [xp, setXp] = useState<number>(0);
 
-  // Remaining climbs / goes (each climb costs exactly 1 Go, bought at 2 XPR per Go)
-  const [remainingGoes, setRemainingGoes] = useState<number>(5);
+  // Starting empty Counter Panel goes
+  const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
-  // Dynamic live growing Weekly Prize Pool (increases directly as players purchase goes!)
-  // Calculated dynamically as 95% of total purchases added to base pool
-  const [prizePool, setPrizePool] = useState<number>(25000);
+  // Start with 0 prize pool (or basic reset state)
+  const [prizePool, setPrizePool] = useState<number>(0);
 
-  // Stats
-  const [lifetimeGames, setLifetimeGames] = useState<number>(12);
-  const [highestMultiplier, setHighestMultiplier] = useState<number>(4.82);
-  const [weeklyBest, setWeeklyBest] = useState<number>(4.82);
+  // Stats reset
+  const [lifetimeGames, setLifetimeGames] = useState<number>(0);
+  const [highestMultiplier, setHighestMultiplier] = useState<number>(1.00);
+  const [weeklyBest, setWeeklyBest] = useState<number>(1.00);
 
   // Active climb mechanics state
   const [gameState, setGameState] = useState<'idle' | 'climbing' | 'banked' | 'collapsed'>('idle');
@@ -735,7 +734,7 @@ const Index = () => {
               lifetimeGames={lifetimeGames}
               highestMultiplier={highestMultiplier}
               weeklyBest={weeklyBest}
-              referrals={4}
+              referrals={0}
               onOpenReplays={() => setActiveTab('replays')}
               walletAddress={walletAddress}
             />

@@ -16,57 +16,9 @@ interface LeaderboardProps {
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
-  const [timeLeft, setTimeLeft] = useState<string>('04D : 12H : 38M : 45S');
-  const participants = 1420;
-
-  // Custom mock high-tier players representing global climbs
-  const [competitors, setCompetitors] = useState<Competitor[]>([
-    { rank: 1, username: 'SUMMIT_GOAT_99', bestScore: 28.42, gamesPlayed: 85, country: '🇨🇦 CA', avatar: '🏔', prizeFraction: 25.0 },
-    { rank: 2, username: 'GUY_ENJOYER_X', bestScore: 22.15, gamesPlayed: 142, country: '🇺🇸 US', avatar: '🦁', prizeFraction: 16.0 },
-    { rank: 3, username: 'SATOSHI_CLIMBER', bestScore: 19.80, gamesPlayed: 94, country: '🇯🇵 JP', avatar: '⚡', prizeFraction: 12.0 },
-    { rank: 4, username: 'AVALANCHE_SURF', bestScore: 15.65, gamesPlayed: 41, country: '🇫🇷 FR', avatar: '🛹', prizeFraction: 9.0 },
-    { rank: 5, username: 'SHERPA_SPEED', bestScore: 12.11, gamesPlayed: 230, country: '🇳🇵 NP', avatar: '🧗', prizeFraction: 7.0 },
-    { rank: 6, username: 'CRYPTO_PEAK', bestScore: 10.45, gamesPlayed: 75, country: '🇩🇪 DE', avatar: '🪙', prizeFraction: 6.0 },
-    { rank: 7, username: 'FROSTY_TROLL', bestScore: 9.80, gamesPlayed: 54, country: '🇳🇴 NO', avatar: '👹', prizeFraction: 5.0 },
-    { rank: 8, username: 'ZERO_DEGREE', bestScore: 8.75, gamesPlayed: 32, country: '🇨🇭 CH', avatar: '❄', prizeFraction: 4.0 },
-    { rank: 9, username: 'SUMMIT_HERO_7', bestScore: 8.20, gamesPlayed: 110, country: '🇬🇧 GB', avatar: '🚀', prizeFraction: 3.5 },
-    { rank: 10, username: 'GUY_POWER_777', bestScore: 7.95, gamesPlayed: 60, country: '🇦🇺 AU', avatar: '🌟', prizeFraction: 3.0 },
-    { rank: 11, username: 'ALPINE_ECHO', bestScore: 7.42, gamesPlayed: 48, country: '🇦🇹 AT', avatar: '🐐', prizeFraction: 2.5 },
-    { rank: 12, username: 'GLACIER_GLIDE', bestScore: 6.85, gamesPlayed: 39, country: '🇳🇿 NZ', avatar: '🦅', prizeFraction: 2.0 },
-    { rank: 13, username: 'SUMMIT_SEEKER', bestScore: 6.10, gamesPlayed: 52, country: '🇮🇹 IT', avatar: '🌲', prizeFraction: 2.0 },
-    { rank: 14, username: 'YODEL_MASTER', bestScore: 5.92, gamesPlayed: 66, country: '🇨🇭 CH', avatar: '🎺', prizeFraction: 1.5 },
-    { rank: 15, username: 'FROSTBITE_GUY', bestScore: 5.40, gamesPlayed: 29, country: '🇸🇪 SE', avatar: '🧤', prizeFraction: 1.5 },
-  ]);
-
-  // Simulate subtle real-time updates to keep the board alive
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCompetitors(prev => {
-        const indexToTweak = Math.floor(Math.random() * (prev.length - 3)) + 3; // tweak mid-low ranks
-        return prev.map((c, idx) => {
-          if (idx === indexToTweak) {
-            const extraScore = parseFloat((Math.random() * 0.15).toFixed(2));
-            return {
-              ...c,
-              bestScore: parseFloat((c.bestScore + extraScore).toFixed(2)),
-              gamesPlayed: c.gamesPlayed + 1
-            };
-          }
-          return c;
-        }).sort((a, b) => b.bestScore - a.bestScore)
-          .map((c, idx) => {
-            const decayPercentages = [25.0, 16.0, 12.0, 9.0, 7.0, 6.0, 5.0, 4.0, 3.5, 3.0, 2.5, 2.0, 2.0, 1.5, 1.5];
-            return {
-              ...c,
-              rank: idx + 1,
-              prizeFraction: decayPercentages[idx] || 0
-            };
-          });
-        });
-    }, 4000);
-
-    return () => clearInterval(timer);
-  }, []);
+  const [timeLeft, setTimeLeft] = useState<string>('07D : 00H : 00M : 00S');
+  const [participants, setParticipants] = useState<number>(0);
+  const [competitors, setCompetitors] = useState<Competitor[]>([]);
 
   return (
     <div className="space-y-6 crt-screen">
@@ -132,91 +84,87 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
         </div>
 
         <div className="overflow-x-auto rounded-none">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead>
-              <tr className="border-b-4 border-pink-500 text-pink-400 text-[10px] font-retro uppercase tracking-wider bg-slate-900/90 shadow-[0_4px_10px_rgba(236,72,153,0.2)]">
-                <th className="py-4 px-3 text-center w-20">Rank</th>
-                <th className="py-4 px-4">Climber Profile</th>
-                <th className="py-4 px-4 text-center">Location</th>
-                <th className="py-4 px-4 text-right">Runs</th>
-                <th className="py-4 px-4 text-right text-yellow-400">Apex Altitude</th>
-                <th className="py-4 px-5 text-right text-cyan-400">Est. Payout</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/10 font-retro text-xs bg-slate-950/40">
-              {competitors.map((player) => {
-                const prizeValue = (player.prizeFraction / 100) * prizePool;
-                
-                // Classic 90s neon badges for top ranks
-                const isTopThree = player.rank <= 3;
-                
-                const rankStyle = 
-                  player.rank === 1 ? 'border-4 border-yellow-400 bg-slate-950 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse' :
-                  player.rank === 2 ? 'border-4 border-slate-300 bg-slate-950 text-slate-200 shadow-[0_0_15px_rgba(226,232,240,0.5)]' :
-                  player.rank === 3 ? 'border-4 border-orange-500 bg-slate-950 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.5)]' :
-                  'border-2 border-pink-500/40 text-pink-400/80 bg-slate-950';
+          {competitors.length === 0 ? (
+            <div className="text-center py-12 px-4 space-y-4">
+              <Trophy className="h-12 w-12 text-yellow-400 mx-auto animate-bounce" />
+              <div className="font-retro text-sm text-white tracking-wider">NO CLIMBERS ON THE BOARD YET</div>
+              <p className="text-[10px] font-retro text-slate-400 uppercase tracking-widest leading-relaxed">
+                Insert a coin and successfully lock a multiplier above 1.50x to carve your clan initials into the screen!
+              </p>
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="border-b-4 border-pink-500 text-pink-400 text-[10px] font-retro uppercase tracking-wider bg-slate-900/90 shadow-[0_4px_10px_rgba(236,72,153,0.2)]">
+                  <th className="py-4 px-3 text-center w-20">Rank</th>
+                  <th className="py-4 px-4">Climber Profile</th>
+                  <th className="py-4 px-4 text-center">Location</th>
+                  <th className="py-4 px-4 text-right">Runs</th>
+                  <th className="py-4 px-4 text-right text-yellow-400">Apex Altitude</th>
+                  <th className="py-4 px-5 text-right text-cyan-400">Est. Payout</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10 font-retro text-xs bg-slate-950/40">
+                {competitors.map((player) => {
+                  const prizeValue = (player.prizeFraction / 100) * prizePool;
+                  const isTopThree = player.rank <= 3;
+                  const rankStyle = 
+                    player.rank === 1 ? 'border-4 border-yellow-400 bg-slate-950 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse' :
+                    player.rank === 2 ? 'border-4 border-slate-300 bg-slate-950 text-slate-200 shadow-[0_0_15px_rgba(226,232,240,0.5)]' :
+                    player.rank === 3 ? 'border-4 border-orange-500 bg-slate-950 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.5)]' :
+                    'border-2 border-pink-500/40 text-pink-400/80 bg-slate-950';
 
-                return (
-                  <tr
-                    key={player.username}
-                    className="hover:bg-pink-500/10 hover:shadow-[inset_0_0_15px_rgba(236,72,153,0.2)] transition-all group"
-                  >
-                    {/* Rank indicator */}
-                    <td className="py-4 px-3">
-                      <div className="flex justify-center">
-                        <span className={`w-10 h-10 flex items-center justify-center text-xs font-black font-retro tracking-tighter ${rankStyle}`}>
-                          {player.rank.toString().padStart(2, '0')}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Username & Avatar (Now clean text without square emoji blocks) */}
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <span className={`font-black text-white group-hover:text-cyan-400 transition-colors text-xs tracking-wide ${isTopThree ? 'text-gradient-neon' : ''}`}>
-                            {player.username}
+                  return (
+                    <tr
+                      key={player.username}
+                      className="hover:bg-pink-500/10 hover:shadow-[inset_0_0_15px_rgba(236,72,153,0.2)] transition-all group"
+                    >
+                      <td className="py-4 px-3">
+                        <div className="flex justify-center">
+                          <span className={`w-10 h-10 flex items-center justify-center text-xs font-black font-retro tracking-tighter ${rankStyle}`}>
+                            {player.rank.toString().padStart(2, '0')}
                           </span>
-                          {isTopThree && (
-                            <span className="text-[7px] font-retro font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400 px-1.5 py-0.5 ml-2 uppercase animate-pulse">
-                              1ST CLAN
-                            </span>
-                          )}
                         </div>
-                      </div>
-                    </td>
-
-                    {/* Location Flag */}
-                    <td className="py-4 px-4 text-center text-[10px] text-slate-300 font-mono tracking-tight group-hover:text-pink-400">
-                      {player.country}
-                    </td>
-
-                    {/* Total Runs */}
-                    <td className="py-4 px-4 text-right text-[10px] text-slate-400 font-mono tracking-wider">
-                      {player.gamesPlayed.toString().padStart(3, '0')} <span className="text-[8px] text-pink-500/60 font-retro">COINS</span>
-                    </td>
-
-                    {/* Apex Altitude Score */}
-                    <td className="py-4 px-4 text-right">
-                      <span className="font-extrabold text-white font-mono bg-slate-900 border-2 border-yellow-400/50 px-3 py-1 text-xs shadow-[0_0_10px_rgba(250,204,21,0.25)] group-hover:border-yellow-400">
-                        {player.bestScore.toFixed(2)}x
-                      </span>
-                    </td>
-
-                    {/* Estimated Payout */}
-                    <td className="py-4 px-5 text-right">
-                      <div className="font-black text-cyan-400 text-xs font-retro tracking-tighter text-gradient-neon">
-                        {prizeValue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} XPR
-                      </div>
-                      <div className="text-[8px] text-slate-500 mt-1 font-retro uppercase">
-                        ({player.prizeFraction}% POT)
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <span className={`font-black text-white group-hover:text-cyan-400 transition-colors text-xs tracking-wide ${isTopThree ? 'text-gradient-neon' : ''}`}>
+                              {player.username}
+                            </span>
+                            {isTopThree && (
+                              <span className="text-[7px] font-retro font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400 px-1.5 py-0.5 ml-2 uppercase animate-pulse">
+                                1ST CLAN
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center text-[10px] text-slate-300 font-mono tracking-tight group-hover:text-pink-400">
+                        {player.country}
+                      </td>
+                      <td className="py-4 px-4 text-right text-[10px] text-slate-400 font-mono tracking-wider">
+                        {player.gamesPlayed.toString().padStart(3, '0')} <span className="text-[8px] text-pink-500/60 font-retro">COINS</span>
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <span className="font-extrabold text-white font-mono bg-slate-900 border-2 border-yellow-400/50 px-3 py-1 text-xs shadow-[0_0_10px_rgba(250,204,21,0.25)] group-hover:border-yellow-400">
+                          {player.bestScore.toFixed(2)}x
+                        </span>
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <div className="font-black text-cyan-400 text-xs font-retro tracking-tighter text-gradient-neon">
+                          {prizeValue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} XPR
+                        </div>
+                        <div className="text-[8px] text-slate-500 mt-1 font-retro uppercase">
+                          ({player.prizeFraction}% POT)
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
