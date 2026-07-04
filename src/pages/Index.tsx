@@ -212,17 +212,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-yellow-500 selection:text-slate-950">
       {/* Cinematic top navbar */}
-      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-700/80 px-5 lg:px-10 py-4 flex items-center justify-between shadow-2xl">
+      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-800 px-5 lg:px-10 py-4 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-5">
-          {/* Direct, clean SummitLogo without box borders or glow wraps */}
-          <SummitLogo size="sm" className="shrink-0" />
+          <SummitLogo size="sm" className="shrink-0 rounded-2xl" />
           <div>
-            <h1 className="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-100 uppercase">
-              GUYS Summit
+            <h1 className="text-3xl font-black tracking-tight text-white uppercase">
+              GUYS <span className="text-gradient-gold">Summit</span>
             </h1>
-            <span className="text-xs font-black text-amber-400 tracking-wider block leading-none mt-1 uppercase">
+            <span className="text-xs font-black text-amber-400 tracking-widest block leading-none mt-1 uppercase">
               climb the pinnacle
             </span>
           </div>
@@ -231,11 +230,11 @@ const Index = () => {
         {/* Global info ticks */}
         <div className="hidden md:flex items-center gap-8 text-sm text-slate-300">
           <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse border-2 border-emerald-950" />
-            <span className="font-extrabold tracking-wide">Active Climbers: 1,420</span>
+            <span className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse border-2 border-yellow-950" />
+            <span className="font-extrabold tracking-wide uppercase text-xs">Active Climbers: 1,420</span>
           </div>
-          <div className="font-mono bg-slate-950/80 px-3 py-1.5 rounded-lg border-2 border-slate-800 text-xs">
-            Decay Seed: <span className="text-amber-400 font-extrabold">0x777...guy</span>
+          <div className="font-mono bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-400">
+            Decay Seed: <span className="text-yellow-400 font-extrabold">0x777...guy</span>
           </div>
         </div>
 
@@ -243,20 +242,20 @@ const Index = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={toggleMute}
-            className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-slate-100 rounded-xl border-2 border-slate-600 shadow transition-all"
+            className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-slate-100 rounded-xl border border-slate-700 shadow transition-all"
             title="Toggle Synthesizer Sound"
           >
-            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5 text-amber-400" />}
+            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5 text-yellow-400" />}
           </button>
 
           <button
             onClick={() => setWalletOpen(true)}
-            className="bg-gradient-to-b from-slate-850 to-slate-950 border-2 border-slate-600 hover:border-slate-400 rounded-xl px-5 py-2.5 text-sm flex items-center gap-3.5 shadow-xl transition-all text-left"
+            className="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl px-5 py-2.5 text-sm flex items-center gap-4 shadow-xl transition-all text-left group"
           >
-            <Wallet className="h-5 w-5 text-amber-400" />
+            <Wallet className="h-5 w-5 text-yellow-400 group-hover:scale-110 transition-transform" />
             <div>
-              <div className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider leading-none">Your Wallet</div>
-              <div className="text-sm font-black text-slate-100 leading-none mt-1.5">{balance.toFixed(2)} {tokenType}</div>
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Your Wallet</div>
+              <div className="text-sm font-black text-white leading-none mt-1.5">{balance.toFixed(2)} {tokenType}</div>
             </div>
           </button>
         </div>
@@ -267,82 +266,82 @@ const Index = () => {
         
         {/* Responsive Sidebar Navigation - Enlarged with Metallicus style */}
         <aside className="lg:col-span-3 space-y-6">
-          <div className="bg-slate-900 border-2 border-slate-700 rounded-2xl p-5 space-y-2.5 shadow-2xl">
-            <span className="text-xs text-slate-400 font-black uppercase tracking-widest px-3 block mb-3 border-b-2 border-slate-800 pb-1">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2.5 shadow-2xl">
+            <span className="text-xs text-slate-400 font-black uppercase tracking-widest px-3 block mb-3 border-b border-slate-800 pb-2">
               Navigation Hub
             </span>
             
             <button
               onClick={() => setActiveTab('climb')}
-              className={`w-full flex items-center justify-between px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border-2 ${
+              className={`w-full flex items-center justify-between px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
                 activeTab === 'climb' 
-                  ? 'bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 border-slate-400 text-slate-100 shadow-[0_0_15px_rgba(255,255,255,0.15)]' 
-                  : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
             >
               <span className="flex items-center gap-3.5">
-                <Compass className={`h-5 w-5 ${activeTab === 'climb' ? 'text-amber-400' : ''}`} /> Start Expedition
+                <Compass className={`h-5 w-5 ${activeTab === 'climb' ? 'text-yellow-400' : ''}`} /> Start Expedition
               </span>
-              {activeTab === 'climb' && <span className="text-[11px] bg-amber-400/20 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded font-mono font-black animate-pulse">LIVE</span>}
+              {activeTab === 'climb' && <span className="text-[10px] bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 px-2.5 py-0.5 rounded-full font-mono font-black animate-pulse">LIVE</span>}
             </button>
 
             <button
               onClick={() => setActiveTab('leaderboard')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border-2 ${
+              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
                 activeTab === 'leaderboard' 
-                  ? 'bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 border-slate-400 text-slate-100 shadow-[0_0_15px_rgba(255,255,255,0.15)]' 
-                  : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              <Trophy className={`h-5 w-5 ${activeTab === 'leaderboard' ? 'text-amber-400' : ''}`} /> Seasons Leaderboard
+              <Trophy className={`h-5 w-5 ${activeTab === 'leaderboard' ? 'text-yellow-400' : ''}`} /> Seasons Leaderboard
             </button>
 
             <button
               onClick={() => setActiveTab('profile')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border-2 ${
+              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
                 activeTab === 'profile' 
-                  ? 'bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 border-slate-400 text-slate-100 shadow-[0_0_15px_rgba(255,255,255,0.15)]' 
-                  : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              <User className={`h-5 w-5 ${activeTab === 'profile' ? 'text-amber-400' : ''}`} /> GUY Achievements
+              <User className={`h-5 w-5 ${activeTab === 'profile' ? 'text-yellow-400' : ''}`} /> GUY Achievements
             </button>
 
             <button
               onClick={() => setActiveTab('replays')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border-2 ${
+              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
                 activeTab === 'replays' 
-                  ? 'bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 border-slate-400 text-slate-100 shadow-[0_0_15px_rgba(255,255,255,0.15)]' 
-                  : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              <History className={`h-5 w-5 ${activeTab === 'replays' ? 'text-amber-400' : ''}`} /> Ascent Replays
+              <History className={`h-5 w-5 ${activeTab === 'replays' ? 'text-yellow-400' : ''}`} /> Ascent Replays
             </button>
 
             <button
               onClick={() => setActiveTab('admin')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border-2 ${
+              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
                 activeTab === 'admin' 
-                  ? 'bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 border-slate-400 text-slate-100 shadow-[0_0_15px_rgba(255,255,255,0.15)]' 
-                  : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
+                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              <Settings className={`h-5 w-5 ${activeTab === 'admin' ? 'text-amber-400' : ''}`} /> Admin Controls
+              <Settings className={`h-5 w-5 ${activeTab === 'admin' ? 'text-yellow-400' : ''}`} /> Admin Controls
             </button>
           </div>
 
           {/* Mini active player badge - Metallicus themed */}
-          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-800 rounded-2xl p-5 flex items-center gap-4.5 relative overflow-hidden shadow-xl">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-full blur-xl" />
-            <div className="w-16 h-16 bg-slate-900 border-2 border-slate-700 rounded-xl flex items-center justify-center text-4xl shadow-inner relative">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4.5 relative overflow-hidden shadow-xl">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/5 rounded-full blur-xl" />
+            <div className="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-4xl shadow-inner relative">
               🧗
-              <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
+              <span className="absolute -top-1.5 -right-1.5 bg-yellow-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
                 PRO
               </span>
             </div>
             <div>
-              <div className="text-base font-black text-slate-100 flex items-center gap-1.5">
-                GUY Climber <span className="text-xs text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded">Lv.{level}</span>
+              <div className="text-base font-black text-white flex items-center gap-1.5">
+                GUY Climber <span className="text-xs text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded">Lv.{level}</span>
               </div>
               <p className="text-xs text-slate-400 mt-1.5 font-medium">Best altitude: <span className="text-emerald-400 font-black text-sm">{highestMultiplier.toFixed(2)}x</span></p>
             </div>
@@ -373,18 +372,18 @@ const Index = () => {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                   
                   {/* Dedicated Altitude Display panel (Repositioned below the game) */}
-                  <div className="md:col-span-5 p-6 bg-slate-900 border-2 border-slate-700 rounded-2xl shadow-xl flex items-center justify-between">
+                  <div className="md:col-span-5 p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-[11px] text-amber-400 font-black tracking-widest uppercase flex items-center gap-1.5 font-mono">
-                        <Flame className="h-4 w-4 text-amber-400 animate-pulse" /> CURRENT ALTITUDE
+                      <span className="text-[11px] text-yellow-400 font-black tracking-wider uppercase flex items-center gap-1.5 font-mono">
+                        <Flame className="h-4 w-4 text-yellow-400 animate-pulse" /> CURRENT ALTITUDE
                       </span>
                       <div className="text-4xl md:text-5xl font-black text-white font-mono tracking-tighter mt-1">
-                        {multiplier.toFixed(2)}<span className="text-amber-400 text-2xl font-black ml-0.5">x</span>
+                        {multiplier.toFixed(2)}<span className="text-yellow-400 text-2xl font-black ml-0.5">x</span>
                       </div>
                     </div>
                     <div className="h-12 w-[1px] bg-slate-800" />
                     <div className="flex flex-col text-right">
-                      <span className="text-[11px] text-slate-400 font-black tracking-widest uppercase font-mono">EST. RECOVERED</span>
+                      <span className="text-[11px] text-slate-400 font-black tracking-wider uppercase font-mono">EST. RECOVERED</span>
                       <div className="text-xl md:text-2xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
                         {(betAmount * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold">{tokenType}</span>
                       </div>
@@ -392,10 +391,10 @@ const Index = () => {
                   </div>
 
                   {/* Environment details */}
-                  <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 bg-gradient-to-r from-slate-900 to-slate-950 border-2 border-slate-800 rounded-2xl shadow-xl">
+                  <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-2xl shadow-xl">
                     <div className="flex items-center gap-3">
                       <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
-                        <Mountain className="h-5 w-5 text-amber-400" />
+                        <Mountain className="h-5 w-5 text-yellow-400" />
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SLOPE</span>
@@ -403,15 +402,15 @@ const Index = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 border-y sm:border-y-0 sm:border-x border-slate-800 py-3 sm:py-0 sm:px-4">
+                    <div className="flex items-center gap-3 border-y sm:border-y-0 sm:border-x border-slate-850 py-3 sm:py-0 sm:px-4">
                       <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
-                        <Sparkles className="h-5 w-5 text-amber-400" />
+                        <Sparkles className="h-5 w-5 text-yellow-400" />
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">RISK</span>
                         <span className={`text-xs font-black block mt-1 truncate ${
                           multiplier < 1.5 ? 'text-emerald-400' :
-                          multiplier < 3.0 ? 'text-amber-400' : 'text-rose-500 animate-pulse'
+                          multiplier < 3.0 ? 'text-yellow-400' : 'text-rose-500 animate-pulse'
                         }`}>
                           {multiplier < 1.5 ? 'SAFE' :
                            multiplier < 3.0 ? 'VELOCITY' : 'AVALANCHE'}
@@ -421,11 +420,11 @@ const Index = () => {
 
                     <div className="flex items-center gap-3">
                       <div className="p-3 bg-slate-800 border border-slate-700 text-slate-100 rounded-xl shrink-0">
-                        <ShieldAlert className="h-5 w-5 text-amber-400" />
+                        <ShieldAlert className="h-5 w-5 text-yellow-400" />
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SPEED</span>
-                        <span className="text-xs font-bold text-amber-400 font-mono block mt-1 truncate">
+                        <span className="text-xs font-bold text-yellow-400 font-mono block mt-1 truncate">
                           {Math.floor(multiplier * 18)} km/h
                         </span>
                       </div>
@@ -439,12 +438,12 @@ const Index = () => {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                 
                 {/* Climber Controller Action Box */}
-                <div className="md:col-span-7 p-7 bg-slate-900 border-2 border-slate-700 rounded-2xl space-y-6 shadow-2xl">
-                  <div className="flex items-center justify-between pb-3.5 border-b-2 border-slate-800">
-                    <span className="text-sm font-black text-white uppercase tracking-widest font-mono">
+                <div className="md:col-span-7 p-7 bg-slate-900 border border-slate-800 rounded-2xl space-y-6 shadow-2xl">
+                  <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+                    <span className="text-sm font-black text-white uppercase tracking-wider font-mono">
                       Ascent Console
                     </span>
-                    <span className="text-[11px] text-amber-400 font-mono bg-amber-400/10 px-2.5 py-0.5 rounded border border-amber-400/20 font-black">
+                    <span className="text-[11px] text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded border border-yellow-400/20 font-black">
                       MANUAL / AUTO ACTIVE
                     </span>
                   </div>
@@ -458,10 +457,10 @@ const Index = () => {
                           key={amt}
                           onClick={() => setBetAmount(amt)}
                           disabled={gameState === 'climbing'}
-                          className={`py-3.5 rounded-xl text-sm font-black transition-all border-2 ${
+                          className={`py-3.5 rounded-xl text-sm font-black transition-all border ${
                             betAmount === amt
-                              ? 'bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 border-slate-400 text-slate-100 shadow-md'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+                              ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
+                              : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
                           }`}
                         >
                           {amt}
@@ -479,7 +478,7 @@ const Index = () => {
                       value={autoCashOut}
                       onChange={(e) => setAutoCashOut(e.target.value)}
                       disabled={gameState === 'climbing'}
-                      className="w-full bg-slate-950 border-2 border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-slate-500 placeholder-slate-600"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
                     />
                   </div>
 
@@ -488,7 +487,7 @@ const Index = () => {
                     {gameState === 'climbing' ? (
                       <button
                         onClick={handleBank}
-                        className="w-full py-6 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-green-600 hover:opacity-95 text-slate-950 font-black tracking-widest text-base shadow-2xl border-2 border-emerald-300 transition-all flex flex-col items-center justify-center gap-2 animate-pulse"
+                        className="w-full py-6 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:opacity-95 text-slate-950 font-black tracking-wider text-base shadow-2xl border-2 border-emerald-300 transition-all flex flex-col items-center justify-center gap-2 animate-pulse"
                       >
                         <span className="text-xs uppercase font-black tracking-widest text-slate-900 opacity-90">SECURE HARNESS & RETREAT</span>
                         <span className="text-lg font-mono font-black text-slate-950">
@@ -498,33 +497,33 @@ const Index = () => {
                     ) : (
                       <button
                         onClick={handleStartClimb}
-                        className="w-full py-6 rounded-2xl bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 hover:from-slate-650 hover:to-slate-850 text-slate-100 font-black tracking-widest text-base shadow-2xl border-2 border-slate-500 transition-all flex items-center justify-center gap-3 uppercase"
+                        className="w-full py-6 rounded-2xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-wider text-base shadow-2xl border border-yellow-300 transition-all flex items-center justify-center gap-3 uppercase"
                       >
                         <span>LAUNCH EXPEDITION</span>
-                        <ArrowUpRight className="h-6 w-6 text-amber-400 animate-pulse" />
+                        <ArrowUpRight className="h-6 w-6 text-slate-950" />
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* Scenic Controller Presets Box */}
-                <div className="md:col-span-5 p-7 bg-slate-900 border-2 border-slate-700 rounded-2xl space-y-5 shadow-2xl">
-                  <div className="pb-3.5 border-b-2 border-slate-800">
-                    <span className="text-sm font-black text-white uppercase tracking-widest font-mono flex items-center gap-2.5">
-                      <Sparkles className="h-5 w-5 text-amber-400" /> Climber Environment
+                <div className="md:col-span-5 p-7 bg-slate-900 border border-slate-800 rounded-2xl space-y-5 shadow-2xl">
+                  <div className="pb-3.5 border-b border-slate-800">
+                    <span className="text-sm font-black text-white uppercase tracking-wider font-mono flex items-center gap-2.5">
+                      <Sparkles className="h-5 w-5 text-yellow-400" /> Climber Environment
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => handleSceneryPreset('sunny', 'clear')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col justify-between h-[90px] ${
+                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
                         cosmetics.theme === 'sunny' && cosmetics.weather === 'clear'
-                          ? 'border-slate-400 bg-slate-800 text-white shadow-md'
+                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
                           : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
                       }`}
                     >
-                      <Sun className="h-5 w-5 text-amber-400" />
+                      <Sun className="h-5 w-5 text-yellow-400" />
                       <div>
                         <div className="text-xs font-black">Sunny Peak</div>
                         <div className="text-[10px] text-slate-500 leading-none mt-1">Clear Skies</div>
@@ -533,9 +532,9 @@ const Index = () => {
 
                     <button
                       onClick={() => handleSceneryPreset('rain', 'rain')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col justify-between h-[90px] ${
+                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
                         cosmetics.theme === 'rain' && cosmetics.weather === 'rain'
-                          ? 'border-slate-400 bg-slate-800 text-white shadow-md'
+                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
                           : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
                       }`}
                     >
@@ -548,9 +547,9 @@ const Index = () => {
 
                     <button
                       onClick={() => handleSceneryPreset('everest', 'snow')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col justify-between h-[90px] ${
+                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
                         cosmetics.theme === 'everest' && cosmetics.weather === 'snow'
-                          ? 'border-slate-400 bg-slate-800 text-white shadow-md'
+                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
                           : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
                       }`}
                     >
@@ -563,13 +562,13 @@ const Index = () => {
 
                     <button
                       onClick={() => handleSceneryPreset('cyber', 'neonrain')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col justify-between h-[90px] ${
+                      className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between h-[90px] ${
                         cosmetics.theme === 'cyber' && cosmetics.weather === 'neonrain'
-                          ? 'border-slate-400 bg-slate-800 text-white shadow-md'
+                          ? 'border-yellow-500 bg-slate-800 text-white shadow-md'
                           : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
                       }`}
                     >
-                      <Sparkles className="h-5 w-5 text-amber-400" />
+                      <Sparkles className="h-5 w-5 text-yellow-400" />
                       <div>
                         <div className="text-xs font-black">Neon Ridge</div>
                         <div className="text-[10px] text-slate-500 leading-none mt-1">Showers</div>
@@ -616,14 +615,13 @@ const Index = () => {
       )}
 
       {/* Aesthetic bottom footer disclaimer */}
-      <footer className="mt-12 py-10 border-t-2 border-slate-800 text-center text-xs text-slate-500 space-y-6">
-        {/* Large reflective gold logo centerpiece - rendered directly on page */}
-        <SummitLogo size="lg" className="mx-auto" />
+      <footer className="mt-12 py-10 border-t border-slate-800 text-center text-xs text-slate-500 space-y-6">
+        <SummitLogo size="lg" className="mx-auto rounded-3xl" />
         <div>
           <p className="max-w-md mx-auto font-medium text-slate-400">
             Summit is a simulated decentralized cryptocurrency exploration climb. All features represent mock secure models. Enjoy climbing!
           </p>
-          <p className="mt-3 font-black text-amber-400 tracking-wider text-sm uppercase">
+          <p className="mt-3 font-black text-yellow-400 tracking-widest text-sm uppercase">
             CHARACTERS SUPPORTED: HERO CLIMBER GUY
           </p>
         </div>
