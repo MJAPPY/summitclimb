@@ -124,7 +124,7 @@ const Index = () => {
     if (balance < cost) {
       toast({
         title: "Insufficient Balance",
-        description: `You need ${cost} XPR to purchase ${count} goes. Deposit more tokens.`,
+        description: `You need ${cost} XPR to purchase ${count} games. Deposit more tokens.`,
         variant: "destructive"
       });
       return;
@@ -135,7 +135,7 @@ const Index = () => {
       try {
         toast({
           title: "Sending Signature Request",
-          description: "Authorize the XPR goes purchase in your WebAuth app...",
+          description: "Authorize the XPR games purchase in your WebAuth app...",
         });
         await protonService.transfer('tripseven', cost, 'XPR', `Purchase ${count} climbs bundle - GUYS Summit`);
       } catch (e) {
@@ -157,7 +157,7 @@ const Index = () => {
 
     toast({
       title: "Climbs Added!",
-      description: `Bought ${count} goes for ${cost} XPR. (5% operator fee retained, 95% added to Weekly Prize Pool!)`,
+      description: `Bought ${count} games for ${cost} XPR. (5% operator fee retained, 95% added to Weekly Prize Pool!)`,
     });
   };
 
@@ -167,8 +167,8 @@ const Index = () => {
 
     if (remainingGoes <= 0) {
       toast({
-        title: "No Goes Left",
-        description: "Please buy more goes using the console on the right to start climbing!",
+        title: "No Games Left",
+        description: "Please buy more games using the console on the right to start climbing!",
         variant: "destructive"
       });
       return;
@@ -200,7 +200,7 @@ const Index = () => {
 
     toast({
       title: "Climb Initiated",
-      description: "1 go consumed. Get ready to lock in before the avalanche!",
+      description: "1 game credit consumed. Get ready to lock in before the avalanche!",
     });
   };
 
@@ -625,7 +625,7 @@ const Index = () => {
                       <span className="text-[10px] text-slate-400 font-retro">CREDITS SLOTS</span>
                     </div>
                     <div className="text-[9px] text-slate-500 font-retro leading-relaxed mt-1">
-                      2 XPR inserts exactly 1 play. Feed the coin slots below to load climber goes.
+                      2 XPR inserts exactly 1 play. Feed the coin slots below to load climber games.
                     </div>
                   </div>
 
@@ -636,7 +636,7 @@ const Index = () => {
                         <Coins className="h-4 w-4 text-yellow-400" /> COIN CHUTE
                       </span>
                       <span className="text-[9px] text-yellow-400 font-retro bg-yellow-400/10 px-2 py-1 rounded">
-                        2 XPR = 1 COIN
+                        2 XPR PER GAME
                       </span>
                     </div>
 
@@ -678,7 +678,7 @@ const Index = () => {
                             disabled={gameState === 'climbing'}
                             className="p-3 bg-slate-900 hover:bg-slate-800 border-2 border-cyan-500 text-xs font-retro text-cyan-400 hover:text-cyan-300 transition-all flex flex-col items-center justify-center gap-1 active:scale-95"
                           >
-                            <span className="text-[11px] text-white">{amt} COINS</span>
+                            <span className="text-[11px] text-white">{amt} GAMES</span>
                             <span className="text-[8px] text-yellow-400">{amt * 2} XPR</span>
                           </button>
                         ))}
