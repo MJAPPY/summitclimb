@@ -2,16 +2,6 @@ import React from 'react';
 import { Award, Zap, Compass, Trophy, Share2, Clipboard, ChevronRight, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface ProfilePanelProps {
-  level: number;
-  xp: number;
-  lifetimeGames: number;
-  highestMultiplier: number;
-  weeklyBest: number;
-  referrals: number;
-  onOpenReplays: () => void;
-}
-
 interface Achievement {
   id: string;
   title: string;
@@ -21,6 +11,17 @@ interface Achievement {
   icon: string;
 }
 
+interface ProfilePanelProps {
+  level: number;
+  xp: number;
+  lifetimeGames: number;
+  highestMultiplier: number;
+  weeklyBest: number;
+  referrals: number;
+  onOpenReplays: () => void;
+  walletAddress?: string;
+}
+
 export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   level,
   xp,
@@ -28,11 +29,13 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   highestMultiplier,
   weeklyBest,
   referrals,
-  onOpenReplays
+  onOpenReplays,
+  walletAddress
 }) => {
   const { toast } = useToast();
   const nextLevelXp = level * 100;
   const xpPercent = Math.min(100, (xp / nextLevelXp) * 100);
+  const activeUserRef = walletAddress || 'anonymous';
 
   // Simulated static achievements list
   const achievements: Achievement[] = [
@@ -44,7 +47,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   ];
 
   const handleCopyReferral = () => {
-    navigator.clipboard.writeText(`https://summit.game/ref/tripseven`);
+    navigator.clipboard.writeText(`https://summit.game/ref/${activeUserRef}`);
     toast({
       title: "Referral Copied",
       description: "Share this link with your clan to earn 15% deposit bonuses!",
@@ -111,7 +114,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
           <span className="text-xs font-bold text-slate-300">Invite & Earn Bonuses</span>
           <div className="flex bg-slate-950/80 border border-white/10 rounded-xl p-2 items-center justify-between">
             <div className="text-xs text-slate-400 font-mono overflow-hidden whitespace-nowrap text-ellipsis pr-2">
-              summit.game/ref/tripseven
+              summit.game/ref/{activeUserRef}
             </div>
             <button
               onClick={handleCopyReferral}
@@ -191,7 +194,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
                 </div>
                 <div className="text-right">
                   <div className={`font-black ${run.result === 'banked' ? 'text-emerald-400' : 'text-rose-500'}`}>
-                    {run.multiplier.toFixed(2)}x
+                    {run.multiplier.toFixed(2)}
                   </div>
                   <div className="text-[10px] text-slate-500">
                     {run.result === 'banked' ? `Earned +${run.score} coins` : 'Collapsed'}

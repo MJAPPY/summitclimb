@@ -84,6 +84,16 @@ const Index = () => {
     trail: 'rainbow'
   });
 
+  // Check if active user has administrator clearances
+  const isAdmin = walletConnected && walletAddress.toLowerCase() === 'tripseven';
+
+  // Safeguard: Fallback to Arcade Climb if not authorized
+  useEffect(() => {
+    if (activeTab === 'admin' && !isAdmin) {
+      setActiveTab('climb');
+    }
+  }, [activeTab, isAdmin]);
+
   // Attempt to restore user's verified session silently when loading the app
   useEffect(() => {
     const autoLogin = async () => {
@@ -448,20 +458,23 @@ const Index = () => {
                 <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
-              <button
-                onClick={() => setActiveTab('admin')}
-                className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
-                  activeTab === 'admin' 
-                    ? 'bg-red-500/10 border-red-500 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
-                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
-                }`}
-              >
-                <span className="flex items-center gap-3 min-w-0">
-                  <Settings className={`h-4 w-4 shrink-0 ${activeTab === 'admin' ? 'text-red-400' : 'text-slate-500'}`} /> 
-                  <span className="truncate">SYSTEM SET</span>
-                </span>
-                <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
-              </button>
+              {/* Conditionally render the Admin SYSTEM SET tab only for tripseven */}
+              {isAdmin && (
+                <button
+                  onClick={() => setActiveTab('admin')}
+                  className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
+                    activeTab === 'admin' 
+                      ? 'bg-red-500/10 border-red-500 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+                      : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-3 min-w-0">
+                    <Settings className={`h-4 w-4 shrink-0 ${activeTab === 'admin' ? 'text-red-400' : 'text-slate-500'}`} /> 
+                    <span className="truncate">SYSTEM SET</span>
+                  </span>
+                  <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -724,12 +737,13 @@ const Index = () => {
               weeklyBest={weeklyBest}
               referrals={4}
               onOpenReplays={() => setActiveTab('replays')}
+              walletAddress={walletAddress}
             />
           )}
 
           {activeTab === 'replays' && <ReplayManager />}
 
-          {activeTab === 'admin' && <AdminPanel />}
+          {activeTab === 'admin' && isAdmin && <AdminPanel />}
 
         </main>
       </div>
