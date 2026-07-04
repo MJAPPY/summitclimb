@@ -24,20 +24,25 @@ import {
   Mountain,
   Sparkles,
   ShieldAlert,
-  Flame
+  Flame,
+  CheckCircle2
 } from 'lucide-react';
 
 const Index = () => {
   const { toast } = useToast();
 
-  // Navigation state (removed 'shop')
+  // Navigation state
   const [activeTab, setActiveTab] = useState<'climb' | 'leaderboard' | 'profile' | 'replays' | 'admin'>('climb');
   const [walletOpen, setWalletOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
+  // Global lifted Wallet Connection state styled like askguy.app
+  const [walletConnected, setWalletConnected] = useState<boolean>(false);
+  const [walletAddress, setWalletAddress] = useState<string>('');
+
   // Currency & Player progression states
   const [balance, setBalance] = useState<number>(350);
-  const [tokenType, setTokenType] = useState<'CLIMB' | 'USDT' | 'XPR'>('CLIMB');
+  const [tokenType, setTokenType] = useState<'CLIMB' | 'USDT' | 'XPR'>('XPR'); // Default to XPR for Proton SDK
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(45);
 
@@ -52,10 +57,10 @@ const Index = () => {
   const [betAmount, setBetAmount] = useState<number>(10);
   const [autoCashOut, setAutoCashOut] = useState<string>('');
 
-  // Hidden crash point calculation (simulating server-side cryptographically secure random value)
+  // Hidden crash point calculation
   const [hiddenCollapsePoint, setHiddenCollapsePoint] = useState<number>(0);
 
-  // Cosmetics control (with new theme + weather configuration options)
+  // Cosmetics control
   const [cosmetics, setCosmetics] = useState<CosmeticSettings>({
     climber: 'standard',
     theme: 'everest',
@@ -88,7 +93,7 @@ const Index = () => {
     setMultiplier(1.00);
     setGameState('climbing');
 
-    // Generate random secure collapse point (e.g. anywhere between 1.05 and 25.00)
+    // Generate random secure collapse point
     const randSeed = Math.random();
     let calculatedCollapse = 1.01;
     if (randSeed > 0.05) {
@@ -99,7 +104,7 @@ const Index = () => {
     // Audio triggers
     audioSynth.startWind();
     audioSynth.playHeartbeat(1.00);
-    audioSynth.startYodelMusic(); // Start synthesized Swiss polka yodelling sequence!
+    audioSynth.startYodelMusic();
 
     toast({
       title: "Climb Initiated",
@@ -113,7 +118,7 @@ const Index = () => {
     setGameState('banked');
 
     audioSynth.stopHeartbeat();
-    audioSynth.stopYodelMusic(); // Stop the yodel sequence
+    audioSynth.stopYodelMusic();
     audioSynth.playBankSound();
 
     const winnings = betAmount * multiplier;
@@ -155,15 +160,12 @@ const Index = () => {
       let speedStep = 0.01;
       interval = setInterval(() => {
         setMultiplier((prev) => {
-          // Accelerate growth speed over time
           const growthFactor = 1 + (prev - 1) * 0.12;
           const nextVal = parseFloat((prev + speedStep * growthFactor).toFixed(2));
 
-          // Update real-time sound frequencies
           audioSynth.updateWindIntensity(nextVal);
           audioSynth.playHeartbeat(nextVal);
 
-          // Auto-cashout trigger
           const autoVal = parseFloat(autoCashOut);
           if (!isNaN(autoVal) && autoVal > 1.01 && nextVal >= autoVal) {
             handleBank();
@@ -171,12 +173,11 @@ const Index = () => {
             return autoVal;
           }
 
-          // Check for collapse / crash point
           if (nextVal >= hiddenCollapsePoint) {
             setGameState('collapsed');
             setLifetimeGames(prev => prev + 1);
             audioSynth.stopHeartbeat();
-            audioSynth.stopYodelMusic(); // Stop the yodel sequence
+            audioSynth.stopYodelMusic();
             audioSynth.playCollapseSound();
             toast({
               title: "Mountain Collapsed!",
@@ -195,7 +196,6 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [gameState, hiddenCollapsePoint, autoCashOut, betAmount, tokenType]);
 
-  // Utility to easily preset Scenery settings
   const handleSceneryPreset = (
     theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic',
     weather: 'clear' | 'snow' | 'rain' | 'storm' | 'blizzard' | 'neonrain'
@@ -213,10 +213,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-yellow-500 selection:text-slate-950">
-      {/* Cinematic top navbar */}
+      {/* Cinematic top navbar styled after askguy.app */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-800 px-5 lg:px-10 py-4 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-5">
-          <SummitLogo size="sm" className="shrink-0 rounded-2xl" />
+          <SummitLogo size="sm" className="shrink-0 rounded-2xl animate-pulse" />
           <div>
             <h1 className="text-3xl font-black tracking-tight text-white uppercase">
               GUYS <span className="text-gradient-gold">Summit</span>
@@ -230,7 +230,7 @@ const Index = () => {
         {/* Global info ticks */}
         <div className="hidden md:flex items-center gap-8 text-sm text-slate-300">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse border-2 border-yellow-950" />
+            <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse border-2 border-emerald-950" />
             <span className="font-extrabold tracking-wide uppercase text-xs">Active Climbers: 1,420</span>
           </div>
           <div className="font-mono bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-400">
@@ -238,33 +238,50 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Wallet trigger & settings */}
+        {/* Wallet trigger & settings with askguy.app dynamic header credentials */}
         <div className="flex items-center gap-4">
           <button
             onClick={toggleMute}
-            className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-slate-100 rounded-xl border border-slate-700 shadow transition-all"
+            className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-slate-100 rounded-xl border border-slate-700 shadow transition-all animate-none"
             title="Toggle Synthesizer Sound"
           >
             {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5 text-yellow-400" />}
           </button>
 
-          <button
-            onClick={() => setWalletOpen(true)}
-            className="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl px-5 py-2.5 text-sm flex items-center gap-4 shadow-xl transition-all text-left group"
-          >
-            <Wallet className="h-5 w-5 text-yellow-400 group-hover:scale-110 transition-transform" />
-            <div>
-              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Your Wallet</div>
-              <div className="text-sm font-black text-white leading-none mt-1.5">{balance.toFixed(2)} {tokenType}</div>
-            </div>
-          </button>
+          {walletConnected ? (
+            <button
+              onClick={() => setWalletOpen(true)}
+              className="bg-gradient-to-r from-violet-900/20 via-slate-900 to-slate-950 border-2 border-violet-500/50 hover:border-violet-400 rounded-xl px-5 py-2 text-sm flex items-center gap-3.5 shadow-lg shadow-violet-950/40 transition-all text-left relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-8 h-8 bg-violet-500/10 rounded-full blur-sm pointer-events-none" />
+              <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center text-base border border-violet-500/30">
+                🧗
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-black text-white font-mono leading-none">@{walletAddress}</span>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                </div>
+                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 leading-none">
+                  {balance.toFixed(2)} {tokenType}
+                </div>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => setWalletOpen(true)}
+              className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-450 hover:to-amber-450 text-slate-950 font-black px-5 py-3.5 rounded-xl text-xs uppercase tracking-widest transition-all flex items-center gap-2 border-b-2 border-amber-600 shadow-md animate-pulse"
+            >
+              <Wallet className="h-4 w-4" /> Connect Proton SDK
+            </button>
+          )}
         </div>
       </header>
 
       {/* Main Layout Workspace */}
       <div className="max-w-[1600px] mx-auto px-5 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Responsive Sidebar Navigation - Enlarged with Metallicus style */}
+        {/* Responsive Sidebar Navigation */}
         <aside className="lg:col-span-3 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2.5 shadow-2xl">
             <span className="text-xs text-slate-400 font-black uppercase tracking-widest px-3 block mb-3 border-b border-slate-800 pb-2">
@@ -330,7 +347,7 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Mini active player badge - Metallicus themed */}
+          {/* Mini active player badge */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4.5 relative overflow-hidden shadow-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/5 rounded-full blur-xl" />
             <div className="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-4xl shadow-inner relative">
@@ -341,7 +358,8 @@ const Index = () => {
             </div>
             <div>
               <div className="text-base font-black text-white flex items-center gap-1.5">
-                GUY Climber <span className="text-xs text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded">Lv.{level}</span>
+                {walletConnected ? `@${walletAddress}` : "GUY Climber"}{" "}
+                <span className="text-xs text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded">Lv.{level}</span>
               </div>
               <p className="text-xs text-slate-400 mt-1.5 font-medium">Best altitude: <span className="text-emerald-400 font-black text-sm">{highestMultiplier.toFixed(2)}x</span></p>
             </div>
@@ -351,14 +369,12 @@ const Index = () => {
         {/* Dynamic Display Dashboard workspace */}
         <main className="lg:col-span-9 space-y-8">
           
-          {/* Standard Climb Screen and Simulation Loop */}
+          {/* Standard Climb Screen */}
           {activeTab === 'climb' && (
             <div className="space-y-8">
               
-              {/* Dynamic scrolling High Scores ticker */}
               <HighScoresTicker />
 
-              {/* HERO VISUAL AREA: Canvas spans 100% of the workspace container */}
               <div className="space-y-6">
                 <div>
                   <GameCanvas
@@ -368,10 +384,9 @@ const Index = () => {
                   />
                 </div>
 
-                {/* Highly dramatic telemetry and current altitude statistics banner */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                   
-                  {/* Dedicated Altitude Display panel (Repositioned below the game) */}
+                  {/* Dedicated Altitude Display panel */}
                   <div className="md:col-span-5 p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl flex items-center justify-between">
                     <div className="flex flex-col">
                       <span className="text-[11px] text-yellow-400 font-black tracking-wider uppercase flex items-center gap-1.5 font-mono">
@@ -434,7 +449,7 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* CONTROLS AREA arranged side-by-side below the giant hero canvas */}
+              {/* CONTROLS AREA */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                 
                 {/* Climber Controller Action Box */}
@@ -611,6 +626,10 @@ const Index = () => {
           setBalance={setBalance}
           tokenType={tokenType}
           setTokenType={setTokenType}
+          walletConnected={walletConnected}
+          setWalletConnected={setWalletConnected}
+          walletAddress={walletAddress}
+          setWalletAddress={setWalletAddress}
         />
       )}
 

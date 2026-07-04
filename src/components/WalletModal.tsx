@@ -8,6 +8,10 @@ interface WalletModalProps {
   setBalance: React.Dispatch<React.SetStateAction<number>>;
   tokenType: 'CLIMB' | 'USDT' | 'XPR';
   setTokenType: (token: 'CLIMB' | 'USDT' | 'XPR') => void;
+  walletConnected: boolean;
+  setWalletConnected: (connected: boolean) => void;
+  walletAddress: string;
+  setWalletAddress: (address: string) => void;
 }
 
 export const WalletModal: React.FC<WalletModalProps> = ({
@@ -15,15 +19,19 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   balance,
   setBalance,
   tokenType,
-  setTokenType
+  setTokenType,
+  walletConnected,
+  setWalletConnected,
+  walletAddress,
+  setWalletAddress
 }) => {
   const { toast } = useToast();
-  const [walletConnected, setWalletConnected] = useState<boolean>(false);
-  const [walletAddress, setWalletAddress] = useState<string>('');
   const [walletProvider, setWalletProvider] = useState<'WebAuth' | 'Anchor' | 'ProtonWallet' | null>(null);
   
   // Real-time SDK mock states styled like WebAuth.com
-  const [sdkStep, setSdkStep] = useState<'selector' | 'qrCode' | 'signing' | 'connected'>('selector');
+  const [sdkStep, setSdkStep] = useState<'selector' | 'qrCode' | 'signing' | 'connected'>(
+    walletConnected ? 'connected' : 'selector'
+  );
   const [amountInput, setAmountInput] = useState<string>('');
   const [secondsLeft, setSecondsLeft] = useState<number>(120);
 
@@ -39,6 +47,15 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     { id: 'TX-802', type: 'win', amount: 84.5, token: 'XPR', time: '2 hours ago', status: 'completed' },
     { id: 'TX-703', type: 'withdraw', amount: 100, token: 'USDT', time: 'Yesterday', status: 'completed' },
   ]);
+
+  // Sync state if already connected
+  useEffect(() => {
+    if (walletConnected) {
+      setSdkStep('connected');
+    } else {
+      setSdkStep('selector');
+    }
+  }, [walletConnected]);
 
   // Countdown timer for WebAuth Proton Web SDK QR code scan
   useEffect(() => {
