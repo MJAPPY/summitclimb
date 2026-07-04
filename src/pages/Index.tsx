@@ -5,6 +5,7 @@ import { ProfilePanel } from '@/components/ProfilePanel';
 import { Leaderboard } from '@/components/Leaderboard';
 import { ReplayManager } from '@/components/ReplayManager';
 import { AdminPanel } from '@/components/AdminPanel';
+import { SummitLogo } from '@/components/SummitLogo';
 import { audioSynth } from '@/utils/audio';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -220,11 +221,7 @@ const Index = () => {
           {/* Large Hero Badge image logo */}
           <div className="relative group shrink-0">
             <div className="absolute inset-0 bg-amber-500/20 rounded-2xl blur-lg group-hover:bg-amber-500/40 transition-all duration-300" />
-            <img 
-              src={LOGO_URL} 
-              alt="Summit Expeditions Logo" 
-              className="w-16 h-16 rounded-2xl border-2 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all duration-300 object-cover"
-            />
+            <SummitLogo size="sm" />
           </div>
           <div>
             <h1 className="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-100 uppercase">
@@ -626,11 +623,7 @@ const Index = () => {
         {/* Large reflective gold logo centerpiece */}
         <div className="relative group w-32 h-32 mx-auto">
           <div className="absolute inset-0 bg-amber-500/10 rounded-3xl blur-xl group-hover:bg-amber-500/20 transition-all duration-300" />
-          <img 
-            src={LOGO_URL} 
-            alt="Summit footer logo" 
-            className="w-32 h-32 rounded-3xl border-2 border-slate-700 shadow-2xl group-hover:scale-105 group-hover:border-amber-400 transition-all duration-300 mx-auto object-cover"
-          />
+          <SummitLogo size="lg" />
         </div>
         <div>
           <p className="max-w-md mx-auto font-medium text-slate-400">
