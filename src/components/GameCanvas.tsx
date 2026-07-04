@@ -18,14 +18,14 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   
-  // Particles, trail paths, and scroll position tracking
+  // Track continuous parallax scrolls and particle dynamics
   const particlesRef = useRef<Array<{ x: number; y: number; speedY: number; speedX: number; size: number; color: string }>>([]);
   const climberTrailRef = useRef<Array<{ x: number; y: number; alpha: number; color: string }>>([]);
   const guyYOffsetRef = useRef<number>(240);
-  const guyXRef = useRef<number>(180);
+  const guyXRef = useRef<number>(250);
   const timeRef = useRef<number>(0);
   
-  // Continuous vertical altitude scroll offset
+  // Continuous altitude tracker
   const verticalScrollRef = useRef<number>(0);
 
   // Load GUY avatar image
@@ -39,54 +39,58 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
     };
   }, []);
 
-  // Theme configuration featuring beautiful Switzerland Matterhorn styling
+  // Theme-specific colors and twilight sunset/dusk sky gradients for maximum realism
   const getThemeColors = () => {
     switch (cosmetics.theme) {
       case 'cyber':
         return {
-          bgGradStart: '#0d041c',
-          bgGradEnd: '#020108',
-          mountainFar: '#1a0533',
-          mountainMid: '#390c66',
+          bgGradStart: '#060112',
+          bgGradMid: '#120224',
+          bgGradEnd: '#010005',
+          mountainFar: '#1c0330',
+          mountainMid: '#39025e',
           mountainNear: '#0c0017',
           snowColor: '#00ffff',
-          accentColor: '#f43f5e',
-          grid: 'rgba(0, 255, 255, 0.08)',
+          accentColor: '#ec4899',
+          snowCrust: '#00cccc',
         };
       case 'volcanic':
         return {
-          bgGradStart: '#1a0303',
-          bgGradEnd: '#050000',
-          mountainFar: '#330505',
-          mountainMid: '#590505',
+          bgGradStart: '#140101',
+          bgGradMid: '#2b0303',
+          bgGradEnd: '#000000',
+          mountainFar: '#2b0404',
+          mountainMid: '#4d0202',
           mountainNear: '#170101',
-          snowColor: '#ef4444',
-          accentColor: '#f97316',
-          grid: 'rgba(239, 68, 68, 0.08)',
+          snowColor: '#f97316',
+          accentColor: '#ef4444',
+          snowCrust: '#ea580c',
         };
       case 'cosmic':
         return {
-          bgGradStart: '#020617',
-          bgGradEnd: '#090514',
-          mountainFar: '#0f172a',
-          mountainMid: '#1e1b4b',
-          mountainNear: '#020205',
-          snowColor: '#c084fc',
+          bgGradStart: '#010414',
+          bgGradMid: '#0a1033',
+          bgGradEnd: '#020208',
+          mountainFar: '#0d1a3c',
+          mountainMid: '#172f6a',
+          mountainNear: '#020617',
+          snowColor: '#e9d5ff',
           accentColor: '#a855f7',
-          grid: 'rgba(192, 132, 252, 0.08)',
+          snowCrust: '#c084fc',
         };
       case 'everest':
       default:
-        // High fidelity Switzerland Alpine dusk
+        // Beautiful realistic Switzerland sunset fading from deep violet twilight to warm golden alpineglow
         return {
-          bgGradStart: '#0c1b33',
-          bgGradEnd: '#1e3a8a',
-          mountainFar: '#111827',
-          mountainMid: '#1e293b',
-          mountainNear: '#0f172a',
+          bgGradStart: '#080f26',
+          bgGradMid: '#17183b',
+          bgGradEnd: '#502040',
+          mountainFar: '#0e111a',
+          mountainMid: '#171b29',
+          mountainNear: '#0c0f1a',
           snowColor: '#f8fafc',
           accentColor: '#38bdf8',
-          grid: 'rgba(255, 255, 255, 0.03)',
+          snowCrust: '#e2e8f0',
         };
     }
   };
@@ -97,19 +101,18 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Canvas dimensions
     canvas.width = 800;
     canvas.height = 420;
 
-    // Set up particles once
+    // Set up particles blowing from the top-right to bottom-left (wind hitting climber)
     if (particlesRef.current.length === 0) {
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < 120; i++) {
         particlesRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          speedY: 2 + Math.random() * 4,
-          speedX: 1 + Math.random() * 3, // Drift to the right (wind blowing against the climber)
-          size: 1 + Math.random() * 3.5,
+          speedY: 2 + Math.random() * 3,
+          speedX: -2 - Math.random() * 4, // Moving leftwards
+          size: 1 + Math.random() * 3,
           color: '#ffffff',
         });
       }
@@ -120,65 +123,67 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       const t = timeRef.current;
       const themeColors = getThemeColors();
 
-      // Continuous vertical climbing animation logic
-      const climbSpeed = gameState === 'climbing' ? Math.max(2.5, multiplier * 3.5) : 0.4;
+      // Continuous rising scroll animation physics
+      const climbSpeed = gameState === 'climbing' ? Math.max(3, multiplier * 4) : 0.6;
       verticalScrollRef.current += climbSpeed;
 
-      // Clear Canvas with sky gradient
+      // Realistic Sky Twilight Gradient
       const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
       skyGrad.addColorStop(0, themeColors.bgGradStart);
+      skyGrad.addColorStop(0.5, themeColors.bgGradMid);
       skyGrad.addColorStop(1, themeColors.bgGradEnd);
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Stars twinkling and scrolling downwards to the right (to simulate ascending leftwards up the slope)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      for (let i = 0; i < 40; i++) {
-        const starX = (i * 77 + verticalScrollRef.current * 0.15) % canvas.width;
-        const starY = (i * 37 + verticalScrollRef.current * 0.3) % (canvas.height - 150);
-        const starSize = 0.5 + Math.abs(Math.sin((t + i * 10) * 0.03)) * 1.5;
-        ctx.fillRect(starX, starY, starSize, starSize);
+      // Twinkling starry sky drifting down-left (climbing up-right)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      for (let i = 0; i < 45; i++) {
+        const starX = (i * 83 - verticalScrollRef.current * 0.1) % canvas.width;
+        const starY = (i * 41 + verticalScrollRef.current * 0.05) % (canvas.height - 120);
+        // Twinkle factor
+        const starSize = 0.5 + Math.abs(Math.sin((t + i * 8) * 0.04)) * 1.5;
+        ctx.fillRect(starX >= 0 ? starX : starX + canvas.width, starY, starSize, starSize);
       }
 
-      // Draw Glowing Swiss Moon shifting slightly down-right relative to GUY's climb path
-      const moonX = 680 + (verticalScrollRef.current * 0.1) % 150;
-      const moonY = 80 + (verticalScrollRef.current * 0.2) % 200;
-      const moonGrad = ctx.createRadialGradient(moonX, moonY, 2, moonX, moonY, 50);
+      // Volumetric Glowing Moon
+      const moonX = 160 - (verticalScrollRef.current * 0.05) % 300;
+      const moonY = 90 + (verticalScrollRef.current * 0.02) % 150;
+      const moonGrad = ctx.createRadialGradient(moonX, moonY, 1, moonX, moonY, 60);
       moonGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      moonGrad.addColorStop(0.3, 'rgba(224, 242, 254, 0.3)');
-      moonGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      moonGrad.addColorStop(0.2, 'rgba(238, 242, 255, 0.3)');
+      moonGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = moonGrad;
       ctx.beginPath();
-      ctx.arc(moonX, moonY, 50, 0, Math.PI * 2);
+      ctx.arc(moonX, moonY, 60, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw Parallax Far Swiss peaks (Jagged iconic Matterhorn shapes scrolling down-right!)
+      // Far Mountains Silhouette (Matterhorn) scrolling down-left
       ctx.fillStyle = themeColors.mountainFar;
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
       const farScrollX = (verticalScrollRef.current * 0.12) % canvas.width;
-      const farScrollY = (verticalScrollRef.current * 0.1) % 300;
+      const farScrollY = (verticalScrollRef.current * 0.08) % 350;
       for (let x = -40; x <= canvas.width + 40; x += 40) {
-        const testX = x - farScrollX;
-        const baseHeight = 160 + Math.sin(testX * 0.005) * 30;
-        const peakFactor = (Math.abs(Math.floor(testX / 120)) % 2 === 0) ? 140 : 0; 
-        const finalHeight = baseHeight + peakFactor - farScrollY;
-
+        const testX = x + farScrollX; // shifting left/right
+        const baseHeight = 170 + Math.sin(testX * 0.006) * 35;
+        // Peak spikes representing deep ridges
+        const peak = (Math.abs(Math.floor(testX / 130)) % 3 === 0) ? 120 : 20;
+        const finalHeight = baseHeight + peak - farScrollY;
         ctx.lineTo(x, canvas.height - Math.max(10, finalHeight));
       }
       ctx.lineTo(canvas.width, canvas.height);
       ctx.closePath();
       ctx.fill();
 
-      // Draw Parallax Mid Ranges (scrolling slightly faster down-right)
+      // Mid Mountains Silhouette scrolling down-left
       ctx.fillStyle = themeColors.mountainMid;
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
-      const midScrollX = (verticalScrollRef.current * 0.25) % canvas.width;
-      const midScrollY = (verticalScrollRef.current * 0.2) % 250;
+      const midScrollX = (verticalScrollRef.current * 0.28) % canvas.width;
+      const midScrollY = (verticalScrollRef.current * 0.18) % 280;
       for (let x = -30; x <= canvas.width + 30; x += 30) {
-        const testX = x - midScrollX;
-        const baseHeight = 110 + Math.cos(testX * 0.01) * 20;
+        const testX = x + midScrollX;
+        const baseHeight = 120 + Math.cos(testX * 0.012) * 22;
         const finalHeight = baseHeight - midScrollY;
         ctx.lineTo(x, canvas.height - Math.max(10, finalHeight));
       }
@@ -186,159 +191,174 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.closePath();
       ctx.fill();
 
-      // Draw Warm Glowing Alpine Cabins at the foothills - they fade out and scroll down-right as we climb
-      if (verticalScrollRef.current < 800) {
-        const cabinFade = Math.max(0, 1 - verticalScrollRef.current / 800);
+      // Pine trees cluster scrolling away
+      if (verticalScrollRef.current < 750) {
+        const treesFade = Math.max(0, 1 - verticalScrollRef.current / 750);
         ctx.save();
-        ctx.globalAlpha = cabinFade;
-        
-        const cabinX = 520 + verticalScrollRef.current * 0.35;
-        const cabinY = (canvas.height - 40) + verticalScrollRef.current * 0.25;
-        
-        ctx.fillStyle = '#451a03'; // dark wood
-        ctx.fillRect(cabinX, cabinY, 24, 16);
-        ctx.fillStyle = '#b45309'; // warm lit roof
-        ctx.beginPath();
-        ctx.moveTo(cabinX - 4, cabinY);
-        ctx.lineTo(cabinX + 12, cabinY - 8);
-        ctx.lineTo(cabinX + 28, cabinY);
-        ctx.closePath();
-        ctx.fill();
-        // Glowing yellow windows
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(cabinX + 4, cabinY + 5, 4, 4);
-        ctx.fillRect(cabinX + 14, cabinY + 5, 4, 4);
-        ctx.restore();
-      }
-
-      // Draw Snowy Pine Trees at the base - scrolling down-right as well
-      if (verticalScrollRef.current < 900) {
-        const treeFade = Math.max(0, 1 - verticalScrollRef.current / 900);
-        ctx.save();
-        ctx.globalAlpha = treeFade;
-        ctx.fillStyle = '#064e3b'; // deep green
-        for (let i = 0; i < 4; i++) {
-          const treeX = 400 + i * 50 + verticalScrollRef.current * 0.35;
-          const treeY = canvas.height - 15 - (i % 2) * 10 + verticalScrollRef.current * 0.25;
+        ctx.globalAlpha = treesFade;
+        ctx.fillStyle = '#064e3b';
+        const forestScrollX = verticalScrollRef.current * 0.35;
+        const forestScrollY = verticalScrollRef.current * 0.15;
+        for (let i = 0; i < 5; i++) {
+          const treeX = 140 + i * 35 - forestScrollX;
+          const treeY = canvas.height - 25 + forestScrollY;
           ctx.beginPath();
           ctx.moveTo(treeX, treeY - 25);
-          ctx.lineTo(treeX - 10, treeY);
-          ctx.lineTo(treeX + 10, treeY);
+          ctx.lineTo(treeX - 8, treeY);
+          ctx.lineTo(treeX + 8, treeY);
           ctx.closePath();
           ctx.fill();
         }
         ctx.restore();
       }
 
-      // Draw NEAR SNOWY SLOPE (The active slope being climbed!)
-      // Scrolling down and to the right so GUY feels like he is continuously stepping up
+      // NEAR SNOW SLOPE (Ascending up to the right!)
+      // The curve starts low on the left (X=0) and goes steeply up to the right (X=800)
       const getSlopeY = (x: number) => {
-        // High steep slope: climbing from bottom-right (X=500) to top-left (X=110)
-        // Offset mapping to shift bumps to the right
-        const scrollXOffset = verticalScrollRef.current * 0.5;
-        const baseHeight = 60 + (canvas.width - x) * 0.42;
+        // base height rises from left to right
+        const baseHeight = 50 + x * 0.44;
         
-        // Dynamic continuous slope wave scrolling down-right
-        const waveScroll = Math.sin((x - scrollXOffset) * 0.015) * 15;
+        // Continuous waves shifting leftwards as we climb up-right
+        const waveScroll = Math.sin((x + verticalScrollRef.current * 0.5) * 0.012) * 12;
         
         return canvas.height - (baseHeight + waveScroll);
       };
 
+      // Draw Main Snowy Surface Geometry
       ctx.fillStyle = themeColors.mountainNear;
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
-      for (let x = 0; x <= canvas.width + 50; x += 10) {
+      for (let x = -20; x <= canvas.width + 40; x += 10) {
         ctx.lineTo(x, getSlopeY(x));
       }
       ctx.lineTo(canvas.width, canvas.height);
       ctx.closePath();
       ctx.fill();
 
-      // Style a beautiful white Swiss peak outline/crust
-      ctx.strokeStyle = '#f8fafc';
-      ctx.lineWidth = 4;
+      // Draw White snowy ridge lining for high realism
+      ctx.strokeStyle = themeColors.snowColor;
+      ctx.lineWidth = 5;
       ctx.beginPath();
-      for (let x = 0; x <= canvas.width + 50; x += 10) {
-        if (x === 0) ctx.moveTo(x, getSlopeY(x));
+      for (let x = -20; x <= canvas.width + 40; x += 10) {
+        if (x === -20) ctx.moveTo(x, getSlopeY(x));
         else ctx.lineTo(x, getSlopeY(x));
       }
       ctx.stroke();
 
-      // Draw Summit Flag Peak at the high Swiss Ridge (Top-left)
-      // The flag also drifts down-right slightly to simulate climbing beyond it!
-      const flagX = 110 + (verticalScrollRef.current * 0.05) % 80;
-      const flagY = getSlopeY(flagX);
-
-      // Silver flagpole
-      ctx.strokeStyle = '#cbd5e1';
-      ctx.lineWidth = 3;
+      // Secondary ice crust shading
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 14;
       ctx.beginPath();
-      ctx.moveTo(flagX, flagY);
-      ctx.lineTo(flagX, flagY - 55);
+      for (let x = -20; x <= canvas.width + 40; x += 15) {
+        if (x === -20) ctx.moveTo(x, getSlopeY(x) + 8);
+        else ctx.lineTo(x, getSlopeY(x) + 8);
+      }
       ctx.stroke();
 
-      // Red Swiss cross styled flag
-      ctx.fillStyle = '#dc2626'; // Swiss red background
-      ctx.beginPath();
-      ctx.moveTo(flagX, flagY - 55);
-      const wave = Math.sin(t * 0.09) * 8;
-      ctx.lineTo(flagX + 38, flagY - 45 + wave / 2);
-      ctx.lineTo(flagX, flagY - 35);
-      ctx.closePath();
-      ctx.fill();
+      // DEFINE MILESTONE FLAGS PASSING BY
+      // Since climbing up-right, flags scroll leftwards (down the slope) as multiplier rises.
+      const milestones = [
+        { mult: 1.5, label: '1.5x Peak' },
+        { mult: 2.0, label: '2.0x Crest' },
+        { mult: 3.0, label: '3.0x Glacier' },
+        { mult: 5.0, label: '5.0x Ascent' },
+        { mult: 10.0, label: '10.0x Ridge' },
+        { mult: 15.0, label: '15.0x Stratosphere' },
+        { mult: 25.0, label: '25.0x Apex' },
+      ];
 
-      // Draw the iconic Swiss white cross emblem
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(flagX + 11, flagY - 48 + wave / 4, 8, 2);
-      ctx.fillRect(flagX + 14, flagY - 51 + wave / 4, 2, 8);
+      // Draw milestone flags
+      milestones.forEach((milestone) => {
+        // Calculate flag X relative to multiplier progress
+        // A flag at 'mult' will pass GUY when the multiplier reaches 'mult'
+        const baseOffset = (milestone.mult - multiplier) * 260;
+        const flagX = guyXRef.current + baseOffset;
+        
+        // Only render flags that are on screen
+        if (flagX > -50 && flagX < canvas.width + 50) {
+          const flagY = getSlopeY(flagX);
 
-      // Climber GUY positioning and posture
-      // GUY leans forward heavily, stepping leftward and upward
-      let targetX = 480; 
+          // Shadow under flag
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+          ctx.beginPath();
+          ctx.ellipse(flagX, flagY + 2, 8, 3, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Silver flagpole
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(flagX, flagY);
+          ctx.lineTo(flagX, flagY - 45);
+          ctx.stroke();
+
+          // Milestone Pennant flag
+          ctx.fillStyle = cosmetics.flag === 'gold777' ? '#eab308' :
+                          cosmetics.flag === 'pirate' ? '#111827' :
+                          cosmetics.flag === 'cyber' ? '#ec4899' : '#10b981';
+
+          ctx.beginPath();
+          ctx.moveTo(flagX, flagY - 45);
+          const bannerWave = Math.sin(t * 0.1 + milestone.mult) * 6;
+          // Flags fly backward to the left as wind blows left
+          ctx.lineTo(flagX - 32, flagY - 38 + bannerWave);
+          ctx.lineTo(flagX, flagY - 30);
+          ctx.closePath();
+          ctx.fill();
+
+          // Flag banner text labels
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9px sans-serif';
+          ctx.fillText(milestone.label, flagX - 30, flagY - 34 + bannerWave / 2);
+        }
+      });
+
+      // CLIMBER "GUY" positioning & posture scaling up-right
+      let targetX = 260;
       if (gameState === 'climbing') {
-        // Steer GUY into the mountain, climbing up-left
-        targetX = Math.max(160, 480 - (multiplier - 1) * 22);
+        // Climbs further up-right (higher X coordinate) as altitude multiplier scales
+        targetX = Math.min(620, 260 + (multiplier - 1) * 20);
       } else if (gameState === 'collapsed') {
-        targetX = 480; // swept down by avalanche
+        targetX = 260; // fallen
       } else if (gameState === 'banked') {
-        targetX = 220; // safe peak
+        targetX = 540; // secured summit
       }
 
       // Smooth step coordinate lerp
       guyXRef.current += (targetX - guyXRef.current) * 0.1;
       const guyBaseY = getSlopeY(guyXRef.current);
 
-      // Posture leaning: GUY leans forward heavily into the mountain when actively scaling
-      const climbBob = gameState === 'climbing' ? Math.abs(Math.sin(t * 0.22)) * 15 : 0;
+      // Leaning forward & jumping bobs matching climb speeds
+      const climbBob = gameState === 'climbing' ? Math.abs(Math.sin(t * 0.24)) * 14 : 0;
       guyYOffsetRef.current = guyBaseY - 26 - climbBob;
 
-      // Render custom colored exhaust trail particles drifting backward (down-right)
+      // Draw custom climbing trails (drifting leftward/downward)
       if (cosmetics.trail !== 'none' && gameState === 'climbing') {
         let trailColor = '#38bdf8';
         if (cosmetics.trail === 'rainbow') {
-          trailColor = `hsl(${(t * 5) % 360}, 100%, 65%)`;
+          trailColor = `hsl(${(t * 4.5) % 360}, 100%, 65%)`;
         } else if (cosmetics.trail === 'gold') {
           trailColor = '#facc15';
         } else if (cosmetics.trail === 'fire') {
-          trailColor = '#ef4444';
+          trailColor = '#f97316';
         } else if (cosmetics.trail === 'neon') {
           trailColor = '#ec4899';
         }
 
         climberTrailRef.current.push({
-          x: guyXRef.current + (Math.random() * 12 - 6),
-          y: guyYOffsetRef.current + 20 + (Math.random() * 12 - 6),
+          x: guyXRef.current + (Math.random() * 10 - 5),
+          y: guyYOffsetRef.current + 18 + (Math.random() * 10 - 5),
           alpha: 1,
           color: trailColor,
         });
       }
 
-      // Render trails
+      // Update & render Trails
       climberTrailRef.current.forEach((pt, i) => {
         pt.alpha -= 0.05;
-        // Trails blow backward relative to upward climber motion (i.e. down and right)
-        pt.x += (gameState === 'climbing' ? 3.5 : 1); 
-        pt.y += (gameState === 'climbing' ? 1.5 : 0.5);
+        // Trails drift left and down
+        pt.x -= (gameState === 'climbing' ? 2.8 : 0.6);
+        pt.y += (gameState === 'climbing' ? 0.8 : 0.2);
         if (pt.alpha <= 0) {
           climberTrailRef.current.splice(i, 1);
           return;
@@ -347,93 +367,88 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.globalAlpha = pt.alpha;
         ctx.fillStyle = pt.color;
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 4 + Math.random() * 4, 0, Math.PI * 2);
+        ctx.arc(pt.x, pt.y, 4 + Math.random() * 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       });
 
-      // DRAW SUPERHERO GUY (leaning heavily into the climb)
+      // DRAW SUPERHERO GUY (facing and leaning to the right)
       ctx.save();
       
-      // Intense shadow glows
+      // Real shadow / glowing aura effects
       ctx.shadowBlur = 18;
-      ctx.shadowColor = cosmetics.climber === 'gold' ? 'rgba(250, 204, 21, 0.9)' :
-                        cosmetics.climber === 'neon' ? 'rgba(236, 72, 153, 0.9)' :
-                        cosmetics.climber === 'astro' ? 'rgba(56, 189, 248, 0.9)' : 'rgba(220, 38, 38, 0.6)';
+      ctx.shadowColor = cosmetics.climber === 'gold' ? 'rgba(234, 179, 8, 0.8)' :
+                        cosmetics.climber === 'neon' ? 'rgba(236, 72, 153, 0.8)' :
+                        cosmetics.climber === 'astro' ? 'rgba(56, 189, 248, 0.8)' : 'rgba(239, 68, 68, 0.5)';
 
       const climberColor = cosmetics.climber === 'gold' ? '#eab308' :
                            cosmetics.climber === 'neon' ? '#ec4899' :
-                           cosmetics.climber === 'astro' ? '#e2e8f0' : '#dc2626';
+                           cosmetics.climber === 'astro' ? '#e2e8f0' : '#ef4444';
 
       const capeColor = cosmetics.climber === 'gold' ? '#78350f' :
-                        cosmetics.climber === 'neon' ? '#a21caf' :
-                        cosmetics.climber === 'astro' ? '#1d4ed8' : '#b91c1c';
+                        cosmetics.climber === 'neon' ? '#a855f7' :
+                        cosmetics.climber === 'astro' ? '#2563eb' : '#dc2626';
 
-      // 1. Draw Cape waving dynamically behind GUY (flutters heavily in the thin alpine wind blowing from top-left)
+      // 1. Cape fluttering behind him to the left (wind blows leftwards)
       ctx.fillStyle = capeColor;
       ctx.beginPath();
-      ctx.moveTo(guyXRef.current + 10, guyYOffsetRef.current + 6);
-      const windForce = gameState === 'climbing' ? (multiplier * 4) : 2;
-      const capeWaveX = guyXRef.current + 28 + (gameState === 'climbing' ? Math.sin(t * 0.3) * (10 + windForce) : Math.sin(t * 0.1) * 6);
-      const capeWaveY = guyYOffsetRef.current + 12 + Math.cos(t * 0.25) * 8;
+      ctx.moveTo(guyXRef.current - 8, guyYOffsetRef.current + 4);
+      const capeWaveX = guyXRef.current - 26 - (gameState === 'climbing' ? Math.sin(t * 0.3) * 8 : Math.sin(t * 0.1) * 4);
+      const capeWaveY = guyYOffsetRef.current + 12 + Math.cos(t * 0.2) * 6;
       ctx.lineTo(capeWaveX, capeWaveY);
-      ctx.lineTo(guyXRef.current + 12, guyYOffsetRef.current + 26);
+      ctx.lineTo(guyXRef.current - 10, guyYOffsetRef.current + 22);
       ctx.closePath();
       ctx.fill();
 
-      // Render asset image if loaded
+      // Mirror horizontal translation to face Right
       if (guyImageRef.current) {
+        ctx.save();
+        // Translate and scale horizontally to mirror GUY to face the climb direction (right)
+        ctx.translate(guyXRef.current, guyYOffsetRef.current);
+        ctx.scale(-1, 1);
         ctx.drawImage(
           guyImageRef.current,
-          guyXRef.current - 22,
-          guyYOffsetRef.current - 48,
-          65,
-          90
+          -30,
+          -45,
+          60,
+          85
         );
+        ctx.restore();
       } else {
-        // High fidelity vector fallback
-        // Skin head
+        // High quality fallback vector: Facing Right
+        // Head
         ctx.fillStyle = '#fbcfe8';
         ctx.beginPath();
-        ctx.arc(guyXRef.current, guyYOffsetRef.current - 14, 9, 0, Math.PI * 2);
+        ctx.arc(guyXRef.current, guyYOffsetRef.current - 12, 8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Cool sunglasses
-        ctx.fillStyle = '#020617';
-        ctx.fillRect(guyXRef.current - 4, guyYOffsetRef.current - 17, 9, 3);
+        // Sunglasses facing right
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(guyXRef.current + 1, guyYOffsetRef.current - 15, 7, 3);
 
         // Strong climber torso
         ctx.fillStyle = climberColor;
-        ctx.fillRect(guyXRef.current - 9, guyYOffsetRef.current - 5, 18, 22);
+        ctx.fillRect(guyXRef.current - 8, guyYOffsetRef.current - 4, 16, 20);
 
         // Blonde legendary hair
         ctx.fillStyle = '#facc15';
         ctx.beginPath();
-        ctx.arc(guyXRef.current, guyYOffsetRef.current - 20, 10, Math.PI, 0);
+        ctx.arc(guyXRef.current, guyYOffsetRef.current - 18, 9, Math.PI, 0);
         ctx.fill();
 
-        // Gold belt buckle
-        ctx.fillStyle = '#facc15';
-        ctx.fillRect(guyXRef.current - 10, guyYOffsetRef.current + 15, 20, 4);
-
-        // Strong flexed climbing arms
+        // Arms reaching rightwards to scale slopes
         ctx.strokeStyle = climberColor;
-        ctx.lineWidth = 4.5;
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(guyXRef.current - 9, guyYOffsetRef.current + 2);
-        const flexOffset = gameState === 'climbing' ? Math.sin(t * 0.25) * 6 : 0;
-        ctx.lineTo(guyXRef.current - 18, guyYOffsetRef.current - 2 + flexOffset);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(guyXRef.current + 9, guyYOffsetRef.current + 2);
-        ctx.lineTo(guyXRef.current + 16, guyYOffsetRef.current + 12);
+        ctx.moveTo(guyXRef.current + 8, guyYOffsetRef.current + 2);
+        const rightArmFlex = gameState === 'climbing' ? Math.sin(t * 0.2) * 6 : 0;
+        ctx.lineTo(guyXRef.current + 16, guyYOffsetRef.current - 2 + rightArmFlex);
         ctx.stroke();
       }
 
       ctx.restore();
 
-      // ALPINE WEATHER PARTICLES (wind blowing from top-left, moving down-right)
+      // WEATHER WIND PARTICLES (Blowing leftward, hitting climber head-on!)
       ctx.fillStyle = themeColors.snowColor;
       const weatherSetting = cosmetics.weather;
 
@@ -441,39 +456,39 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         let dragX = p.speedX;
         let dragY = p.speedY;
 
-        // Dynamic downward-rightward drift relative to the climber ascending up-leftward
+        // Extra forces added when climbing up-right to emphasize progress speed
         if (gameState === 'climbing') {
-          dragY += climbSpeed * 1.8; // drop down
-          dragX += climbSpeed * 0.9; // push backward (rightward)
+          dragY += climbSpeed * 1.5; // continuous downward fall
+          dragX -= climbSpeed * 1.2; // heavy leftward push
         }
 
         if (weatherSetting === 'blizzard') {
-          dragX = 5 + Math.random() * 5;
-          dragY = 6 + Math.random() * 3;
+          dragX = -10 - Math.random() * 5;
+          dragY = 3 + Math.random() * 3;
         } else if (weatherSetting === 'storm') {
-          dragX = 3 + Math.random() * 3;
+          dragX = -6 - Math.random() * 3;
           dragY = 9 + Math.random() * 5;
         } else if (weatherSetting === 'neonrain') {
-          dragX = 1;
-          dragY = 15 + Math.random() * 4;
+          dragX = -2;
+          dragY = 16 + Math.random() * 4;
         }
 
         p.x += dragX;
         p.y += dragY;
 
-        // Wrap around borders
+        // Wrap particles
         if (p.y > canvas.height) {
           p.y = 0;
           p.x = Math.random() * canvas.width;
         }
-        if (p.x > canvas.width) {
-          p.x = 0;
+        if (p.x < 0) {
+          p.x = canvas.width;
           p.y = Math.random() * canvas.height;
         }
 
         let particleColor = themeColors.snowColor;
         if (weatherSetting === 'neonrain') {
-          particleColor = `hsl(${(t * 2.5 + p.x) % 360}, 100%, 65%)`;
+          particleColor = `hsl(${(t * 2 + p.x) % 360}, 100%, 65%)`;
         }
 
         ctx.fillStyle = particleColor;
@@ -486,51 +501,28 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         }
       });
 
-      // Render Avalanche collapse on game fail
+      // Avalanche collapse
       if (gameState === 'collapsed') {
         const boomGradient = ctx.createRadialGradient(
           guyXRef.current, guyYOffsetRef.current, 5,
-          guyXRef.current, guyYOffsetRef.current, 85
+          guyXRef.current, guyYOffsetRef.current, 80
         );
-        boomGradient.addColorStop(0, 'rgba(239, 68, 68, 0.95)');
-        boomGradient.addColorStop(0.5, 'rgba(249, 115, 22, 0.6)');
+        boomGradient.addColorStop(0, 'rgba(239, 68, 68, 0.9)');
+        boomGradient.addColorStop(0.5, 'rgba(249, 115, 22, 0.5)');
         boomGradient.addColorStop(1, 'rgba(0,0,0,0)');
 
         ctx.fillStyle = boomGradient;
         ctx.beginPath();
-        ctx.arc(guyXRef.current, guyYOffsetRef.current, 90, 0, Math.PI * 2);
+        ctx.arc(guyXRef.current, guyYOffsetRef.current, 85, 0, Math.PI * 2);
         ctx.fill();
 
-        // Floating debris pieces falling downwards
-        ctx.fillStyle = '#94a3b8';
-        for (let i = 0; i < 8; i++) {
-          const debrisX = guyXRef.current + Math.sin(t * 0.15 + i) * 60;
-          const debrisY = guyYOffsetRef.current + (t % 30) * 2.5 - 15;
-          ctx.fillRect(debrisX, debrisY, 16, 12);
+        // Fallen avalanche blocks swept leftwards
+        ctx.fillStyle = '#cbd5e1';
+        for (let i = 0; i < 7; i++) {
+          const debrisX = guyXRef.current - (t % 20) * 3 + Math.sin(i) * 30;
+          const debrisY = guyYOffsetRef.current + (t % 20) * 1.5;
+          ctx.fillRect(debrisX, debrisY, 14, 10);
         }
-      }
-
-      // Display Altitude Status metrics
-      if (gameState === 'climbing') {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-        ctx.fillRect(20, 20, 160, 28);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(20, 20, 160, 28);
-
-        ctx.fillStyle = '#22c55e';
-        ctx.font = 'bold 11px monospace';
-        ctx.fillText('🇨🇭 SWISS SUMMIT ASCENT', 30, 37);
-      } else if (gameState === 'banked') {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-        ctx.fillRect(20, 20, 160, 28);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(20, 20, 160, 28);
-
-        ctx.fillStyle = '#eab308';
-        ctx.font = 'bold 11px monospace';
-        ctx.fillText('🏆 SECURED ALTITUDE', 30, 37);
       }
 
       animationFrameRef.current = requestAnimationFrame(render);
