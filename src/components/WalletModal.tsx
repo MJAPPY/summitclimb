@@ -75,11 +75,11 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       setSdkStep('signing');
       setTimeout(() => {
         setWalletConnected(true);
-        setWalletAddress('guy777'); // standard 12-char Proton/EOS account name
+        setWalletAddress('tripseven'); // standard 12-char Proton/EOS account name updated to tripseven
         setSdkStep('connected');
         toast({
           title: "Wallet Linked",
-          description: "Authenticated with Proton Web SDK via @guy777.",
+          description: "Authenticated with Proton Web SDK via @tripseven.",
         });
       }, 1500);
     }, 4000);

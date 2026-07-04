@@ -44,7 +44,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   ];
 
   const handleCopyReferral = () => {
-    navigator.clipboard.writeText(`https://summit.game/ref/guy777`);
+    navigator.clipboard.writeText(`https://summit.game/ref/tripseven`);
     toast({
       title: "Referral Copied",
       description: "Share this link with your clan to earn 15% deposit bonuses!",
@@ -53,7 +53,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with GUY character badge & leveling card */}
+      {/* Top Banner with character badge & leveling card */}
       <div className="p-6 bg-gradient-to-br from-slate-900 via-indigo-950/20 to-slate-950 border border-white/10 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
         {/* Level badge */}
         <div className="flex items-center gap-4">
@@ -68,7 +68,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Elite GUY Climber</h2>
+            <h2 className="text-xl font-bold text-white">Elite CLIMB Climber</h2>
             <p className="text-xs text-slate-400 mt-1">XP Progress to level {level + 1}</p>
             {/* Level Bar */}
             <div className="w-48 mt-2">
@@ -111,7 +111,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
           <span className="text-xs font-bold text-slate-300">Invite & Earn Bonuses</span>
           <div className="flex bg-slate-950/80 border border-white/10 rounded-xl p-2 items-center justify-between">
             <div className="text-xs text-slate-400 font-mono overflow-hidden whitespace-nowrap text-ellipsis pr-2">
-              summit.game/ref/guy777
+              summit.game/ref/tripseven
             </div>
             <button
               onClick={handleCopyReferral}
