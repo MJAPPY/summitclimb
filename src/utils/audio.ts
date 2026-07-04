@@ -277,20 +277,6 @@ class AudioSynthManager {
         leadFlat.stop(now + 0.25);
         leadSubOctave.stop(now + 0.25);
 
-        // 2. MECHANICAL BUTTON VALVE CLICK
-        // Generates the charming physical key action clicks of the accordion buttons
-        const valveOsc = this.ctx.createOscillator();
-        const valveGain = this.ctx.createGain();
-        valveOsc.type = 'sine';
-        valveOsc.frequency.setValueAtTime(1400, now);
-        valveGain.gain.setValueAtTime(0.015, now);
-        valveGain.gain.exponentialRampToValueAtTime(0.001, now + 0.015); // Instant decay
-
-        valveOsc.connect(valveGain);
-        valveGain.connect(this.ctx.destination);
-        valveOsc.start(now);
-        valveOsc.stop(now + 0.02);
-
         // 3. BOUNCY ALPS BASSOON TUBA (Deep Bass Cadence)
         const bassOsc = this.ctx.createOscillator();
         const bassHarmonic = this.ctx.createOscillator();
@@ -324,31 +310,6 @@ class AudioSynthManager {
         bassHarmonic.start(now);
         bassOsc.stop(now + 0.2);
         bassHarmonic.stop(now + 0.2);
-
-        // 4. RUSTIC WOODEN FOLK CLAPS / PERCUSSION
-        // Soft wooden block click on the offbeats (polka groove engine)
-        if (this.currentYodelStep % 2 === 1) {
-          const woodBlock = this.ctx.createOscillator();
-          const blockGain = this.ctx.createGain();
-          const blockFilter = this.ctx.createBiquadFilter();
-
-          woodBlock.type = 'triangle';
-          woodBlock.frequency.setValueAtTime(1200, now);
-
-          blockFilter.type = 'bandpass';
-          blockFilter.frequency.setValueAtTime(1000, now);
-          blockFilter.Q.setValueAtTime(4.0, now);
-
-          blockGain.gain.setValueAtTime(0.018, now);
-          blockGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-
-          woodBlock.connect(blockFilter);
-          blockFilter.connect(blockGain);
-          blockGain.connect(this.ctx.destination);
-
-          woodBlock.start(now);
-          woodBlock.stop(now + 0.05);
-        }
 
         this.currentYodelStep++;
       } catch (e) {
