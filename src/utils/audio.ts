@@ -30,16 +30,16 @@ class AudioSynthManager {
       this.delayFeedback = this.ctx.createGain();
       this.delayWet = this.ctx.createGain();
 
-      // Realistic echoing times: 380ms delay reflecting a distant mountain wall
-      this.delayNode.delayTime.setValueAtTime(0.38, this.ctx.currentTime);
-      this.delayFeedback.gain.setValueAtTime(0.45, this.ctx.currentTime); // feedback echo
-      this.delayWet.gain.setValueAtTime(0.3, this.ctx.currentTime); // wet gain level
+      // High-end echoing: reflecting sound with warm high-frequency dampening
+      this.delayNode.delayTime.setValueAtTime(0.42, this.ctx.currentTime);
+      this.delayFeedback.gain.setValueAtTime(0.5, this.ctx.currentTime); 
+      this.delayWet.gain.setValueAtTime(0.35, this.ctx.currentTime); 
 
-      // Delay feedback loop routing
+      // Connect feedback loop
       this.delayNode.connect(this.delayFeedback);
       this.delayFeedback.connect(this.delayNode);
 
-      // Route dry to wet master output
+      // Route to master
       this.delayNode.connect(this.delayWet);
       this.delayWet.connect(this.ctx.destination);
     } catch (e) {
@@ -54,8 +54,8 @@ class AudioSynthManager {
       this.stopHeartbeat();
       this.stopYodelMusic();
     } else {
+      this.initCtx();
       if (this.windGain) {
-        this.initCtx();
         this.startWind();
       }
     }
@@ -181,118 +181,140 @@ class AudioSynthManager {
     this.stopYodelMusic();
     this.currentYodelStep = 0;
 
-    // Rich traditional Alpine progression chords
-    // C4, E4, G4, C5 (vocal crack), G4, E4, G4, D4, F4, G4, B4, G4, F4, G4
+    // Authentic, cheerful Alpine folk progression chords & melodies
+    // Traditional Austrian/Swiss cadence phrases: C major and G dominant
     const yodelSequence = [
-      261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 392.00,
-      293.66, 349.23, 392.00, 493.88, 392.00, 349.23, 392.00
+      329.63, 392.00, 523.25, 659.25, 523.25, 392.00, // C-E-G-C-E-C-G vocal chest yodel
+      392.00, 493.88, 587.33, 783.99, 587.33, 493.88, // G dominant chord register shifts
+      349.23, 392.00, 440.00, 523.25, 587.33, 659.25,
+      523.25, 392.00, 329.63, 261.63, 329.63, 392.00
     ];
 
     const bassSequence = [
-      130.81, 130.81, 130.81, 130.81, 130.81, 130.81, 130.81,
-      146.83, 146.83, 146.83, 146.83, 146.83, 146.83, 146.83
+      130.81, 130.81, 196.00, 196.00, 130.81, 130.81,
+      146.83, 146.83, 196.00, 196.00, 146.83, 146.83,
+      130.81, 196.00, 146.83, 196.00, 130.81, 130.81,
+      130.81, 130.81, 130.81, 130.81, 130.81, 130.81
     ];
 
     const playStep = () => {
       if (this.isMuted || !this.ctx) return;
       try {
         const now = this.ctx.currentTime;
-        const melodyFreq = yodelSequence[this.currentYodelStep % yodelSequence.length];
-        const bassFreq = bassSequence[this.currentYodelStep % bassSequence.length];
+        const index = this.currentYodelStep % yodelSequence.length;
+        const melodyFreq = yodelSequence[index];
+        const bassFreq = bassSequence[index];
 
-        // 1. IMPROVED LEAD VOICE: Multiple oscillators + pitch vibrato for realistic vocal chords
-        const leadOsc1 = this.ctx.createOscillator();
-        const leadOsc2 = this.ctx.createOscillator(); // Detuned voice double
+        // 1. PHYSICAL ACCORDION MUSETTE LEAD GENERATOR
+        // Accordion musette requires triple-reed detuning. One master reed, 
+        // one sharp (+4 cents), and one flat (-4 cents). This produces the iconic sweet tremolo sound.
+        const leadCenter = this.ctx.createOscillator();
+        const leadSharp = this.ctx.createOscillator();
+        const leadFlat = this.ctx.createOscillator();
+        const leadSubOctave = this.ctx.createOscillator(); // Authentic deep octave reed
+        
         const leadGain = this.ctx.createGain();
 
-        leadOsc1.type = 'triangle';
-        leadOsc2.type = 'sawtooth'; // Sawtooth detuned adds rich acoustic harmonics
+        // Waveform: Rich triangle for organic woodiness, combined with sawtooth detunes
+        leadCenter.type = 'triangle';
+        leadSharp.type = 'sawtooth';
+        leadFlat.type = 'sawtooth';
+        leadSubOctave.type = 'triangle';
 
-        // Natural warm singing voice vibrato (6Hz modulation LFO)
-        const vibratoLFO = this.ctx.createOscillator();
-        const vibratoGain = this.ctx.createGain();
-        vibratoLFO.frequency.setValueAtTime(5.8, now); // Human vocal frequency wobble
-        vibratoGain.gain.setValueAtTime(melodyFreq * 0.008, now); // Subtle 0.8% pitch bend
+        // Detuning values (in cents)
+        leadSharp.detune.setValueAtTime(14, now);
+        leadFlat.detune.setValueAtTime(-14, now);
+        leadSubOctave.frequency.setValueAtTime(melodyFreq * 0.5, now); // 1 Octave below
 
-        vibratoLFO.connect(vibratoGain);
-        vibratoGain.connect(leadOsc1.frequency);
-        vibratoGain.connect(leadOsc2.frequency);
-
-        // Vocal glide yodel "cracks"
-        if (melodyFreq >= 450) {
-          // Quick slide upwards simulates authentic vocal registers cracking
-          leadOsc1.frequency.setValueAtTime(melodyFreq - 95, now);
-          leadOsc1.frequency.exponentialRampToValueAtTime(melodyFreq, now + 0.09);
-          
-          leadOsc2.frequency.setValueAtTime(melodyFreq - 95, now);
-          leadOsc2.frequency.exponentialRampToValueAtTime(melodyFreq, now + 0.09);
+        // Glide-up yodel pitch crack simulation
+        const pitchGlissandoTime = 0.08;
+        if (melodyFreq >= 500) {
+          // Instant high-to-low chest/head register cracking
+          leadCenter.frequency.setValueAtTime(melodyFreq - 150, now);
+          leadCenter.frequency.exponentialRampToValueAtTime(melodyFreq, now + pitchGlissandoTime);
+          leadSharp.frequency.setValueAtTime(melodyFreq - 150, now);
+          leadSharp.frequency.exponentialRampToValueAtTime(melodyFreq, now + pitchGlissandoTime);
+          leadFlat.frequency.setValueAtTime(melodyFreq - 150, now);
+          leadFlat.frequency.exponentialRampToValueAtTime(melodyFreq, now + pitchGlissandoTime);
         } else {
-          leadOsc1.frequency.setValueAtTime(melodyFreq, now);
-          leadOsc2.frequency.setValueAtTime(melodyFreq + 2.5, now); // Detuned spread
+          leadCenter.frequency.setValueAtTime(melodyFreq, now);
+          leadSharp.frequency.setValueAtTime(melodyFreq, now);
+          leadFlat.frequency.setValueAtTime(melodyFreq, now);
         }
 
-        // Squeeze bellows envelope: Warm attack and organic decay release
+        // Bellows Pressure Envelope: Realistic accordion sound swells at the note peak
         leadGain.gain.setValueAtTime(0, now);
-        leadGain.gain.linearRampToValueAtTime(0.12, now + 0.04); // Attack curve
-        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24); // Decay curve
+        leadGain.gain.linearRampToValueAtTime(0.08, now + 0.03); // Bellows attack
+        leadGain.gain.linearRampToValueAtTime(0.07, now + 0.12); // Sustain
+        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24); // Release decay
 
-        // Reedy vocal track bandpass filtering
-        const vocalFilter = this.ctx.createBiquadFilter();
-        vocalFilter.type = 'bandpass';
-        vocalFilter.frequency.setValueAtTime(780, now);
-        vocalFilter.Q.setValueAtTime(1.8, now);
+        // Musette Reed Filter to round off sharp edges
+        const musetteFilter = this.ctx.createBiquadFilter();
+        musetteFilter.type = 'bandpass';
+        musetteFilter.frequency.setValueAtTime(880, now);
+        musetteFilter.Q.setValueAtTime(1.5, now);
 
-        leadOsc1.connect(vocalFilter);
-        leadOsc2.connect(vocalFilter);
-        
-        // Low mix for high harmonics sawtooth double
-        const synthMix = this.ctx.createGain();
-        synthMix.gain.setValueAtTime(0.02, now); // Keeps sawtooth background subtle
-        leadOsc2.connect(synthMix);
+        // Connect generator array
+        leadCenter.connect(musetteFilter);
+        leadSharp.connect(musetteFilter);
+        leadFlat.connect(musetteFilter);
+        leadSubOctave.connect(musetteFilter);
 
-        vocalFilter.connect(leadGain);
-        
-        // Route to dry and master alpine reflections
+        musetteFilter.connect(leadGain);
         leadGain.connect(this.ctx.destination);
         if (this.delayNode) {
           leadGain.connect(this.delayNode);
         }
 
-        // Start generators
-        vibratoLFO.start(now);
-        leadOsc1.start(now);
-        leadOsc2.start(now);
+        // Start instruments
+        leadCenter.start(now);
+        leadSharp.start(now);
+        leadFlat.start(now);
+        leadSubOctave.start(now);
 
-        vibratoLFO.stop(now + 0.26);
-        leadOsc1.stop(now + 0.26);
-        leadOsc2.stop(now + 0.26);
+        leadCenter.stop(now + 0.25);
+        leadSharp.stop(now + 0.25);
+        leadFlat.stop(now + 0.25);
+        leadSubOctave.stop(now + 0.25);
 
-        // 2. BOUNCY ACCORDION OOM-PAH BASS (Warm tuba tone)
+        // 2. MECHANICAL BUTTON VALVE CLICK
+        // Generates the charming physical key action clicks of the accordion buttons
+        const valveOsc = this.ctx.createOscillator();
+        const valveGain = this.ctx.createGain();
+        valveOsc.type = 'sine';
+        valveOsc.frequency.setValueAtTime(1400, now);
+        valveGain.gain.setValueAtTime(0.015, now);
+        valveGain.gain.exponentialRampToValueAtTime(0.001, now + 0.015); // Instant decay
+
+        valveOsc.connect(valveGain);
+        valveGain.connect(this.ctx.destination);
+        valveOsc.start(now);
+        valveOsc.stop(now + 0.02);
+
+        // 3. BOUNCY ALPS BASSOON TUBA (Deep Bass Cadence)
         const bassOsc = this.ctx.createOscillator();
         const bassHarmonic = this.ctx.createOscillator();
         const bassGain = this.ctx.createGain();
 
         bassOsc.type = 'triangle';
-        bassHarmonic.type = 'triangle';
+        bassHarmonic.type = 'sawtooth'; // Sawtooth fifth adds rich woodwind resonance
 
         bassOsc.frequency.setValueAtTime(bassFreq, now);
-        bassHarmonic.frequency.setValueAtTime(bassFreq * 1.5, now); // Perfect fifth fifth harmonic helper
+        bassHarmonic.frequency.setValueAtTime(bassFreq * 1.5, now);
 
-        const isOffBeat = this.currentYodelStep % 2 === 1;
-        const volumeFactor = isOffBeat ? 0.07 : 0.16;
-
+        // Bass mix envelope
         bassGain.gain.setValueAtTime(0, now);
-        bassGain.gain.linearRampToValueAtTime(volumeFactor, now + 0.03);
-        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        bassGain.gain.linearRampToValueAtTime(0.14, now + 0.02);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
 
         const bassFilter = this.ctx.createBiquadFilter();
         bassFilter.type = 'lowpass';
-        bassFilter.frequency.setValueAtTime(220, now);
+        bassFilter.frequency.setValueAtTime(250, now);
 
         bassOsc.connect(bassFilter);
         bassHarmonic.connect(bassFilter);
-        bassFilter.connect(bassGain);
         
+        bassFilter.connect(bassGain);
         bassGain.connect(this.ctx.destination);
         if (this.delayNode) {
           bassGain.connect(this.delayNode);
@@ -300,8 +322,33 @@ class AudioSynthManager {
 
         bassOsc.start(now);
         bassHarmonic.start(now);
-        bassOsc.stop(now + 0.22);
-        bassHarmonic.stop(now + 0.22);
+        bassOsc.stop(now + 0.2);
+        bassHarmonic.stop(now + 0.2);
+
+        // 4. RUSTIC WOODEN FOLK CLAPS / PERCUSSION
+        // Soft wooden block click on the offbeats (polka groove engine)
+        if (this.currentYodelStep % 2 === 1) {
+          const woodBlock = this.ctx.createOscillator();
+          const blockGain = this.ctx.createGain();
+          const blockFilter = this.ctx.createBiquadFilter();
+
+          woodBlock.type = 'triangle';
+          woodBlock.frequency.setValueAtTime(1200, now);
+
+          blockFilter.type = 'bandpass';
+          blockFilter.frequency.setValueAtTime(1000, now);
+          blockFilter.Q.setValueAtTime(4.0, now);
+
+          blockGain.gain.setValueAtTime(0.018, now);
+          blockGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+          woodBlock.connect(blockFilter);
+          blockFilter.connect(blockGain);
+          blockGain.connect(this.ctx.destination);
+
+          woodBlock.start(now);
+          woodBlock.stop(now + 0.05);
+        }
 
         this.currentYodelStep++;
       } catch (e) {
@@ -309,9 +356,15 @@ class AudioSynthManager {
       }
     };
 
-    // Trigger yodel tempo beat steps
+    // Humanized rhythmic scheduling: slightly swinging the polka feel
+    const stepTimeMs = 230;
+    const playAndSchedule = () => {
+      if (this.isMuted || !this.yodelInterval) return;
+      playStep();
+    };
+
     playStep();
-    this.yodelInterval = setInterval(playStep, 230);
+    this.yodelInterval = setInterval(playAndSchedule, stepTimeMs);
   }
 
   stopYodelMusic() {
