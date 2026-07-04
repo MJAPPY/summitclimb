@@ -3,7 +3,9 @@ class AudioSynthManager {
   private windFilter: BiquadFilterNode | null = null;
   private windGain: GainNode | null = null;
   private heartbeatInterval: any = null;
+  private yodelInterval: any = null;
   private isMuted: boolean = false;
+  private currentYodelStep: number = 0;
 
   private initCtx() {
     if (!this.ctx) {
@@ -19,6 +21,7 @@ class AudioSynthManager {
     if (muted) {
       this.stopWind();
       this.stopHeartbeat();
+      this.stopYodelMusic();
     } else {
       if (this.windGain) {
         this.initCtx();
@@ -135,6 +138,100 @@ class AudioSynthManager {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
+    }
+  }
+
+  // Synthesize bouncy polka-style yodeling music!
+  startYodelMusic() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    this.stopYodelMusic();
+    this.currentYodelStep = 0;
+
+    // Classic cheerful Alpine polka yodeling sequence (frequencies in Hz)
+    // C4, E4, G4, C5 (The high voice crack), G4, E4, G4, D4, F4, G4, B4, G4, F4, G4
+    const yodelSequence = [
+      261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 392.00,
+      293.66, 349.23, 392.00, 493.88, 392.00, 349.23, 392.00
+    ];
+
+    // Accordion-style bouncy bass accompaniment roots
+    const bassSequence = [
+      130.81, 130.81, 130.81, 130.81, 130.81, 130.81, 130.81,
+      146.83, 146.83, 146.83, 146.83, 146.83, 146.83, 146.83
+    ];
+
+    const playStep = () => {
+      if (this.isMuted || !this.ctx) return;
+      try {
+        const now = this.ctx.currentTime;
+        const melodyFreq = yodelSequence[this.currentYodelStep % yodelSequence.length];
+        const bassFreq = bassSequence[this.currentYodelStep % bassSequence.length];
+
+        // 1. Accordion/Yodel Lead voice (using Triangle wave for retro/folk timbre)
+        const leadOsc = this.ctx.createOscillator();
+        const leadGain = this.ctx.createGain();
+        leadOsc.type = 'triangle';
+
+        // Add a yodel glide/vocal-crack effect on high notes
+        if (melodyFreq >= 450) {
+          // Slide upwards quickly to simulate yodeling "hee-hoo!"
+          leadOsc.frequency.setValueAtTime(melodyFreq - 80, now);
+          leadOsc.frequency.exponentialRampToValueAtTime(melodyFreq, now + 0.08);
+        } else {
+          leadOsc.frequency.setValueAtTime(melodyFreq, now);
+        }
+
+        leadGain.gain.setValueAtTime(0.12, now);
+        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+        // Simple bandpass filter to give it a reedy accordion vibe
+        const bandpass = this.ctx.createBiquadFilter();
+        bandpass.type = 'bandpass';
+        bandpass.frequency.setValueAtTime(800, now);
+        bandpass.Q.setValueAtTime(1.5, now);
+
+        leadOsc.connect(bandpass);
+        bandpass.connect(leadGain);
+        leadGain.connect(this.ctx.destination);
+
+        // 2. Polka Oom-pah Bass Accompaniment (Triangle wave for soft tubas)
+        const bassOsc = this.ctx.createOscillator();
+        const bassGain = this.ctx.createGain();
+        bassOsc.type = 'triangle';
+        bassOsc.frequency.setValueAtTime(bassFreq, now);
+
+        // alternate bass and chord beats
+        const isOffBeat = this.currentYodelStep % 2 === 1;
+        bassGain.gain.setValueAtTime(isOffBeat ? 0.08 : 0.15, now);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        bassOsc.connect(bassGain);
+        bassGain.connect(this.ctx.destination);
+
+        leadOsc.start(now);
+        leadOsc.stop(now + 0.25);
+
+        bassOsc.start(now);
+        bassOsc.stop(now + 0.25);
+
+        this.currentYodelStep++;
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    // Trigger yodel beats at 130 BPM (approx 230ms per step)
+    playStep();
+    this.yodelInterval = setInterval(playStep, 230);
+  }
+
+  stopYodelMusic() {
+    if (this.yodelInterval) {
+      clearInterval(this.yodelInterval);
+      this.yodelInterval = null;
     }
   }
 

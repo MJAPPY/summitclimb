@@ -89,11 +89,9 @@ const Index = () => {
     setGameState('climbing');
 
     // Generate random secure collapse point (e.g. anywhere between 1.05 and 25.00)
-    // Weighted to simulate casino-grade excitement with house model
     const randSeed = Math.random();
     let calculatedCollapse = 1.01;
     if (randSeed > 0.05) {
-      // 95% chance to scale higher
       calculatedCollapse = parseFloat((1.01 + Math.pow(Math.random() * 4.8, 1.8)).toFixed(2));
     }
     setHiddenCollapsePoint(calculatedCollapse);
@@ -101,6 +99,7 @@ const Index = () => {
     // Audio triggers
     audioSynth.startWind();
     audioSynth.playHeartbeat(1.00);
+    audioSynth.startYodelMusic(); // Start synthesized Swiss polka yodelling sequence!
 
     toast({
       title: "Climb Initiated",
@@ -114,6 +113,7 @@ const Index = () => {
     setGameState('banked');
 
     audioSynth.stopHeartbeat();
+    audioSynth.stopYodelMusic(); // Stop the yodel sequence
     audioSynth.playBankSound();
 
     const winnings = betAmount * multiplier;
@@ -178,6 +178,7 @@ const Index = () => {
             setGameState('collapsed');
             setLifetimeGames(prev => prev + 1);
             audioSynth.stopHeartbeat();
+            audioSynth.stopYodelMusic(); // Stop the yodel sequence
             audioSynth.playCollapseSound();
             toast({
               title: "Mountain Collapsed!",
