@@ -485,13 +485,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
       // Milestone flags
       const milestones = [
-        { mult: 1.5, label: '1.5x Peak' },
-        { mult: 2.0, label: '2.0x Crest' },
-        { mult: 3.0, label: '3.0x Glacier' },
-        { mult: 5.0, label: '5.0x Ascent' },
-        { mult: 10.0, label: '10.0x Ridge' },
-        { mult: 15.0, label: '15.0x Stratosphere' },
-        { mult: 25.0, label: '25.0x Apex' },
+        { mult: 1.5, label: '1.5x' },
+        { mult: 2.0, label: '2.0x' },
+        { mult: 3.0, label: '3.0x' },
+        { mult: 5.0, label: '5.0x' },
+        { mult: 10.0, label: '10.0x' },
+        { mult: 15.0, label: '15.0x' },
+        { mult: 25.0, label: '25.0x' },
       ];
 
       milestones.forEach((milestone) => {
@@ -504,78 +504,66 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           // Shadow
           ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
           ctx.beginPath();
-          ctx.ellipse(flagX, flagY + 2, 8, 3, 0, 0, Math.PI * 2);
+          ctx.ellipse(flagX, flagY + 2, 10, 4, 0, 0, Math.PI * 2);
           ctx.fill();
 
-          // Flagpole
+          // Flagpole (Bigger: 60px height)
           ctx.strokeStyle = '#cbd5e1';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 3.5;
           ctx.beginPath();
           ctx.moveTo(flagX, flagY);
-          ctx.lineTo(flagX, flagY - 45);
+          ctx.lineTo(flagX, flagY - 60);
           ctx.stroke();
 
-          // Flag Pennant
-          ctx.fillStyle = cosmetics.flag === 'gold777' ? '#eab308' :
-                          cosmetics.flag === 'pirate' ? '#111827' :
-                          cosmetics.flag === 'cyber' ? '#ec4899' : '#10b981';
-
-          ctx.beginPath();
-          ctx.moveTo(flagX, flagY - 45);
-          const bannerWave = Math.sin(t * 0.1 + milestone.mult) * 6;
-          ctx.lineTo(flagX - 32, flagY - 38 + bannerWave);
-          ctx.lineTo(flagX, flagY - 30);
-          ctx.closePath();
-          ctx.fill();
-
-          // PREMIUM GLASS BADGE FOR PERFECT READABILITY ABOVE THE FLAG
-          ctx.save();
-          const labelText = milestone.label;
-          ctx.font = 'bold 10px sans-serif';
-          const textWidth = ctx.measureText(labelText).width;
-          
-          const paddingX = 8;
-          const paddingY = 4;
-          const badgeW = textWidth + paddingX * 2;
-          const badgeH = 18;
-          const badgeX = flagX - badgeW / 2;
-          const badgeY = flagY - 67; // Safely shifted above flagpole top to avoid overlap
-
-          // Render Glass container
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.95)'; // Deep high-contrast background
-          ctx.strokeStyle = '#eab308'; // High-contrast gold border
-          ctx.lineWidth = 1.5;
-
-          // Standard arc rounding helper
-          const r = 5;
-          ctx.beginPath();
-          ctx.moveTo(badgeX + r, badgeY);
-          ctx.lineTo(badgeX + badgeW - r, badgeY);
-          ctx.quadraticCurveTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + r);
-          ctx.lineTo(badgeX + badgeW, badgeY + badgeH - r);
-          ctx.quadraticCurveTo(badgeX + badgeW, badgeY + badgeH, badgeX + badgeW - r, badgeY + badgeH);
-          ctx.lineTo(badgeX + r, badgeY + badgeH);
-          ctx.quadraticCurveTo(badgeX, badgeY + badgeH, badgeX, badgeY + badgeH - r);
-          ctx.lineTo(badgeX, badgeY + r);
-          ctx.quadraticCurveTo(badgeX, badgeY, badgeX + r, badgeY);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          // Anchor indicator pointing down
+          // Gold ball ornament at flagpole top
           ctx.fillStyle = '#eab308';
           ctx.beginPath();
-          ctx.moveTo(flagX - 4, badgeY + badgeH);
-          ctx.lineTo(flagX + 4, badgeY + badgeH);
-          ctx.lineTo(flagX, badgeY + badgeH + 4);
+          ctx.arc(flagX, flagY - 60, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // At each whole number, make the flag purple
+          const isWholeNumber = milestone.mult % 1 === 0;
+          const flagColor = isWholeNumber ? '#a855f7' : '#10b981'; // Purple for whole numbers, Emerald Green for others
+
+          // Flag size details (Bigger flag: 48px width, 26px height)
+          const flagTop = flagY - 55;
+          const flagHeight = 26;
+          const flagWidth = 48;
+          
+          // Realistic waving coordinate paths
+          ctx.fillStyle = flagColor;
+          ctx.beginPath();
+          ctx.moveTo(flagX, flagTop);
+          
+          const wave1 = Math.sin(t * 0.12 + flagX * 0.05) * 3;
+          const wave2 = Math.sin(t * 0.12 + (flagX - flagWidth) * 0.05) * 3;
+          
+          ctx.quadraticCurveTo(flagX - flagWidth / 2, flagTop + wave1, flagX - flagWidth, flagTop + wave2);
+          ctx.lineTo(flagX - flagWidth, flagTop + flagHeight + wave2);
+          ctx.quadraticCurveTo(flagX - flagWidth / 2, flagTop + flagHeight + wave1, flagX, flagTop + flagHeight);
           ctx.closePath();
           ctx.fill();
 
-          // Render Label Text
+          // Highlight flag border outline
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Render the whole number or half number directly on the flag
+          ctx.save();
+          ctx.font = 'black 11px system-ui, -apple-system, sans-serif';
           ctx.fillStyle = '#ffffff';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(labelText, flagX, badgeY + badgeH / 2);
+          
+          // Soft drop shadow directly on text
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+          ctx.shadowBlur = 1.5;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 1;
+
+          const displayLabel = isWholeNumber ? `${Math.floor(milestone.mult)}x` : `${milestone.mult}x`;
+          ctx.fillText(displayLabel, flagX - flagWidth / 2, flagTop + flagHeight / 2 + wave1);
           ctx.restore();
         }
       });
