@@ -51,6 +51,9 @@ const Index = () => {
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(45);
 
+  // Dynamic live growing Weekly Prize Pool (increases directly as players stake entry fees!)
+  const [prizePool, setPrizePool] = useState<number>(25000);
+
   // Stats
   const [lifetimeGames, setLifetimeGames] = useState<number>(12);
   const [highestMultiplier, setHighestMultiplier] = useState<number>(4.82);
@@ -138,8 +141,10 @@ const Index = () => {
       return;
     }
 
-    // Deduct bet amount
+    // Entry Fee committed - Deduct balance and directly feed it into the Live Weekly Pot!
     setBalance(prev => prev - betAmount);
+    setPrizePool(prev => prev + betAmount);
+    
     setMultiplier(1.00);
     setGameState('climbing');
 
@@ -158,11 +163,11 @@ const Index = () => {
 
     toast({
       title: "Climb Initiated",
-      description: `Bet of ${betAmount.toFixed(4)} XPR committed. GUY is climbing!`,
+      description: `Bet of ${betAmount.toFixed(4)} XPR contributed to the Weekly Prize Pool. GUY is climbing!`,
     });
   };
 
-  // Safe Cash out bank triggers
+  // Safe Cash out bank triggers - Locks the current multiplier score for weekly payouts
   const handleBank = () => {
     if (gameState !== 'climbing') return;
     setGameState('banked');
@@ -171,11 +176,10 @@ const Index = () => {
     audioSynth.stopYodelMusic();
     audioSynth.playBankSound();
 
-    const winnings = betAmount * multiplier;
-    setBalance(prev => prev + winnings);
+    const lockedScore = multiplier;
 
-    // Progression XP reward calculations
-    const xpEarned = Math.floor(multiplier * 15);
+    // Progression XP reward calculations based on lock-in height
+    const xpEarned = Math.floor(lockedScore * 15);
     setXp(prev => {
       const nextXp = prev + xpEarned;
       const threshold = level * 100;
@@ -192,14 +196,14 @@ const Index = () => {
 
     setLifetimeGames(prev => prev + 1);
 
-    if (multiplier > highestMultiplier) {
-      setHighestMultiplier(multiplier);
-      setWeeklyBest(multiplier);
+    if (lockedScore > highestMultiplier) {
+      setHighestMultiplier(lockedScore);
+      setWeeklyBest(lockedScore);
     }
 
     toast({
-      title: "Bank Secured!",
-      description: `Winnings: ${winnings.toFixed(4)} XPR. Earned +${xpEarned} XP.`,
+      title: "Altitude Secured!",
+      description: `Score of ${lockedScore.toFixed(2)}x registered into Weekly Leaderboard! Earned +${xpEarned} XP.`,
     });
   };
 
@@ -515,8 +519,8 @@ const Index = () => {
                 <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
                   <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
                   <span className="text-[10px] text-slate-450 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
-                  <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
-                    25,000 XPR
+                  <div className="text-2xl font-mono font-black text-emerald-450 mt-1">
+                    {prizePool.toLocaleString()} XPR
                   </div>
                 </div>
               </div>
@@ -542,9 +546,9 @@ const Index = () => {
                         onClick={handleBank}
                         className="w-full py-8.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest text-lg shadow-[0_0_50px_rgba(52,211,153,0.55)] border-4 border-emerald-300 transition-all flex flex-col items-center justify-center gap-1.5 animate-pulse cursor-pointer"
                       >
-                        <span className="text-xs uppercase font-extrabold tracking-[0.2em] text-slate-900 opacity-95">SECURE HARNESS & RETREAT</span>
+                        <span className="text-xs uppercase font-extrabold tracking-[0.2em] text-slate-900 opacity-95">SECURE SAFETY BELT</span>
                         <span className="text-3xl font-mono font-black text-slate-950">
-                          CASH OUT NOW: {(betAmount * multiplier).toFixed(4)} XPR
+                          LOCK IN: {multiplier.toFixed(2)}x MULTIPLIER
                         </span>
                       </button>
                     ) : (
@@ -572,9 +576,9 @@ const Index = () => {
                       </div>
                       <div className="h-10 w-[1px] bg-slate-800" />
                       <div className="flex flex-col text-right">
-                        <span className="text-[10px] text-slate-400 font-black tracking-wider uppercase font-mono">RECOVERED</span>
-                        <div className="text-2xl font-black text-emerald-400 font-mono tracking-tight mt-0.5">
-                          {(betAmount * multiplier).toFixed(2)} <span className="text-[10px] text-slate-400 font-bold font-sans">XPR</span>
+                        <span className="text-[10px] text-slate-400 font-black tracking-wider uppercase font-mono">RUN SCORE STATUS</span>
+                        <div className="text-2xl font-black text-indigo-400 font-mono tracking-tight mt-0.5">
+                          {multiplier.toFixed(2)} <span className="text-[10px] text-slate-400 font-bold font-sans">Locked</span>
                         </div>
                       </div>
                     </div>
@@ -756,7 +760,7 @@ const Index = () => {
                   <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
                   <span className="text-[10px] text-slate-400 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
                   <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
-                    25,000 XPR
+                    {prizePool.toLocaleString()} XPR
                   </div>
                 </div>
               </div>
@@ -765,7 +769,7 @@ const Index = () => {
           )}
 
           {/* Other displays mapping onto corresponding navigation menus */}
-          {activeTab === 'leaderboard' && <Leaderboard />}
+          {activeTab === 'leaderboard' && <Leaderboard prizePool={prizePool} />}
 
           {activeTab === 'profile' && (
             <ProfilePanel

@@ -11,11 +11,12 @@ interface Competitor {
   prizeFraction: number; // percentage of the pot
 }
 
-export const Leaderboard: React.FC = () => {
+interface LeaderboardProps {
+  prizePool: number;
+}
+
+export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
   const [timeLeft, setTimeLeft] = useState<string>('04d : 12h : 38m : 45s');
-  
-  // Conf pool params
-  const prizePool = 25000; // in XPR
   const participants = 1420;
 
   // Custom mock high-tier players representing global climbs - expanded to 15 with precise % splits summing to 100%
@@ -198,3 +199,5 @@ export const Leaderboard: React.FC = () => {
     </div>
   );
 };
+
+export default Leaderboard;
