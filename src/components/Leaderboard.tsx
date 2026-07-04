@@ -8,28 +8,33 @@ interface Competitor {
   gamesPlayed: number;
   country: string;
   avatar: string;
-  prizeFraction: number;
+  prizeFraction: number; // percentage of the pot
 }
 
 export const Leaderboard: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<string>('04d : 12h : 38m : 45s');
   
   // Conf pool params
-  const prizePool = 12500; // in tokenType
+  const prizePool = 25000; // in XPR
   const participants = 1420;
 
-  // Custom mock high-tier players representing global climbs
+  // Custom mock high-tier players representing global climbs - expanded to 15 with precise % splits summing to 100%
   const [competitors, setCompetitors] = useState<Competitor[]>([
-    { rank: 1, username: 'SummitGoat_99', bestScore: 28.42, gamesPlayed: 85, country: '🇨🇦 CA', avatar: '🏔', prizeFraction: 25 },
-    { rank: 2, username: 'GUY_Enjoyer_X', bestScore: 22.15, gamesPlayed: 142, country: '🇺🇸 US', avatar: '🦁', prizeFraction: 18 },
-    { rank: 3, username: 'SatoshiClimber', bestScore: 19.80, gamesPlayed: 94, country: '🇯🇵 JP', avatar: '⚡', prizeFraction: 14 },
-    { rank: 4, username: 'AvalancheSurfer', bestScore: 15.65, gamesPlayed: 41, country: '🇫🇷 FR', avatar: '🛹', prizeFraction: 10 },
-    { rank: 5, username: 'SherpaSpeed', bestScore: 12.11, gamesPlayed: 230, country: '🇳🇵 NP', avatar: '🧗', prizeFraction: 8 },
-    { rank: 6, username: 'CryptoPeak', bestScore: 10.45, gamesPlayed: 75, country: '🇩🇪 DE', avatar: '🪙', prizeFraction: 7 },
-    { rank: 7, username: 'FrostyTroll', bestScore: 9.80, gamesPlayed: 54, country: '🇳🇴 NO', avatar: '👹', prizeFraction: 6 },
-    { rank: 8, username: 'ZeroDegreeClimb', bestScore: 8.75, gamesPlayed: 32, country: '🇨🇭 CH', avatar: '❄', prizeFraction: 5 },
-    { rank: 9, username: 'SevenSummitHero', bestScore: 8.20, gamesPlayed: 110, country: '🇬🇧 GB', avatar: '🚀', prizeFraction: 4 },
-    { rank: 10, username: 'GuyPower_777', bestScore: 7.95, gamesPlayed: 60, country: '🇦🇺 AU', avatar: '🌟', prizeFraction: 3 },
+    { rank: 1, username: 'SummitGoat_99', bestScore: 28.42, gamesPlayed: 85, country: '🇨🇦 CA', avatar: '🏔', prizeFraction: 25.0 },
+    { rank: 2, username: 'GUY_Enjoyer_X', bestScore: 22.15, gamesPlayed: 142, country: '🇺🇸 US', avatar: '🦁', prizeFraction: 16.0 },
+    { rank: 3, username: 'SatoshiClimber', bestScore: 19.80, gamesPlayed: 94, country: '🇯🇵 JP', avatar: '⚡', prizeFraction: 12.0 },
+    { rank: 4, username: 'AvalancheSurfer', bestScore: 15.65, gamesPlayed: 41, country: '🇫🇷 FR', avatar: '🛹', prizeFraction: 9.0 },
+    { rank: 5, username: 'SherpaSpeed', bestScore: 12.11, gamesPlayed: 230, country: '🇳🇵 NP', avatar: '🧗', prizeFraction: 7.0 },
+    { rank: 6, username: 'CryptoPeak', bestScore: 10.45, gamesPlayed: 75, country: '🇩🇪 DE', avatar: '🪙', prizeFraction: 6.0 },
+    { rank: 7, username: 'FrostyTroll', bestScore: 9.80, gamesPlayed: 54, country: '🇳🇴 NO', avatar: '👹', prizeFraction: 5.0 },
+    { rank: 8, username: 'ZeroDegreeClimb', bestScore: 8.75, gamesPlayed: 32, country: '🇨🇭 CH', avatar: '❄', prizeFraction: 4.0 },
+    { rank: 9, username: 'SevenSummitHero', bestScore: 8.20, gamesPlayed: 110, country: '🇬🇧 GB', avatar: '🚀', prizeFraction: 3.5 },
+    { rank: 10, username: 'GuyPower_777', bestScore: 7.95, gamesPlayed: 60, country: '🇦🇺 AU', avatar: '🌟', prizeFraction: 3.0 },
+    { rank: 11, username: 'AlpineEcho', bestScore: 7.42, gamesPlayed: 48, country: '🇦🇹 AT', avatar: '🐐', prizeFraction: 2.5 },
+    { rank: 12, username: 'GlacierGlide', bestScore: 6.85, gamesPlayed: 39, country: '🇳🇿 NZ', avatar: '🦅', prizeFraction: 2.0 },
+    { rank: 13, username: 'SummitSeeker_1', bestScore: 6.10, gamesPlayed: 52, country: '🇮🇹 IT', avatar: '🌲', prizeFraction: 2.0 },
+    { rank: 14, username: 'YodelMaster', bestScore: 5.92, gamesPlayed: 66, country: '🇨🇭 CH', avatar: '🎺', prizeFraction: 1.5 },
+    { rank: 15, username: 'Frostbite_GUY', bestScore: 5.40, gamesPlayed: 29, country: '🇸🇪 SE', avatar: '🧤', prizeFraction: 1.5 },
   ]);
 
   // Simulate subtle real-time updates to keep the board alive
@@ -37,7 +42,7 @@ export const Leaderboard: React.FC = () => {
     const timer = setInterval(() => {
       // Pick a random competitor and tweak their score slightly
       setCompetitors(prev => {
-        const indexToTweak = Math.floor(Math.random() * (prev.length - 2)) + 2; // don't easily change rank 1 & 2
+        const indexToTweak = Math.floor(Math.random() * (prev.length - 3)) + 3; // don't easily change top 3
         return prev.map((c, idx) => {
           if (idx === indexToTweak) {
             const extraScore = parseFloat((Math.random() * 0.15).toFixed(2));
@@ -49,7 +54,15 @@ export const Leaderboard: React.FC = () => {
           }
           return c;
         }).sort((a, b) => b.bestScore - a.bestScore)
-          .map((c, idx) => ({ ...c, rank: idx + 1 }));
+          .map((c, idx) => {
+            // Keep the corresponding decay percentage assigned to the current ranking position
+            const decayPercentages = [25.0, 16.0, 12.0, 9.0, 7.0, 6.0, 5.0, 4.0, 3.5, 3.0, 2.5, 2.0, 2.0, 1.5, 1.5];
+            return {
+              ...c,
+              rank: idx + 1,
+              prizeFraction: decayPercentages[idx] || 0
+            };
+          });
         });
     }, 5000);
 
@@ -68,9 +81,9 @@ export const Leaderboard: React.FC = () => {
           <span className="text-xs font-bold text-indigo-400 tracking-wider">WEEKLY PRIZE POOL</span>
           <div className="flex items-baseline gap-1 mt-2">
             <span className="text-3xl font-black text-white">{prizePool.toLocaleString()}</span>
-            <span className="text-xs font-bold text-indigo-300">CLIMB</span>
+            <span className="text-xs font-bold text-indigo-300">XPR</span>
           </div>
-          <p className="text-[10px] text-slate-400 mt-2">Distributed to Top 10 climbers when the countdown ends.</p>
+          <p className="text-[10px] text-slate-400 mt-2">Distributed to Top 15 climbers when the countdown ends.</p>
         </div>
 
         {/* Countdown card */}
@@ -104,21 +117,21 @@ export const Leaderboard: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <ShieldAlert className="h-5 w-5 text-violet-400" />
           <div className="text-xs text-slate-300">
-            Current payout breakdown utilizes <span className="font-bold text-violet-300">Admin Config: standard-decay-v2</span>
+            Current payout breakdown utilizes <span className="font-bold text-violet-300">Admin Config: top-15-decay-v1</span>
           </div>
         </div>
         <div className="flex gap-2 flex-wrap justify-center">
           <span className="text-[10px] bg-slate-950 border border-white/5 px-2 py-1 rounded text-slate-400 font-mono">1st (25%)</span>
-          <span className="text-[10px] bg-slate-950 border border-white/5 px-2 py-1 rounded text-slate-400 font-mono">2nd (18%)</span>
-          <span className="text-[10px] bg-slate-950 border border-white/5 px-2 py-1 rounded text-slate-400 font-mono">3rd (14%)</span>
-          <span className="text-[10px] bg-slate-950 border border-white/5 px-2 py-1 rounded text-slate-400 font-mono">Others (remaining)</span>
+          <span className="text-[10px] bg-slate-950 border border-white/5 px-2 py-1 rounded text-slate-400 font-mono">2nd (16%)</span>
+          <span className="text-[10px] bg-slate-950 border border-white/5 px-2 py-1 rounded text-slate-400 font-mono">3rd (12%)</span>
+          <span className="text-[10px] bg-slate-950 border border-white/5 px-2 py-1 rounded text-slate-400 font-mono">Others (remaining top 15)</span>
         </div>
       </div>
 
       {/* Leaderboard Table list */}
       <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-5 overflow-hidden shadow-xl">
         <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <Award className="h-5 w-5 text-yellow-500" /> Top Altitude Leaderboard
+          <Award className="h-5 w-5 text-yellow-500" /> Top Altitude Leaderboard (Top 15 Split)
         </h3>
 
         <div className="overflow-x-auto">
@@ -136,7 +149,6 @@ export const Leaderboard: React.FC = () => {
             <tbody className="divide-y divide-white/5 font-medium">
               {competitors.map((player) => {
                 const prizeValue = (player.prizeFraction / 100) * prizePool;
-                const isTop3 = player.rank <= 3;
                 return (
                   <tr
                     key={player.username}
@@ -173,7 +185,7 @@ export const Leaderboard: React.FC = () => {
                       {player.bestScore.toFixed(2)}x
                     </td>
                     <td className="py-3 px-4 text-right font-black text-indigo-400 font-mono">
-                      {prizeValue.toLocaleString()} CLIMB
+                      {prizeValue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} XPR
                       <span className="text-[10px] text-slate-500 block font-normal leading-none mt-1">({player.prizeFraction}%)</span>
                     </td>
                   </tr>
