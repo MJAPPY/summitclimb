@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Wallet, ArrowDownRight, ArrowUpRight, CheckCircle, RefreshCw, Shield, QrCode, Cpu, ExternalLink, Key } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowDownRight, ArrowUpRight, CheckCircle, RefreshCw, Shield, Cpu, ExternalLink } from 'lucide-react';
 import { protonService } from '@/utils/proton';
 import { useToast } from '@/hooks/use-toast';
 
@@ -7,8 +7,8 @@ interface WalletModalProps {
   onClose: () => void;
   balance: number;
   setBalance: React.Dispatch<React.SetStateAction<number>>;
-  tokenType: 'CLIMB' | 'USDT' | 'XPR';
-  setTokenType: (token: 'CLIMB' | 'USDT' | 'XPR') => void;
+  tokenType: 'XPR';
+  setTokenType: (token: 'XPR') => void;
   walletConnected: boolean;
   setWalletConnected: (connected: boolean) => void;
   walletAddress: string;
@@ -20,7 +20,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   balance,
   setBalance,
   tokenType,
-  setTokenType,
   walletConnected,
   setWalletConnected,
   walletAddress,
@@ -40,7 +39,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   }>>([
     { id: 'TX-901', type: 'deposit', amount: 250, token: 'XPR', time: '10 mins ago', status: 'completed' },
     { id: 'TX-802', type: 'win', amount: 84.5, token: 'XPR', time: '2 hours ago', status: 'completed' },
-    { id: 'TX-703', type: 'withdraw', amount: 100, token: 'USDT', time: 'Yesterday', status: 'completed' },
+    { id: 'TX-703', type: 'withdraw', amount: 100, token: 'XPR', time: 'Yesterday', status: 'completed' },
   ]);
 
   // Handle Proton SDK login process dynamically triggering the authentic WebAuth.com overlay
@@ -169,7 +168,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-black text-white tracking-wide flex items-center gap-2">
-                PROTON SDK LINK <span className="text-[10px] text-violet-400 font-mono bg-violet-400/10 px-2 py-0.5 rounded border border-violet-500/30">v2.1</span>
+                PROTON SDK LINK <span className="text-[10px] text-violet-400 font-mono bg-violet-400/10 px-2.5 py-0.5 rounded border border-violet-500/30">v2.1</span>
               </h2>
               <p className="text-xs text-slate-400 font-mono">Secured Proton Web3 Auth Hub</p>
             </div>
@@ -247,24 +246,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 >
                   DISCONNECT
                 </button>
-              </div>
-
-              {/* Token selectors */}
-              <div className="grid grid-cols-3 gap-2">
-                {(['XPR', 'USDT', 'CLIMB'] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTokenType(t)}
-                    className={`p-3 rounded-xl border text-center transition-all ${
-                      tokenType === t
-                        ? 'border-violet-500 bg-violet-500/10 text-white shadow-[0_0_15px_rgba(139,92,246,0.25)]'
-                        : 'border-white/5 bg-slate-900 text-slate-400 hover:border-white/10'
-                    }`}
-                  >
-                    <div className="text-[10px] text-slate-500 font-mono">XPR MAINNET</div>
-                    <div className="text-sm font-black mt-1">{t}</div>
-                  </button>
-                ))}
               </div>
 
               {/* Balance card */}

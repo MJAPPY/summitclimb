@@ -42,9 +42,9 @@ const Index = () => {
   const [walletConnected, setWalletConnected] = useState<boolean>(false);
   const [walletAddress, setWalletAddress] = useState<string>('');
 
-  // Currency & Player progression states
+  // Currency & Player progression states - Strictly XPR Native Token
   const [balance, setBalance] = useState<number>(350);
-  const [tokenType, setTokenType] = useState<'CLIMB' | 'USDT' | 'XPR'>('XPR'); // Default to XPR for Proton SDK
+  const tokenType = 'XPR';
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(45);
 
@@ -148,7 +148,7 @@ const Index = () => {
 
     toast({
       title: "Climb Initiated",
-      description: `Bet of ${currentBet.toFixed(4)} ${tokenType} committed. GUY is climbing!`,
+      description: `Bet of ${currentBet.toFixed(4)} XPR committed. GUY is climbing!`,
     });
   };
 
@@ -190,7 +190,7 @@ const Index = () => {
 
     toast({
       title: "Bank Secured!",
-      description: `Winnings: ${winnings.toFixed(4)} ${tokenType}. Earned +${xpEarned} XP.`,
+      description: `Winnings: ${winnings.toFixed(4)} XPR. Earned +${xpEarned} XP.`,
     });
   };
 
@@ -235,7 +235,7 @@ const Index = () => {
     }
 
     return () => clearInterval(interval);
-  }, [gameState, hiddenCollapsePoint, autoCashOut, betAmount, customBetInput, useCustomBet, tokenType]);
+  }, [gameState, hiddenCollapsePoint, autoCashOut, betAmount, customBetInput, useCustomBet]);
 
   const handleSceneryPreset = (
     theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic',
@@ -323,7 +323,7 @@ const Index = () => {
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                 </div>
                 <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 leading-none">
-                  {balance.toFixed(2)} {tokenType}
+                  {balance.toFixed(2)} XPR
                 </div>
               </div>
             </button>
@@ -460,7 +460,7 @@ const Index = () => {
                     <div className="flex flex-col text-right">
                       <span className="text-[11px] text-slate-400 font-black tracking-wider uppercase font-mono">EST. RECOVERED</span>
                       <div className="text-xl md:text-2xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
-                        {(getActiveBetAmount() * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold">{tokenType}</span>
+                        {(getActiveBetAmount() * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold">XPR</span>
                       </div>
                     </div>
                   </div>
@@ -519,14 +519,14 @@ const Index = () => {
                       <Coins className="h-4 w-4 text-yellow-400" /> Ascent Console
                     </span>
                     <span className="text-[11px] text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded border border-yellow-400/20 font-black">
-                      MANUAL / AUTO ACTIVE
+                      XPR EXCLUSIVE
                     </span>
                   </div>
 
                   {/* Stake Selector */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Expedition Stake ({tokenType})</label>
+                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Expedition Stake (XPR)</label>
                       <button 
                         onClick={() => setUseCustomBet(!useCustomBet)}
                         disabled={gameState === 'climbing'}
@@ -542,14 +542,14 @@ const Index = () => {
                           type="number"
                           step="0.0001"
                           min="0.0001"
-                          placeholder={`Enter custom stake in ${tokenType}...`}
+                          placeholder="Enter custom stake in XPR..."
                           value={customBetInput}
                           onChange={(e) => setCustomBetInput(e.target.value)}
                           disabled={gameState === 'climbing'}
                           className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
                         />
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-black text-slate-500 uppercase">
-                          {tokenType}
+                          XPR
                         </div>
                       </div>
                     ) : (
@@ -597,7 +597,7 @@ const Index = () => {
                       >
                         <span className="text-xs uppercase font-black tracking-widest text-slate-900 opacity-90">SECURE HARNESS & RETREAT</span>
                         <span className="text-lg font-mono font-black text-slate-950">
-                          BANK NOW: {(getActiveBetAmount() * multiplier).toFixed(4)} {tokenType}
+                          BANK NOW: {(getActiveBetAmount() * multiplier).toFixed(4)} XPR
                         </span>
                       </button>
                     ) : (
@@ -716,7 +716,7 @@ const Index = () => {
           balance={balance}
           setBalance={setBalance}
           tokenType={tokenType}
-          setTokenType={setTokenType}
+          setTokenType={() => {}}
           walletConnected={walletConnected}
           setWalletConnected={setWalletConnected}
           walletAddress={walletAddress}
