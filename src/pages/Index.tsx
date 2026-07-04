@@ -77,8 +77,8 @@ const Index = () => {
   // Cosmetics control
   const [cosmetics, setCosmetics] = useState<CosmeticSettings>({
     climber: 'standard',
-    theme: 'cyber', // Default to cyber for that hot retro arcade look
-    weather: 'neonrain',
+    theme: 'sunny', 
+    weather: 'clear',
     flag: 'cyber',
     trail: 'rainbow'
   });
@@ -170,6 +170,11 @@ const Index = () => {
     
     setMultiplier(1.00);
     setGameState('climbing');
+    setCosmetics(prev => ({
+      ...prev,
+      theme: 'sunny',
+      weather: 'clear'
+    }));
 
     // Generate random secure collapse point
     const randSeed = Math.random();
@@ -230,6 +235,25 @@ const Index = () => {
     });
   };
 
+  // Launch genuine wallet connection selector dialog
+  const handleConnectWallet = async () => {
+    try {
+      const connection = await protonService.connect();
+      setWalletAddress(connection.actor);
+      setWalletConnected(true);
+      toast({
+        title: "Proton Connected",
+        description: `Successfully linked session for actor @${connection.actor}!`,
+      });
+    } catch (e) {
+      toast({
+        title: "Authentication Aborted",
+        description: "Failed to establish real-world Proton wallet connection.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Game step interval
   useEffect(() => {
     let interval: any = null;
@@ -242,6 +266,19 @@ const Index = () => {
 
           audioSynth.updateWindIntensity(nextVal);
           audioSynth.playHeartbeat(nextVal);
+
+          // DYNAMIC SCENIC STAGE LEVEL TRANSITIONS BASED ON CURRENT MULTIPLIER SLOPES
+          if (nextVal < 1.50) {
+            setCosmetics(c => ({ ...c, theme: 'sunny', weather: 'clear' }));
+          } else if (nextVal >= 1.50 && nextVal < 3.00) {
+            setCosmetics(c => ({ ...c, theme: 'rain', weather: 'rain' }));
+          } else if (nextVal >= 3.00 && nextVal < 5.00) {
+            setCosmetics(c => ({ ...c, theme: 'everest', weather: 'snow' }));
+          } else if (nextVal >= 5.00 && nextVal < 10.00) {
+            setCosmetics(c => ({ ...c, theme: 'cosmic', weather: 'blizzard' }));
+          } else if (nextVal >= 10.00) {
+            setCosmetics(c => ({ ...c, theme: 'cyber', weather: 'neonrain' }));
+          }
 
           if (nextVal >= hiddenCollapsePoint) {
             setGameState('collapsed');
@@ -265,40 +302,6 @@ const Index = () => {
 
     return () => clearInterval(interval);
   }, [gameState, hiddenCollapsePoint]);
-
-  const handleSceneryPreset = (
-    theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic',
-    weather: 'clear' | 'snow' | 'rain' | 'storm' | 'blizzard' | 'neonrain'
-  ) => {
-    setCosmetics(prev => ({
-      ...prev,
-      theme,
-      weather
-    }));
-    toast({
-      title: "Scenery Dispatched",
-      description: `Scenic atmospheric theme changed to ${theme} with ${weather} weather!`,
-    });
-  };
-
-  // Launch genuine wallet connection selector dialog
-  const handleConnectWallet = async () => {
-    try {
-      const connection = await protonService.connect();
-      setWalletAddress(connection.actor);
-      setWalletConnected(true);
-      toast({
-        title: "Proton Connected",
-        description: `Successfully linked session for actor @${connection.actor}!`,
-      });
-    } catch (e) {
-      toast({
-        title: "Authentication Aborted",
-        description: "Failed to establish real-world Proton wallet connection.",
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-pink-500 selection:text-white relative overflow-hidden crt-flicker">
@@ -666,72 +669,35 @@ const Index = () => {
                     </div>
                   </div>
 
-                  {/* Climber Atmosphere Selector */}
-                  <div className="arcade-panel p-6 space-y-4">
-                    <span className="text-xs font-retro text-white uppercase flex items-center gap-1.5 pb-2 border-b border-pink-500">
-                      <Sparkles className="h-4 w-4 text-cyan-400" /> STAGE SET
+                  {/* Active Altitude Stage Explainer Card */}
+                  <div className="arcade-panel-cyan p-6 space-y-4">
+                    <span className="text-xs font-retro text-white uppercase flex items-center gap-1.5 pb-2 border-b border-cyan-500">
+                      <Sparkles className="h-4 w-4 text-cyan-400" /> ACTIVE CLIMB STAGES
                     </span>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => handleSceneryPreset('sunny', 'clear')}
-                        className={`p-3 border-2 text-left transition-all flex flex-col justify-between h-[85px] ${
-                          cosmetics.theme === 'sunny' && cosmetics.weather === 'clear'
-                            ? 'border-yellow-400 bg-slate-900 text-white shadow-md'
-                            : 'border-slate-900 bg-slate-950 text-slate-400 hover:border-slate-800'
-                        }`}
-                      >
-                        <Sun className="h-5 w-5 text-yellow-400" />
-                        <div>
-                          <div className="text-[9px] font-retro">STAGE 1</div>
-                          <div className="text-[7px] text-slate-500 mt-1 uppercase font-retro">SUNNY</div>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => handleSceneryPreset('rain', 'rain')}
-                        className={`p-3 border-2 text-left transition-all flex flex-col justify-between h-[85px] ${
-                          cosmetics.theme === 'rain' && cosmetics.weather === 'rain'
-                            ? 'border-pink-500 bg-slate-900 text-white shadow-md'
-                            : 'border-slate-900 bg-slate-950 text-slate-400 hover:border-slate-800'
-                        }`}
-                      >
-                        <CloudRain className="h-5 w-5 text-pink-400" />
-                        <div>
-                          <div className="text-[9px] font-retro">STAGE 2</div>
-                          <div className="text-[7px] text-slate-500 mt-1 uppercase font-retro">RAIN</div>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => handleSceneryPreset('everest', 'snow')}
-                        className={`p-3 border-2 text-left transition-all flex flex-col justify-between h-[85px] ${
-                          cosmetics.theme === 'everest' && cosmetics.weather === 'snow'
-                            ? 'border-purple-500 bg-slate-900 text-white shadow-md'
-                            : 'border-slate-900 bg-slate-950 text-slate-400 hover:border-slate-800'
-                        }`}
-                      >
-                        <Mountain className="h-5 w-5 text-purple-400" />
-                        <div>
-                          <div className="text-[9px] font-retro">STAGE 3</div>
-                          <div className="text-[7px] text-slate-500 mt-1 uppercase font-retro">ALPS</div>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => handleSceneryPreset('cyber', 'neonrain')}
-                        className={`p-3 border-2 text-left transition-all flex flex-col justify-between h-[85px] ${
-                          cosmetics.theme === 'cyber' && cosmetics.weather === 'neonrain'
-                            ? 'border-cyan-400 bg-slate-900 text-white shadow-md'
-                            : 'border-slate-900 bg-slate-950 text-slate-400 hover:border-slate-800'
-                        }`}
-                      >
-                        <Sparkles className="h-5 w-5 text-cyan-400 animate-pulse" />
-                        <div>
-                          <div className="text-[9px] font-retro">STAGE 4</div>
-                          <div className="text-[7px] text-slate-500 mt-1 uppercase font-retro">NEON</div>
-                        </div>
-                      </button>
+                    <p className="text-[10px] text-slate-400 leading-normal">
+                      Scenery and wind weather will morph dynamically to higher elevation stages as your altitude multiplier rises!
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[9px] font-retro">
+                        <span className="text-slate-300">STAGE 1: SUNNY</span>
+                        <span className="text-yellow-400">1.00x - 1.50x</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] font-retro">
+                        <span className="text-slate-300">STAGE 2: RAIN</span>
+                        <span className="text-blue-400">1.50x - 3.00x</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] font-retro">
+                        <span className="text-slate-300">STAGE 3: ALPINE SNOW</span>
+                        <span className="text-purple-400">3.00x - 5.00x</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] font-retro">
+                        <span className="text-slate-300">STAGE 4: BLIZZARD</span>
+                        <span className="text-indigo-400">5.00x - 10.00x</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] font-retro animate-pulse">
+                        <span className="text-gradient-neon font-bold">STAGE 5: CYBER NEON</span>
+                        <span className="text-pink-400 font-bold">{" > 10.00x"}</span>
+                      </div>
                     </div>
                   </div>
 
