@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, ArrowDownRight, ArrowUpRight, CheckCircle, RefreshCw, Shield, QrCode, Cpu, ExternalLink, Key } from 'lucide-react';
+import { protonService } from '@/utils/proton';
 import { useToast } from '@/hooks/use-toast';
 
 interface WalletModalProps {
@@ -26,14 +27,8 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   setWalletAddress
 }) => {
   const { toast } = useToast();
-  const [walletProvider, setWalletProvider] = useState<'WebAuth' | 'Anchor' | 'ProtonWallet' | null>(null);
-  
-  // Real-time SDK mock states styled like WebAuth.com
-  const [sdkStep, setSdkStep] = useState<'selector' | 'qrCode' | 'signing' | 'connected'>(
-    walletConnected ? 'connected' : 'selector'
-  );
   const [amountInput, setAmountInput] = useState<string>('');
-  const [secondsLeft, setSecondsLeft] = useState<number>(120);
+  const [signingOnChain, setSigningOnChain] = useState<boolean>(false);
 
   const [transactions, setTransactions] = useState<Array<{
     id: string;
@@ -48,72 +43,37 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     { id: 'TX-703', type: 'withdraw', amount: 100, token: 'USDT', time: 'Yesterday', status: 'completed' },
   ]);
 
-  // Sync state if already connected
-  useEffect(() => {
-    if (walletConnected) {
-      setSdkStep('connected');
-    } else {
-      setSdkStep('selector');
-    }
-  }, [walletConnected]);
-
-  // Countdown timer for WebAuth Proton Web SDK QR code scan
-  useEffect(() => {
-    let timer: any = null;
-    if (sdkStep === 'qrCode' && secondsLeft > 0) {
-      timer = setInterval(() => {
-        setSecondsLeft(prev => prev - 1);
-      }, 1000);
-    } else if (secondsLeft === 0) {
-      setSdkStep('selector');
-      setSecondsLeft(120);
+  // Handle Proton SDK login process dynamically triggering the authentic WebAuth.com overlay
+  const handleSDKConnection = async () => {
+    try {
+      const connection = await protonService.connect();
+      setWalletAddress(connection.actor);
+      setWalletConnected(true);
       toast({
-        title: "Session Expired",
-        description: "Proton Web SDK authorization request timed out.",
+        title: "Proton Connected",
+        description: `Linked session successfully via Proton Web SDK for @${connection.actor}`,
+      });
+    } catch (e) {
+      toast({
+        title: "Link Aborted",
+        description: "Failed to establish real-world WebAuth signature connection.",
         variant: "destructive"
       });
     }
-    return () => clearInterval(timer);
-  }, [sdkStep, secondsLeft]);
-
-  // Handle Proton SDK login process styled like atomicramjet.com
-  const triggerSDKConnection = (provider: 'WebAuth' | 'Anchor' | 'ProtonWallet') => {
-    setWalletProvider(provider);
-    setSecondsLeft(120);
-    setSdkStep('qrCode');
-    
-    toast({
-      title: `${provider} SDK Initialized`,
-      description: "Dispatching cryptographic authorization request packet...",
-    });
-
-    // Simulate instant scan after 4 seconds
-    setTimeout(() => {
-      setSdkStep('signing');
-      setTimeout(() => {
-        setWalletConnected(true);
-        setWalletAddress('tripseven'); // standard 12-char Proton/EOS account name updated to tripseven
-        setSdkStep('connected');
-        toast({
-          title: "Wallet Linked",
-          description: "Authenticated with Proton Web SDK via @tripseven.",
-        });
-      }, 1500);
-    }, 4000);
   };
 
-  const handleDisconnect = () => {
+  const handleDisconnect = async () => {
+    await protonService.disconnect();
     setWalletConnected(false);
     setWalletAddress('');
-    setWalletProvider(null);
-    setSdkStep('selector');
     toast({
       title: "Disconnected",
-      description: "Proton session ended.",
+      description: "Ended active Proton link protocol session.",
     });
   };
 
-  const handleDeposit = () => {
+  // Push an actual transaction to the WebAuth blockchain!
+  const handleDeposit = async () => {
     const amt = parseFloat(amountInput);
     if (isNaN(amt) || amt <= 0) {
       toast({
@@ -124,23 +84,37 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       return;
     }
 
-    setBalance(prev => prev + amt);
-    setTransactions(prev => [
-      {
-        id: 'TX-' + Math.floor(Math.random() * 900 + 100),
-        type: 'deposit',
-        amount: amt,
-        token: tokenType,
-        time: 'Just now',
-        status: 'completed'
-      },
-      ...prev
-    ]);
-    setAmountInput('');
-    toast({
-      title: "Deposit Authorized",
-      description: `Successfully loaded ${amt} ${tokenType} into payment contract.`,
-    });
+    setSigningOnChain(true);
+    try {
+      // Dispatches request directly to connected mobile WebAuth/Anchor for real-world cryptographic signing!
+      const txResult = await protonService.transfer('tripseven', amt, tokenType, 'Deposit stake into Summit payment contract');
+      
+      setBalance(prev => prev + amt);
+      setTransactions(prev => [
+        {
+          id: txResult.processed.id.slice(0, 10).toUpperCase(),
+          type: 'deposit',
+          amount: amt,
+          token: tokenType,
+          time: 'Just now',
+          status: 'completed'
+        },
+        ...prev
+      ]);
+      setAmountInput('');
+      toast({
+        title: "Transaction Broadcasted",
+        description: `Successfully processed transaction ${txResult.processed.id.slice(0, 8)} on Proton mainnet!`,
+      });
+    } catch (error) {
+      toast({
+        title: "Transaction Rejected",
+        description: "User declined signature request or link timed out.",
+        variant: "destructive"
+      });
+    } finally {
+      setSigningOnChain(false);
+    }
   };
 
   const handleWithdraw = () => {
@@ -177,14 +151,13 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     setAmountInput('');
     toast({
       title: "Withdrawal Initialized",
-      description: `Dispatched ${amt} ${tokenType} to outer blockchain wallet.`,
+      description: `Dispatched ${amt} ${tokenType} back to main wallet.`,
     });
   };
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
       <div className="bg-slate-950 border-2 border-violet-500/50 rounded-2xl max-w-lg w-full overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.3)] relative">
-        {/* Retro scanlines and glowing matrix grid themed after atomicramjet.com */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.08),transparent_70%)] pointer-events-none" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,6px_100%] pointer-events-none" />
 
@@ -212,55 +185,37 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         {/* Content */}
         <div className="p-6 space-y-6">
           
-          {/* STEP 1: Proton Web SDK Selector (AtomicRamjet styling) */}
-          {sdkStep === 'selector' && (
+          {/* Real world signing status display */}
+          {signingOnChain && (
+            <div className="p-4 bg-violet-950/20 border border-violet-500/30 rounded-xl flex items-center gap-3 animate-pulse">
+              <RefreshCw className="h-5 w-5 text-violet-400 animate-spin" />
+              <div className="text-xs text-slate-300">
+                Awaiting cryptographic signature authorization directly from your <span className="font-bold text-white">WebAuth App</span>...
+              </div>
+            </div>
+          )}
+
+          {/* STEP 1: Connected / Disconnected Dynamic UI Panels */}
+          {!walletConnected ? (
             <div className="space-y-4">
               <div className="text-center py-2">
-                <span className="text-xs font-mono text-violet-400 uppercase tracking-widest block font-bold mb-1">SELECT PROTON AUTH WALLET</span>
-                <p className="text-xs text-slate-400">Authenticating with XPR Network mainnet ledger</p>
+                <span className="text-xs font-mono text-violet-400 uppercase tracking-widest block font-bold mb-1">CONNECT PROTOCOL WEB SDK</span>
+                <p className="text-xs text-slate-400">Scan QR or authorize directly on chain via WebAuth</p>
               </div>
 
               <div className="space-y-2.5">
                 <button
-                  onClick={() => triggerSDKConnection('WebAuth')}
+                  onClick={handleSDKConnection}
                   className="w-full p-4 bg-gradient-to-r from-violet-950/40 to-slate-900 hover:from-violet-900/40 hover:to-slate-800 border-2 border-violet-500/30 hover:border-violet-500 rounded-xl flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="p-2 bg-violet-500/10 rounded-lg text-xl">📱</div>
                     <div className="text-left">
-                      <span className="font-black text-white text-sm block">WebAuth Wallet</span>
-                      <span className="text-[10px] text-slate-400 block font-mono">webauth.com • instant scan auth</span>
+                      <span className="font-black text-white text-sm block">WebAuth / Proton Selector</span>
+                      <span className="text-[10px] text-slate-400 block font-mono">Open official Proton Web SDK drawer</span>
                     </div>
                   </div>
                   <ArrowDownRight className="h-4 w-4 text-violet-400 group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
-                </button>
-
-                <button
-                  onClick={() => triggerSDKConnection('ProtonWallet')}
-                  className="w-full p-4 bg-gradient-to-r from-violet-950/40 to-slate-900 hover:from-violet-900/40 hover:to-slate-800 border border-white/5 hover:border-violet-500/50 rounded-xl flex items-center justify-between group transition-all"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="p-2 bg-white/5 rounded-lg text-xl">⚛️</div>
-                    <div className="text-left">
-                      <span className="font-bold text-white text-sm block">Proton Wallet App</span>
-                      <span className="text-[10px] text-slate-500 block font-mono">Native iOS & Android mobile App</span>
-                    </div>
-                  </div>
-                  <ArrowDownRight className="h-4 w-4 text-slate-500 group-hover:text-violet-400 transition-colors" />
-                </button>
-
-                <button
-                  onClick={() => triggerSDKConnection('Anchor')}
-                  className="w-full p-4 bg-gradient-to-r from-violet-950/40 to-slate-900 hover:from-violet-900/40 hover:to-slate-800 border border-white/5 hover:border-violet-500/50 rounded-xl flex items-center justify-between group transition-all"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="p-2 bg-white/5 rounded-lg text-xl">⚓</div>
-                    <div className="text-left">
-                      <span className="font-bold text-white text-sm block">Anchor Wallet</span>
-                      <span className="text-[10px] text-slate-500 block font-mono">Greymass Anchor secure login</span>
-                    </div>
-                  </div>
-                  <ArrowDownRight className="h-4 w-4 text-slate-500 group-hover:text-violet-400 transition-colors" />
                 </button>
               </div>
 
@@ -275,48 +230,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 </a>
               </div>
             </div>
-          )}
-
-          {/* STEP 2: Simulated Proton Web SDK QR Scan Prompt */}
-          {sdkStep === 'qrCode' && (
-            <div className="flex flex-col items-center justify-center py-6 space-y-5 text-center">
-              <span className="text-xs font-mono text-amber-400 uppercase tracking-widest font-black animate-pulse">AUTHORIZE SESSION PACKET</span>
-              
-              <div className="p-4 bg-white rounded-2xl border-4 border-violet-500 shadow-[0_0_30px_rgba(139,92,246,0.5)]">
-                {/* Visual authentic QR code representation */}
-                <QrCode className="h-44 w-44 text-slate-950" />
-              </div>
-
-              <div className="space-y-1">
-                <div className="text-sm font-bold text-white flex items-center justify-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-                  Scan with your {walletProvider} App
-                </div>
-                <p className="text-xs text-slate-400 max-w-sm">
-                  Scan this secure Web3 QR code to establish dynamic session credentials on XPR Network.
-                </p>
-              </div>
-
-              <div className="text-xs font-mono text-slate-500">
-                Session decays in <span className="text-violet-400 font-bold">{secondsLeft}s</span>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: Cryptographic Signing */}
-          {sdkStep === 'signing' && (
-            <div className="flex flex-col items-center justify-center py-10 space-y-6 text-center">
-              <RefreshCw className="h-12 w-12 text-violet-400 animate-spin" />
-              <div className="space-y-1.5">
-                <span className="text-xs font-mono text-violet-400 uppercase tracking-widest block font-bold">CRYPTOGRAPHIC SECURE SIGN</span>
-                <p className="text-sm font-black text-white">Verifying WebAuth digital signature...</p>
-                <p className="text-xs font-mono text-slate-500">ECDSA secp256r1 signature verification on-chain</p>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: Fully Connected Wallet Control Panels */}
-          {sdkStep === 'connected' && (
+          ) : (
             <div className="space-y-6">
               {/* Linked account badge */}
               <div className="p-4 bg-slate-900 border border-violet-500/20 rounded-xl flex items-center justify-between">
@@ -387,13 +301,15 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                   </div>
                   <button
                     onClick={handleDeposit}
-                    className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 font-bold px-4 rounded-xl border border-emerald-500/20 text-xs transition-all flex items-center gap-1.5"
+                    disabled={signingOnChain}
+                    className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 font-bold px-4 rounded-xl border border-emerald-500/20 text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
                   >
                     <ArrowDownRight className="h-4 w-4" /> Deposit
                   </button>
                   <button
                     onClick={handleWithdraw}
-                    className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold px-4 rounded-xl border border-blue-500/20 text-xs transition-all flex items-center gap-1.5"
+                    disabled={signingOnChain}
+                    className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold px-4 rounded-xl border border-blue-500/20 text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
                   >
                     <ArrowUpRight className="h-4 w-4" /> Withdraw
                   </button>

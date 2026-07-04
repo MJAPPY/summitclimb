@@ -8,6 +8,7 @@ import { AdminPanel } from '@/components/AdminPanel';
 import { SummitLogo } from '@/components/SummitLogo';
 import { HighScoresTicker } from '@/components/HighScoresTicker';
 import { audioSynth } from '@/utils/audio';
+import { protonService } from '@/utils/proton';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Compass, 
@@ -68,6 +69,22 @@ const Index = () => {
     flag: 'summit',
     trail: 'none'
   });
+
+  // Attempt to restore user's verified session silently when loading the app
+  useEffect(() => {
+    const autoLogin = async () => {
+      const activeSession = await protonService.restore();
+      if (activeSession) {
+        setWalletAddress(activeSession.actor);
+        setWalletConnected(true);
+        toast({
+          title: "Session Restored",
+          description: `Welcome back to the Summit, @${activeSession.actor}!`,
+        });
+      }
+    };
+    autoLogin();
+  }, []);
 
   // Toggle sound
   const toggleMute = () => {
@@ -211,6 +228,25 @@ const Index = () => {
     });
   };
 
+  // Launch genuine wallet connection selector dialog
+  const handleConnectWallet = async () => {
+    try {
+      const connection = await protonService.connect();
+      setWalletAddress(connection.actor);
+      setWalletConnected(true);
+      toast({
+        title: "Proton Connected",
+        description: `Successfully linked session for actor @${connection.actor}!`,
+      });
+    } catch (e) {
+      toast({
+        title: "Authentication Aborted",
+        description: "Failed to establish real-world Proton wallet connection.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-yellow-500 selection:text-slate-950">
       {/* Cinematic top navbar styled after askguy.app */}
@@ -269,7 +305,7 @@ const Index = () => {
             </button>
           ) : (
             <button
-              onClick={() => setWalletOpen(true)}
+              onClick={handleConnectWallet}
               className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-450 hover:to-amber-450 text-slate-950 font-black px-5 py-3.5 rounded-xl text-xs uppercase tracking-widest transition-all flex items-center gap-2 border-b-2 border-amber-600 shadow-md animate-pulse"
             >
               <Wallet className="h-4 w-4" /> Connect Proton SDK
