@@ -277,23 +277,23 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-yellow-500 selection:text-slate-950">
       {/* Cinematic top navbar styled after askguy.app */}
-      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-800 px-5 lg:px-10 py-4 flex items-center justify-between shadow-2xl">
+      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-800 px-5 lg:px-10 py-5 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-5">
-          <SummitLogo size="sm" className="shrink-0 rounded-2xl animate-pulse" />
+          <SummitLogo size="sm" className="shrink-0 rounded-2xl animate-pulse w-18 h-18" />
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-white uppercase">
+            <h1 className="text-4xl font-black tracking-tight text-white uppercase">
               GUYS <span className="text-gradient-gold">Summit</span>
             </h1>
-            <span className="text-xs font-black text-amber-400 tracking-widest block leading-none mt-1 uppercase">
+            <span className="text-sm font-black text-amber-400 tracking-widest block leading-none mt-1.5 uppercase">
               climb the pinnacle
             </span>
           </div>
         </div>
 
         {/* Global info ticks */}
-        <div className="hidden md:flex items-center gap-8 text-sm text-slate-300">
+        <div className="hidden md:flex items-center gap-8 text-base text-slate-300">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse border-2 border-emerald-950" />
+            <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-pulse border-2 border-emerald-950" />
             <span className="font-extrabold tracking-wide uppercase text-xs">Active Climbers: 1,420</span>
           </div>
         </div>
@@ -311,7 +311,7 @@ const Index = () => {
           {walletConnected ? (
             <button
               onClick={() => setWalletOpen(true)}
-              className="bg-gradient-to-r from-violet-900/20 via-slate-900 to-slate-950 border-2 border-violet-500/50 hover:border-violet-400 rounded-xl px-5 py-2 text-sm flex items-center gap-3.5 shadow-lg shadow-violet-950/40 transition-all text-left relative overflow-hidden group"
+              className="bg-gradient-to-r from-violet-900/20 via-slate-900 to-slate-950 border-2 border-violet-500/50 hover:border-violet-400 rounded-xl px-5 py-2.5 text-base flex items-center gap-3.5 shadow-lg shadow-violet-950/40 transition-all text-left relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 w-8 h-8 bg-violet-500/10 rounded-full blur-sm pointer-events-none" />
               <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center text-base border border-violet-500/30">
@@ -319,7 +319,7 @@ const Index = () => {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-black text-white font-mono leading-none">@{walletAddress}</span>
+                  <span className="text-base font-black text-white font-mono leading-none">@{walletAddress}</span>
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                 </div>
                 <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 leading-none">
@@ -330,7 +330,7 @@ const Index = () => {
           ) : (
             <button
               onClick={handleConnectWallet}
-              className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-450 hover:to-amber-450 text-slate-950 font-black px-5 py-3.5 rounded-xl text-xs uppercase tracking-widest transition-all flex items-center gap-2 border-b-2 border-amber-600 shadow-md animate-pulse"
+              className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-450 hover:to-amber-450 text-slate-950 font-black px-6 py-4 rounded-xl text-xs uppercase tracking-widest transition-all flex items-center gap-2 border-b-2 border-amber-600 shadow-md animate-pulse"
             >
               <Wallet className="h-4 w-4" /> Connect Proton SDK
             </button>
@@ -444,21 +444,21 @@ const Index = () => {
               <span className="p-1.5 bg-indigo-500/20 rounded-lg text-indigo-400 text-xs">
                 🎁
               </span>
-              <span className="text-[11px] text-indigo-400 font-mono font-black uppercase tracking-wider">
+              <span className="text-xs text-indigo-400 font-mono font-black uppercase tracking-wider">
                 Weekly Jackpot Split
               </span>
             </div>
 
             <div className="space-y-1">
-              <h4 className="text-sm font-black text-white">Top 15 Climbers Split</h4>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <h4 className="text-base font-black text-white">Top 15 Climbers Split</h4>
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Reach the highest altitude multipliers! When the weekly countdown ends, the entire prize pool is decay-split to the Top 15 players on the leaderboard automatically.
               </p>
             </div>
 
             <button 
               onClick={() => setActiveTab('leaderboard')}
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] rounded-xl transition-all shadow-lg shadow-indigo-950/40"
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-indigo-950/40"
             >
               See Prize Breakdowns
             </button>
@@ -477,7 +477,7 @@ const Index = () => {
             </div>
 
             <div className="min-w-0">
-              <div className="text-sm font-black text-white flex items-center gap-1.5 truncate">
+              <div className="text-base font-black text-white flex items-center gap-1.5 truncate">
                 {walletConnected ? `@${walletAddress}` : "GUY Climber"}{" "}
                 <span className="text-[10px] text-yellow-400 font-mono bg-yellow-400/10 px-1.5 py-0.5 rounded shrink-0 leading-none">Lv.{level}</span>
               </div>
@@ -498,7 +498,7 @@ const Index = () => {
               {/* Short explainer game hero section */}
               <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border-2 border-indigo-500/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
-                <div className="space-y-2 max-w-xl">
+                <div className="space-y-3 max-w-xl">
                   <div className="flex items-center gap-2">
                     <span className="text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase">
                       Ascent Crash Game
@@ -507,19 +507,19 @@ const Index = () => {
                       XPR Native
                     </span>
                   </div>
-                  <h2 className="text-xl md:text-2xl font-black text-white">CLIMB THE PINNACLE & ESCAPE THE AVALANCHE</h2>
-                  <p className="text-xs text-slate-400 leading-relaxed">
+                  <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">CLIMB THE PINNACLE & ESCAPE THE AVALANCHE</h2>
+                  <p className="text-sm text-slate-400 leading-relaxed">
                     Stake your XPR tokens to launch the brave climber Guy. As he climbs, your multiplier climbs. Cash out to secure your altitude bounty before the mountain collapses! Play responsibly on the secure WebAuth blockchain framework.
                   </p>
                 </div>
 
-                <div className="p-4 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
-                  <Award className="h-6 w-6 text-yellow-400 animate-bounce" />
-                  <span className="text-[10px] text-slate-400 font-mono mt-2 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
-                  <div className="text-xl font-mono font-black text-emerald-400 mt-1">
+                <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
+                  <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
+                  <span className="text-[10px] text-slate-400 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
+                  <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
                     25,000 XPR
                   </div>
-                  <span className="text-[9px] text-slate-500 block font-mono">Decay-Split to Top 15</span>
+                  <span className="text-[10px] text-slate-500 block font-mono">Decay-Split to Top 15</span>
                 </div>
               </div>
 
@@ -542,15 +542,15 @@ const Index = () => {
                       <span className="text-[11px] text-yellow-400 font-black tracking-wider uppercase flex items-center gap-1.5 font-mono">
                         <Flame className="h-4 w-4 text-yellow-400 animate-pulse" /> CURRENT ALTITUDE
                       </span>
-                      <div className="text-4xl md:text-5xl font-black text-white font-mono tracking-tighter mt-1">
-                        {multiplier.toFixed(2)}<span className="text-yellow-400 text-2xl font-black ml-0.5">x</span>
+                      <div className="text-5xl md:text-6xl font-black text-white font-mono tracking-tighter mt-1">
+                        {multiplier.toFixed(2)}<span className="text-yellow-400 text-3xl font-black ml-0.5">x</span>
                       </div>
                     </div>
                     <div className="h-12 w-[1px] bg-slate-800" />
                     <div className="flex flex-col text-right">
                       <span className="text-[11px] text-slate-400 font-black tracking-wider uppercase font-mono">EST. RECOVERED</span>
-                      <div className="text-xl md:text-2xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
-                        {(getActiveBetAmount() * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold">XPR</span>
+                      <div className="text-2xl md:text-3xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
+                        {(getActiveBetAmount() * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold font-sans">XPR</span>
                       </div>
                     </div>
                   </div>
@@ -563,7 +563,7 @@ const Index = () => {
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SLOPE</span>
-                        <span className="text-xs font-bold text-white block mt-1 truncate capitalize">{cosmetics.theme}</span>
+                        <span className="text-sm font-bold text-white block mt-1 truncate capitalize">{cosmetics.theme}</span>
                       </div>
                     </div>
 
@@ -573,7 +573,7 @@ const Index = () => {
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">RISK</span>
-                        <span className={`text-xs font-black block mt-1 truncate ${
+                        <span className={`text-sm font-black block mt-1 truncate ${
                           multiplier < 1.5 ? 'text-emerald-400' :
                           multiplier < 3.0 ? 'text-yellow-400' : 'text-rose-500 animate-pulse'
                         }`}>
@@ -589,7 +589,7 @@ const Index = () => {
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] text-slate-400 uppercase font-mono font-black block leading-none">SPEED</span>
-                        <span className="text-xs font-bold text-yellow-400 font-mono block mt-1 truncate">
+                        <span className="text-sm font-bold text-yellow-400 font-mono block mt-1 truncate">
                           {Math.floor(multiplier * 18)} km/h
                         </span>
                       </div>
@@ -605,10 +605,10 @@ const Index = () => {
                 {/* Climber Controller Action Box */}
                 <div className="md:col-span-7 p-7 bg-slate-900 border border-slate-800 rounded-2xl space-y-6 shadow-2xl">
                   <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
-                    <span className="text-sm font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
-                      <Coins className="h-4 w-4 text-yellow-400" /> Ascent Console
+                    <span className="text-base font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                      <Coins className="h-5 w-5 text-yellow-400" /> Ascent Console
                     </span>
-                    <span className="text-[11px] text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded border border-yellow-400/20 font-black">
+                    <span className="text-xs text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded border border-yellow-400/20 font-black">
                       XPR EXCLUSIVE
                     </span>
                   </div>
@@ -620,7 +620,7 @@ const Index = () => {
                       <button 
                         onClick={() => setUseCustomBet(!useCustomBet)}
                         disabled={gameState === 'climbing'}
-                        className="text-[10px] text-yellow-400 hover:text-yellow-300 font-black uppercase tracking-wider font-mono border-b border-yellow-500/30 pb-0.5"
+                        className="text-xs text-yellow-400 hover:text-yellow-300 font-black uppercase tracking-wider font-mono border-b border-yellow-500/30 pb-0.5"
                       >
                         {useCustomBet ? 'Use Presets' : 'Custom Amount'}
                       </button>
@@ -649,7 +649,7 @@ const Index = () => {
                             key={amt}
                             onClick={() => setBetAmount(amt)}
                             disabled={gameState === 'climbing'}
-                            className={`py-3.5 rounded-xl text-sm font-black transition-all border ${
+                            className={`py-4 rounded-xl text-base font-black transition-all border ${
                               betAmount === amt
                                 ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
                                 : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
@@ -686,14 +686,14 @@ const Index = () => {
                         className="w-full py-6 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:opacity-95 text-slate-950 font-black tracking-wider text-base shadow-2xl border-2 border-emerald-300 transition-all flex flex-col items-center justify-center gap-2 animate-pulse"
                       >
                         <span className="text-xs uppercase font-black tracking-widest text-slate-900 opacity-90">SECURE HARNESS & RETREAT</span>
-                        <span className="text-lg font-mono font-black text-slate-950">
+                        <span className="text-xl font-mono font-black text-slate-950">
                           BANK NOW: {(getActiveBetAmount() * multiplier).toFixed(4)} XPR
                         </span>
                       </button>
                     ) : (
                       <button
                         onClick={handleStartClimb}
-                        className="w-full py-6 rounded-2xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-wider text-base shadow-2xl border border-yellow-300 transition-all flex items-center justify-center gap-3 uppercase"
+                        className="w-full py-6.5 rounded-2xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-widest text-base shadow-2xl border border-yellow-300 transition-all flex items-center justify-center gap-3 uppercase"
                       >
                         <span>LAUNCH EXPEDITION</span>
                         <ArrowUpRight className="h-6 w-6 text-slate-950" />
