@@ -476,7 +476,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
           // 8-bit Striped Caution Flagpole
           const poleWidth = 6;
-          const poleHeight = 85;
+          const poleHeight = 95; // Increased slightly for taller flag size
           const segmentHeight = 10;
           
           for (let pY = 0; pY < poleHeight; pY += segmentHeight) {
@@ -499,9 +499,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           // Blocky Rectangular Flag Shape
           const isWholeNumber = milestone.mult % 1 === 0;
           const flagColor = isWholeNumber ? '#ec4899' : '#06b6d4'; // Hot Pink or Neon Cyan
-          const flagTop = flagY - poleHeight + 5;
-          const flagHeight = 28;
-          const flagWidth = 65;
+          const flagTop = flagY - poleHeight + 4;
+          const flagHeight = 34; // Larger height to host big numbers
+          const flagWidth = 85;  // Larger width to prevent text overflow
           
           // Outer Flag Border
           ctx.fillStyle = '#000000';
@@ -519,8 +519,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
           // DRAW RETRO TYPOGRAPHY NUMBERS INSIDE THE FLAG
           ctx.save();
-          // Uses standard custom-injected arcade Press Start 2P imported font
-          ctx.font = 'bold 8px "Press Start 2P", monospace, sans-serif';
+          // Uses standard custom-injected arcade Press Start 2P imported font with larger size
+          ctx.font = 'bold 12px "Press Start 2P", monospace, sans-serif'; 
           ctx.fillStyle = '#ffffff';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
