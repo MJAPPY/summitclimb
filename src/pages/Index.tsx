@@ -26,7 +26,8 @@ import {
   Sparkles,
   ShieldAlert,
   Flame,
-  CheckCircle2
+  CheckCircle2,
+  Coins
 } from 'lucide-react';
 
 const Index = () => {
@@ -56,6 +57,8 @@ const Index = () => {
   const [gameState, setGameState] = useState<'idle' | 'climbing' | 'banked' | 'collapsed'>('idle');
   const [multiplier, setMultiplier] = useState<number>(1.00);
   const [betAmount, setBetAmount] = useState<number>(10);
+  const [customBetInput, setCustomBetInput] = useState<string>('');
+  const [useCustomBet, setUseCustomBet] = useState<boolean>(false);
   const [autoCashOut, setAutoCashOut] = useState<string>('');
 
   // Hidden crash point calculation
@@ -93,10 +96,30 @@ const Index = () => {
     audioSynth.setMute(nextMuted);
   };
 
+  // Get active bet amount based on selection or custom input
+  const getActiveBetAmount = () => {
+    if (useCustomBet) {
+      const parsed = parseFloat(customBetInput);
+      return isNaN(parsed) || parsed <= 0 ? 0 : parsed;
+    }
+    return betAmount;
+  };
+
   // Start ascending summit climb
   const handleStartClimb = () => {
     if (gameState === 'climbing') return;
-    if (balance < betAmount) {
+    const currentBet = getActiveBetAmount();
+
+    if (currentBet <= 0) {
+      toast({
+        title: "Invalid Bet Amount",
+        description: "Please specify or type a valid stake greater than 0.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (balance < currentBet) {
       toast({
         title: "Insufficient Balance",
         description: "Deposit more tokens using the wallet interface above.",
@@ -106,7 +129,7 @@ const Index = () => {
     }
 
     // Deduct bet amount
-    setBalance(prev => prev - betAmount);
+    setBalance(prev => prev - currentBet);
     setMultiplier(1.00);
     setGameState('climbing');
 
@@ -125,7 +148,7 @@ const Index = () => {
 
     toast({
       title: "Climb Initiated",
-      description: `Bet of ${betAmount} ${tokenType} committed. GUY is climbing!`,
+      description: `Bet of ${currentBet.toFixed(4)} ${tokenType} committed. GUY is climbing!`,
     });
   };
 
@@ -138,7 +161,8 @@ const Index = () => {
     audioSynth.stopYodelMusic();
     audioSynth.playBankSound();
 
-    const winnings = betAmount * multiplier;
+    const currentBet = getActiveBetAmount();
+    const winnings = currentBet * multiplier;
     setBalance(prev => prev + winnings);
 
     // Progression XP reward calculations
@@ -166,7 +190,7 @@ const Index = () => {
 
     toast({
       title: "Bank Secured!",
-      description: `Winnings: ${winnings.toFixed(2)} ${tokenType}. Earned +${xpEarned} XP.`,
+      description: `Winnings: ${winnings.toFixed(4)} ${tokenType}. Earned +${xpEarned} XP.`,
     });
   };
 
@@ -211,7 +235,7 @@ const Index = () => {
     }
 
     return () => clearInterval(interval);
-  }, [gameState, hiddenCollapsePoint, autoCashOut, betAmount, tokenType]);
+  }, [gameState, hiddenCollapsePoint, autoCashOut, betAmount, customBetInput, useCustomBet, tokenType]);
 
   const handleSceneryPreset = (
     theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic',
@@ -436,7 +460,7 @@ const Index = () => {
                     <div className="flex flex-col text-right">
                       <span className="text-[11px] text-slate-400 font-black tracking-wider uppercase font-mono">EST. RECOVERED</span>
                       <div className="text-xl md:text-2xl font-black text-emerald-400 font-mono tracking-tight mt-1.5">
-                        {(betAmount * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold">{tokenType}</span>
+                        {(getActiveBetAmount() * multiplier).toFixed(2)} <span className="text-xs text-slate-400 font-bold">{tokenType}</span>
                       </div>
                     </div>
                   </div>
@@ -491,8 +515,8 @@ const Index = () => {
                 {/* Climber Controller Action Box */}
                 <div className="md:col-span-7 p-7 bg-slate-900 border border-slate-800 rounded-2xl space-y-6 shadow-2xl">
                   <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
-                    <span className="text-sm font-black text-white uppercase tracking-wider font-mono">
-                      Ascent Console
+                    <span className="text-sm font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                      <Coins className="h-4 w-4 text-yellow-400" /> Ascent Console
                     </span>
                     <span className="text-[11px] text-yellow-400 font-mono bg-yellow-400/10 px-2.5 py-0.5 rounded border border-yellow-400/20 font-black">
                       MANUAL / AUTO ACTIVE
@@ -500,24 +524,55 @@ const Index = () => {
                   </div>
 
                   {/* Stake Selector */}
-                  <div className="space-y-3">
-                    <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Expedition Stake ({tokenType})</label>
-                    <div className="grid grid-cols-4 gap-2.5">
-                      {[10, 25, 50, 100].map((amt) => (
-                        <button
-                          key={amt}
-                          onClick={() => setBetAmount(amt)}
-                          disabled={gameState === 'climbing'}
-                          className={`py-3.5 rounded-xl text-sm font-black transition-all border ${
-                            betAmount === amt
-                              ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
-                              : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
-                          }`}
-                        >
-                          {amt}
-                        </button>
-                      ))}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-slate-300 uppercase tracking-wider block">Expedition Stake ({tokenType})</label>
+                      <button 
+                        onClick={() => setUseCustomBet(!useCustomBet)}
+                        disabled={gameState === 'climbing'}
+                        className="text-[10px] text-yellow-400 hover:text-yellow-300 font-black uppercase tracking-wider font-mono border-b border-yellow-500/30 pb-0.5"
+                      >
+                        {useCustomBet ? 'Use Presets' : 'Custom Amount'}
+                      </button>
                     </div>
+
+                    {useCustomBet ? (
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.0001"
+                          min="0.0001"
+                          placeholder={`Enter custom stake in ${tokenType}...`}
+                          value={customBetInput}
+                          onChange={(e) => setCustomBetInput(e.target.value)}
+                          disabled={gameState === 'climbing'}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-yellow-500 placeholder-slate-600"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-black text-slate-500 uppercase">
+                          {tokenType}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-2.5">
+                        {[10, 25, 50, 100].map((amt) => (
+                          <button
+                            key={amt}
+                            onClick={() => setBetAmount(amt)}
+                            disabled={gameState === 'climbing'}
+                            className={`py-3.5 rounded-xl text-sm font-black transition-all border ${
+                              betAmount === amt
+                                ? 'bg-slate-800 border-yellow-500 text-white shadow-md'
+                                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white hover:bg-slate-800'
+                            }`}
+                          >
+                            {amt}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <span className="text-[10px] text-slate-500 block font-mono">
+                      XPR Network Token Explorer contract reference: <a href="https://explorer.xprnetwork.org/tokens/XPR-proton-eosio.token" target="_blank" rel="noopener noreferrer" className="text-yellow-500/80 hover:text-yellow-400 underline">eosio.token</a>
+                    </span>
                   </div>
 
                   {/* Auto Cashout Multiplier Value */}
@@ -542,7 +597,7 @@ const Index = () => {
                       >
                         <span className="text-xs uppercase font-black tracking-widest text-slate-900 opacity-90">SECURE HARNESS & RETREAT</span>
                         <span className="text-lg font-mono font-black text-slate-950">
-                          BANK NOW: {(betAmount * multiplier).toFixed(2)} {tokenType}
+                          BANK NOW: {(getActiveBetAmount() * multiplier).toFixed(4)} {tokenType}
                         </span>
                       </button>
                     ) : (
