@@ -496,7 +496,7 @@ const Index = () => {
           
           {/* Standard Climb Screen */}
           {activeTab === 'climb' && (
-            <div className="space-y-6">
+            <div className="space-y-6 font-display">
               
               {/* High-impact game introduction hero banner designed to capture immediate interest */}
               <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-905 border-2 border-indigo-500/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl">
@@ -539,25 +539,25 @@ const Index = () => {
                     cosmetics={cosmetics}
                   />
 
-                  {/* GIANT HIGH-CONTRAST ACTION TRIGGER: Directly underneath game screen for zero eye movement */}
+                  {/* GIANT HIGH-CONTRAST ACTION TRIGGER: Now with massive 3.5rem vertical padding, huge border depth and glowing background splits */}
                   <div className="w-full">
                     {gameState === 'climbing' ? (
                       <button
                         onClick={handleBank}
-                        className="w-full py-8.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest text-lg shadow-[0_0_50px_rgba(52,211,153,0.55)] border-4 border-emerald-300 transition-all flex flex-col items-center justify-center gap-1.5 animate-pulse cursor-pointer"
+                        className="w-full py-12 md:py-14 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest text-lg shadow-[0_0_60px_rgba(52,211,153,0.7)] border-8 border-emerald-300 transition-all flex flex-col items-center justify-center gap-2 animate-pulse cursor-pointer"
                       >
-                        <span className="text-xs uppercase font-extrabold tracking-[0.2em] text-slate-900 opacity-95">SECURE SAFETY BELT</span>
-                        <span className="text-3xl font-mono font-black text-slate-950">
+                        <span className="text-sm uppercase font-extrabold tracking-[0.25em] text-slate-900 opacity-95">SECURE SAFETY BELT</span>
+                        <span className="text-4xl font-mono font-black text-slate-950">
                           LOCK IN: {multiplier.toFixed(2)}x MULTIPLIER
                         </span>
                       </button>
                     ) : (
                       <button
                         onClick={handleStartClimb}
-                        className="w-full py-8.5 rounded-2xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-[0.15em] text-2xl shadow-[0_0_50px_rgba(245,158,11,0.45)] border-4 border-yellow-300 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer"
+                        className="w-full py-12 md:py-14 rounded-2xl bg-gradient-to-b from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-[0.2em] text-3xl shadow-[0_0_60px_rgba(245,158,11,0.6)] border-8 border-yellow-350 transition-all flex items-center justify-center gap-4 uppercase cursor-pointer"
                       >
                         <span>LAUNCH EXPEDITION</span>
-                        <ArrowUpRight className="h-8 w-8 text-slate-950 stroke-[3px]" />
+                        <ArrowUpRight className="h-10 w-10 text-slate-950 stroke-[4px]" />
                       </button>
                     )}
                   </div>
