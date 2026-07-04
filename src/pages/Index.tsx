@@ -23,9 +23,10 @@ import {
   Mountain,
   Sparkles,
   ShieldAlert,
-  Flame,
-  ArrowRight
+  Flame
 } from 'lucide-react';
+
+const LOGO_URL = "dyad-media://media/stellar-phoenix-slide/.dyad/media/e6f0780907527e4724dd172ac8ed48e2cdda2b3bf8b6f3cb0747f3ec3126d399.jpg";
 
 const Index = () => {
   const { toast } = useToast();
@@ -215,15 +216,21 @@ const Index = () => {
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
       {/* Cinematic top navbar */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-700/80 px-5 lg:px-10 py-4 flex items-center justify-between shadow-2xl">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-tr from-slate-700 via-slate-800 to-slate-900 rounded-xl flex items-center justify-center border-2 border-slate-500 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-            <span className="font-black text-slate-100 text-2xl tracking-tighter">S</span>
+        <div className="flex items-center gap-5">
+          {/* Large Hero Badge image logo */}
+          <div className="relative group shrink-0">
+            <div className="absolute inset-0 bg-amber-500/20 rounded-2xl blur-lg group-hover:bg-amber-500/40 transition-all duration-300" />
+            <img 
+              src={LOGO_URL} 
+              alt="Summit Expeditions Logo" 
+              className="w-16 h-16 rounded-2xl border-2 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all duration-300 object-cover"
+            />
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-100">
+            <h1 className="text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-100">
               SUMMIT
             </h1>
-            <span className="text-[10px] font-black text-amber-400 tracking-wider block leading-none">
+            <span className="text-xs font-black text-amber-400 tracking-wider block leading-none mt-1">
               METALLICUS GUY EXPEDITIONS
             </span>
           </div>
@@ -615,11 +622,24 @@ const Index = () => {
       )}
 
       {/* Aesthetic bottom footer disclaimer */}
-      <footer className="mt-12 py-8 border-t-2 border-slate-800 text-center text-xs text-slate-500">
-        <p className="max-w-md mx-auto font-medium">
-          Summit is a simulated decentralized cryptocurrency exploration climb. All features represent mock secure models. Enjoy climbing!
-        </p>
-        <p className="mt-3 font-black text-slate-400 tracking-wider">CHARACTERS SUPPORTED: HERO CLIMBER GUY</p>
+      <footer className="mt-12 py-10 border-t-2 border-slate-800 text-center text-xs text-slate-500 space-y-6">
+        {/* Large reflective gold logo centerpiece */}
+        <div className="relative group w-32 h-32 mx-auto">
+          <div className="absolute inset-0 bg-amber-500/10 rounded-3xl blur-xl group-hover:bg-amber-500/20 transition-all duration-300" />
+          <img 
+            src={LOGO_URL} 
+            alt="Summit footer logo" 
+            className="w-32 h-32 rounded-3xl border-2 border-slate-700 shadow-2xl group-hover:scale-105 group-hover:border-amber-400 transition-all duration-300 mx-auto object-cover"
+          />
+        </div>
+        <div>
+          <p className="max-w-md mx-auto font-medium text-slate-400">
+            Summit is a simulated decentralized cryptocurrency exploration climb. All features represent mock secure models. Enjoy climbing!
+          </p>
+          <p className="mt-3 font-black text-amber-400 tracking-wider text-sm uppercase">
+            CHARACTERS SUPPORTED: HERO CLIMBER GUY
+          </p>
+        </div>
       </footer>
     </div>
   );
