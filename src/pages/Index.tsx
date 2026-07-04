@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameCanvas, CosmeticSettings } from '@/components/GameCanvas';
 import { WalletModal } from '@/components/WalletModal';
-import { CosmeticsShop } from '@/components/CosmeticsShop';
 import { ProfilePanel } from '@/components/ProfilePanel';
 import { Leaderboard } from '@/components/Leaderboard';
 import { ReplayManager } from '@/components/ReplayManager';
@@ -13,29 +12,25 @@ import {
   Volume2, 
   VolumeX, 
   Wallet, 
-  Sparkles, 
   User, 
   Trophy, 
   Settings, 
   History, 
-  Coins, 
   ArrowUpRight,
-  TrendingUp,
   AlertCircle
 } from 'lucide-react';
 
 const Index = () => {
   const { toast } = useToast();
 
-  // Navigation state
-  const [activeTab, setActiveTab] = useState<'climb' | 'leaderboard' | 'shop' | 'profile' | 'replays' | 'admin'>('climb');
+  // Navigation state (removed 'shop')
+  const [activeTab, setActiveTab] = useState<'climb' | 'leaderboard' | 'profile' | 'replays' | 'admin'>('climb');
   const [walletOpen, setWalletOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Currency & Player progression states
   const [balance, setBalance] = useState<number>(350);
   const [tokenType, setTokenType] = useState<'CLIMB' | 'USDT' | 'XPR'>('CLIMB');
-  const [coins, setCoins] = useState<number>(150);
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(45);
 
@@ -53,16 +48,14 @@ const Index = () => {
   // Hidden crash point calculation (simulating server-side cryptographically secure random value)
   const [hiddenCollapsePoint, setHiddenCollapsePoint] = useState<number>(0);
 
-  // Cosmetics
-  const [cosmetics, setCosmetics] = useState<CosmeticSettings>({
+  // Cosmetics fixed to high-quality defaults
+  const [cosmetics] = useState<CosmeticSettings>({
     climber: 'standard',
     theme: 'everest',
     weather: 'snow',
     flag: 'summit',
     trail: 'none'
   });
-
-  const climberRef = useRef<any>(null);
 
   // Toggle sound
   const toggleMute = () => {
@@ -119,9 +112,8 @@ const Index = () => {
     const winnings = betAmount * multiplier;
     setBalance(prev => prev + winnings);
 
-    // Progression XP & Coins reward calculations
+    // Progression XP reward calculations
     const xpEarned = Math.floor(multiplier * 15);
-    const coinsEarned = Math.floor(multiplier * 10);
     setXp(prev => {
       const nextXp = prev + xpEarned;
       const threshold = level * 100;
@@ -136,7 +128,6 @@ const Index = () => {
       return nextXp;
     });
 
-    setCoins(prev => prev + coinsEarned);
     setLifetimeGames(prev => prev + 1);
 
     if (multiplier > highestMultiplier) {
@@ -146,7 +137,7 @@ const Index = () => {
 
     toast({
       title: "Bank Secured!",
-      description: `Winnings: ${winnings.toFixed(2)} ${tokenType}. Earned +${xpEarned} XP and +${coinsEarned} Coins.`,
+      description: `Winnings: ${winnings.toFixed(2)} ${tokenType}. Earned +${xpEarned} XP.`,
     });
   };
 
@@ -278,17 +269,6 @@ const Index = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab('shop')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'shop' 
-                  ? 'bg-violet-600 text-white shadow-lg shadow-violet-950/40' 
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Sparkles className="h-4 w-4" /> Custom Cosmetics
-            </button>
-
-            <button
               onClick={() => setActiveTab('profile')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'profile' 
@@ -333,10 +313,6 @@ const Index = () => {
                 GUY Climber <span className="text-[10px] text-indigo-400 font-mono">Lv.{level}</span>
               </div>
               <div className="text-[10px] text-slate-400 mt-0.5">Highest Altitude: {highestMultiplier.toFixed(2)}x</div>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Coins className="h-3 w-3 text-yellow-400" />
-                <span className="text-[10px] text-yellow-400 font-bold">{coins} Coins Available</span>
-              </div>
             </div>
           </div>
         </aside>
@@ -351,7 +327,7 @@ const Index = () => {
               {/* Display announcement ticker banner */}
               <div className="p-3.5 bg-indigo-950/30 border border-indigo-500/15 rounded-xl flex items-center gap-2.5 text-xs text-indigo-200">
                 <AlertCircle className="h-4.5 w-4.5 text-indigo-400 shrink-0" />
-                <span>Season 4 pool initialized with 12,500 CLIMB. Earn badges to unlock Gold Climber GUY suit!</span>
+                <span>Season 4 pool initialized with 12,500 CLIMB. Reach higher peaks to climb the global ranks!</span>
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
@@ -469,15 +445,6 @@ const Index = () => {
 
           {/* Other displays mapping onto corresponding navigation menus */}
           {activeTab === 'leaderboard' && <Leaderboard />}
-
-          {activeTab === 'shop' && (
-            <CosmeticsShop
-              cosmetics={cosmetics}
-              setCosmetics={setCosmetics}
-              coins={coins}
-              setCoins={setCoins}
-            />
-          )}
 
           {activeTab === 'profile' && (
             <ProfilePanel
