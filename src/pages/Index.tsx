@@ -6,6 +6,7 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { ReplayManager } from '@/components/ReplayManager';
 import { AdminPanel } from '@/components/AdminPanel';
 import { SummitLogo } from '@/components/SummitLogo';
+import { HighScoresTicker } from '@/components/HighScoresTicker';
 import { audioSynth } from '@/utils/audio';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -18,7 +19,6 @@ import {
   Settings, 
   History, 
   ArrowUpRight,
-  AlertCircle,
   Sun,
   CloudRain,
   Mountain,
@@ -26,8 +26,6 @@ import {
   ShieldAlert,
   Flame
 } from 'lucide-react';
-
-const LOGO_URL = "dyad-media://media/stellar-phoenix-slide/.dyad/media/e6f0780907527e4724dd172ac8ed48e2cdda2b3bf8b6f3cb0747f3ec3126d399.jpg";
 
 const Index = () => {
   const { toast } = useToast();
@@ -361,11 +359,8 @@ const Index = () => {
           {activeTab === 'climb' && (
             <div className="space-y-8">
               
-              {/* Display announcement ticker banner */}
-              <div className="p-4.5 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border-l-4 border-amber-400 rounded-xl flex items-center gap-3.5 text-sm text-slate-200 shadow-lg">
-                <AlertCircle className="h-6 w-6 text-amber-400 shrink-0 animate-bounce" />
-                <span className="font-extrabold">Season 4 expedition pool active! Ascend past storm ridges and glaciers to lock in elite climber rank.</span>
-              </div>
+              {/* Dynamic scrolling High Scores ticker */}
+              <HighScoresTicker />
 
               {/* HERO VISUAL AREA: Canvas spans 100% of the workspace container */}
               <div className="space-y-6">
