@@ -27,7 +27,12 @@ import {
   ShieldAlert,
   Flame,
   CheckCircle2,
-  Coins
+  Coins,
+  ChevronRight,
+  Info,
+  Gift,
+  Zap,
+  Award
 } from 'lucide-react';
 
 const Index = () => {
@@ -341,69 +346,126 @@ const Index = () => {
       {/* Main Layout Workspace */}
       <div className="max-w-[1600px] mx-auto px-5 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Responsive Sidebar Navigation */}
+        {/* Responsive, highly stylized Sidebar Navigation */}
         <aside className="lg:col-span-3 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2.5 shadow-2xl">
-            <span className="text-xs text-slate-400 font-black uppercase tracking-widest px-3 block mb-3 border-b border-slate-800 pb-2">
-              Navigation Hub
-            </span>
-            
-            <button
-              onClick={() => setActiveTab('climb')}
-              className={`w-full flex items-center justify-between px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
-                activeTab === 'climb' 
-                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
-                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <span className="flex items-center gap-3.5">
-                <Compass className={`h-5 w-5 ${activeTab === 'climb' ? 'text-yellow-400' : ''}`} /> Start Expedition
+          <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-800/80 rounded-3xl p-6 space-y-4 shadow-2xl relative overflow-hidden">
+            <div className="absolute -top-12 -left-12 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">
+                EXPEDITION PORTAL
               </span>
-              {activeTab === 'climb' && <span className="text-[10px] bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 px-2.5 py-0.5 rounded-full font-mono font-black animate-pulse">LIVE</span>}
-            </button>
+              <span className="text-[9px] bg-indigo-500/20 text-indigo-300 font-mono font-bold px-2 py-0.5 rounded-full uppercase">
+                Active Setup
+              </span>
+            </div>
+            
+            <div className="space-y-2">
+              <button
+                onClick={() => setActiveTab('climb')}
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                  activeTab === 'climb' 
+                    ? 'bg-gradient-to-r from-yellow-500/15 via-amber-500/10 to-transparent border-yellow-500/30 text-white shadow-xl shadow-yellow-500/5' 
+                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Compass className={`h-4.5 w-4.5 ${activeTab === 'climb' ? 'text-yellow-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  Launch Expedition
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+              </button>
 
-            <button
+              <button
+                onClick={() => setActiveTab('leaderboard')}
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                  activeTab === 'leaderboard' 
+                    ? 'bg-gradient-to-r from-violet-500/15 via-indigo-500/10 to-transparent border-violet-500/30 text-white shadow-xl shadow-violet-500/5' 
+                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Trophy className={`h-4.5 w-4.5 ${activeTab === 'leaderboard' ? 'text-violet-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  Leaderboards
+                </span>
+                <span className="text-[10px] bg-violet-500/20 text-violet-300 font-mono px-2 py-0.5 rounded-md font-bold">TOP 15</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                  activeTab === 'profile' 
+                    ? 'bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border-emerald-500/30 text-white shadow-xl shadow-emerald-500/5' 
+                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <User className={`h-4.5 w-4.5 ${activeTab === 'profile' ? 'text-emerald-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  Achievements
+                </span>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono px-2 py-0.5 rounded-md font-bold">5 Lvl</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('replays')}
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                  activeTab === 'replays' 
+                    ? 'bg-gradient-to-r from-indigo-500/15 via-blue-500/10 to-transparent border-indigo-500/30 text-white shadow-xl shadow-indigo-500/5' 
+                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <History className={`h-4.5 w-4.5 ${activeTab === 'replays' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  Ascent Replays
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black tracking-wider transition-all border group ${
+                  activeTab === 'admin' 
+                    ? 'bg-gradient-to-r from-rose-500/15 via-pink-500/10 to-transparent border-rose-500/30 text-white shadow-xl shadow-rose-500/5' 
+                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Settings className={`h-4.5 w-4.5 ${activeTab === 'admin' ? 'text-rose-400' : 'text-slate-500 group-hover:text-white'}`} /> 
+                  Admin Control
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Weekly pot explainer item block */}
+          <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 border-2 border-indigo-500/20 rounded-3xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+            <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
+              <Gift className="h-36 w-36 text-indigo-400" />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 bg-indigo-500/20 rounded-lg text-indigo-400 text-xs">
+                🎁
+              </span>
+              <span className="text-[11px] text-indigo-400 font-mono font-black uppercase tracking-wider">
+                Weekly Jackpot Split
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="text-sm font-black text-white">Top 15 Climbers Split</h4>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Reach the highest altitude multipliers! When the weekly countdown ends, the entire prize pool is decay-split to the Top 15 players on the leaderboard automatically.
+              </p>
+            </div>
+
+            <button 
               onClick={() => setActiveTab('leaderboard')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
-                activeTab === 'leaderboard' 
-                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
-                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
+              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] rounded-xl transition-all shadow-lg shadow-indigo-950/40"
             >
-              <Trophy className={`h-5 w-5 ${activeTab === 'leaderboard' ? 'text-yellow-400' : ''}`} /> Seasons Leaderboard
-            </button>
-
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
-                activeTab === 'profile' 
-                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
-                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <User className={`h-5 w-5 ${activeTab === 'profile' ? 'text-yellow-400' : ''}`} /> GUY Achievements
-            </button>
-
-            <button
-              onClick={() => setActiveTab('replays')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
-                activeTab === 'replays' 
-                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
-                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <History className={`h-5 w-5 ${activeTab === 'replays' ? 'text-yellow-400' : ''}`} /> Ascent Replays
-            </button>
-
-            <button
-              onClick={() => setActiveTab('admin')}
-              className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl text-sm font-black tracking-wider transition-all border ${
-                activeTab === 'admin' 
-                  ? 'bg-slate-800 border-yellow-500/50 text-white shadow-lg' 
-                  : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <Settings className={`h-5 w-5 ${activeTab === 'admin' ? 'text-yellow-400' : ''}`} /> Admin Controls
+              See Prize Breakdowns
             </button>
           </div>
 
@@ -433,6 +495,34 @@ const Index = () => {
           {activeTab === 'climb' && (
             <div className="space-y-8">
               
+              {/* Short explainer game hero section */}
+              <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border-2 border-indigo-500/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
+                <div className="space-y-2 max-w-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase">
+                      Ascent Crash Game
+                    </span>
+                    <span className="text-xs bg-indigo-400/10 text-indigo-400 border border-indigo-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase">
+                      XPR Native
+                    </span>
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black text-white">CLIMB THE PINNACLE & ESCAPE THE AVALANCHE</h2>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Stake your XPR tokens to launch the brave climber Guy. As he climbs, your multiplier climbs. Cash out to secure your altitude bounty before the mountain collapses! Play responsibly on the secure WebAuth blockchain framework.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
+                  <Award className="h-6 w-6 text-yellow-400 animate-bounce" />
+                  <span className="text-[10px] text-slate-400 font-mono mt-2 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
+                  <div className="text-xl font-mono font-black text-emerald-400 mt-1">
+                    25,000 XPR
+                  </div>
+                  <span className="text-[9px] text-slate-500 block font-mono">Decay-Split to Top 15</span>
+                </div>
+              </div>
+
               <HighScoresTicker />
 
               <div className="space-y-6">
