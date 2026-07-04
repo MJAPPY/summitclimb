@@ -494,6 +494,33 @@ const Index = () => {
           {activeTab === 'climb' && (
             <div className="space-y-6">
               
+              {/* High-impact game introduction hero banner designed to capture immediate interest */}
+              <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-905 border-2 border-indigo-500/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
+                <div className="space-y-3 max-w-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase tracking-wider animate-pulse">
+                      Live Altitude Battle
+                    </span>
+                    <span className="text-xs bg-indigo-400/10 text-indigo-300 border border-indigo-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase tracking-wider">
+                      Instant WebAuth Settlement
+                    </span>
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">ASCEND TO GLORY. ESCAPE THE AVALANCHE.</h2>
+                  <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                    Gear up and launch Guy onto freezing peak slopes! As he scales sheer mountain faces, your multiplier climbs exponentially. Do you have the diamond nerves to hold for high altitude, or will you cash out before the crushing avalanche wipes out your gains? Secure your XPR stake, challenge the leaderboard, and claim your share of the weekly jackpot!
+                  </p>
+                </div>
+
+                <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
+                  <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
+                  <span className="text-[10px] text-slate-450 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
+                  <div className="text-2xl font-mono font-black text-emerald-450 mt-1">
+                    25,000 XPR
+                  </div>
+                </div>
+              </div>
+
               {/* Live Apex ticker right at the top for real-time vibe */}
               <HighScoresTicker />
 
@@ -704,33 +731,6 @@ const Index = () => {
                     </div>
                   </div>
 
-                </div>
-              </div>
-
-              {/* Informative game description moved out of the way of the live gameplay action */}
-              <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border-2 border-indigo-500/10 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl mt-6">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
-                <div className="space-y-3 max-w-xl">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase">
-                      Ascent Crash Game
-                    </span>
-                    <span className="text-xs bg-indigo-400/10 text-indigo-400 border border-indigo-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase">
-                      XPR Native
-                    </span>
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">CLIMB THE PINNACLE & ESCAPE THE AVALANCHE</h2>
-                  <p className="text-sm text-slate-400 leading-relaxed">
-                    Stake your XPR tokens to launch the brave climber Guy. As he climbs, your multiplier climbs. Cash out to secure your altitude bounty before the mountain collapses! Play responsibly on the secure WebAuth blockchain framework.
-                  </p>
-                </div>
-
-                <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
-                  <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
-                  <span className="text-[10px] text-slate-400 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
-                  <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
-                    25,000 XPR
-                  </div>
                 </div>
               </div>
 
