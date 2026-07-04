@@ -15,14 +15,13 @@ export const SummitLogo: React.FC<SummitLogoProps> = ({ className = '', size = '
   const logoPath = "/guy-logo.jpg";
 
   const sizeClasses = size === 'lg' 
-    ? 'w-32 h-32 rounded-3xl border-2 shadow-2xl' 
-    : 'w-16 h-16 rounded-2xl border-2 shadow-lg';
+    ? 'w-32 h-32 rounded-2xl object-cover' 
+    : 'w-16 h-16 rounded-xl object-cover';
 
   if (imgError) {
     // Elegant, premium golden mountain peak emblem fallback if loading has any issue
     return (
-      <div className={`bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border-amber-400/80 flex flex-col items-center justify-center relative overflow-hidden group ${sizeClasses} ${className}`}>
-        <div className="absolute inset-0 bg-amber-400/5 group-hover:bg-amber-400/10 transition-all duration-300" />
+      <div className={`bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 flex flex-col items-center justify-center relative overflow-hidden group ${sizeClasses} ${className}`}>
         <Mountain className={`${size === 'lg' ? 'h-14 w-14' : 'h-8 w-8'} text-amber-400 animate-pulse`} />
         {size === 'lg' && (
           <div className="flex items-center gap-1 mt-1 text-[9px] font-black tracking-widest text-amber-400/80 font-mono">
@@ -37,7 +36,7 @@ export const SummitLogo: React.FC<SummitLogoProps> = ({ className = '', size = '
     <img
       src={logoPath}
       alt="GUYS Summit Logo"
-      className={`${sizeClasses} border-amber-400/80 object-cover ${className}`}
+      className={`${sizeClasses} ${className}`}
       onError={() => {
         console.warn("Summit logo failed to load, switching to high-contrast golden emblem.");
         setImgError(true);

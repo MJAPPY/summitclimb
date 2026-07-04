@@ -216,11 +216,8 @@ const Index = () => {
       {/* Cinematic top navbar */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-700/80 px-5 lg:px-10 py-4 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-5">
-          {/* Large Hero Badge image logo */}
-          <div className="relative group shrink-0">
-            <div className="absolute inset-0 bg-amber-500/20 rounded-2xl blur-lg group-hover:bg-amber-500/40 transition-all duration-300" />
-            <SummitLogo size="sm" />
-          </div>
+          {/* Direct, clean SummitLogo without box borders or glow wraps */}
+          <SummitLogo size="sm" className="shrink-0" />
           <div>
             <h1 className="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-300 to-slate-100 uppercase">
               GUYS Summit
@@ -615,11 +612,8 @@ const Index = () => {
 
       {/* Aesthetic bottom footer disclaimer */}
       <footer className="mt-12 py-10 border-t-2 border-slate-800 text-center text-xs text-slate-500 space-y-6">
-        {/* Large reflective gold logo centerpiece */}
-        <div className="relative group w-32 h-32 mx-auto">
-          <div className="absolute inset-0 bg-amber-500/10 rounded-3xl blur-xl group-hover:bg-amber-500/20 transition-all duration-300" />
-          <SummitLogo size="lg" />
-        </div>
+        {/* Large reflective gold logo centerpiece - rendered directly on page */}
+        <SummitLogo size="lg" className="mx-auto" />
         <div>
           <p className="max-w-md mx-auto font-medium text-slate-400">
             Summit is a simulated decentralized cryptocurrency exploration climb. All features represent mock secure models. Enjoy climbing!
