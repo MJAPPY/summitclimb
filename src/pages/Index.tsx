@@ -503,7 +503,7 @@ const Index = () => {
               {/* Classic Crash Layout: Game on Left, Controller Console on Right */}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 
-                {/* Left Area: Canvas screen, GIGANTIC ACTION TRIGGER & Instant altitude details */}
+                {/* Left Area: Canvas screen, COMPACT & SLEEK ACTION TRIGGER & Instant altitude details */}
                 <div className="xl:col-span-8 space-y-6">
                   <GameCanvas
                     multiplier={multiplier}
@@ -511,25 +511,25 @@ const Index = () => {
                     cosmetics={cosmetics}
                   />
 
-                  {/* THICK ACTION TRIGGER: Extreme thickness with increased font sizes */}
+                  {/* HIGH-IMPACT LAUNCH BUTTON: Now has tight, highly responsive vertical dimensions to fit standard layout frames */}
                   <div className="w-full">
                     {gameState === 'climbing' ? (
                       <button
                         onClick={handleBank}
-                        className="w-full py-20 md:py-24 rounded-3xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest shadow-[0_0_80px_rgba(52,211,153,0.8)] border-8 border-emerald-300 transition-all flex flex-col items-center justify-center gap-4 animate-pulse cursor-pointer"
+                        className="w-full py-5 md:py-6 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest shadow-[0_4px_30px_rgba(52,211,153,0.4)] border-4 border-emerald-300 transition-all flex flex-col items-center justify-center gap-1 animate-pulse cursor-pointer"
                       >
-                        <span className="text-lg uppercase font-black tracking-[0.3em] text-slate-900">SECURE SAFETY HARNESS</span>
-                        <span className="text-5xl md:text-6xl font-mono font-black text-slate-950">
-                          LOCK IN: {multiplier.toFixed(2)}x
+                        <span className="text-xs uppercase font-extrabold tracking-[0.25em] text-slate-900 opacity-90 leading-none">SECURE SAFETY BELT</span>
+                        <span className="text-2xl md:text-3xl font-mono font-black text-slate-950 leading-tight">
+                          LOCK IN ALTITUDE: {multiplier.toFixed(2)}x
                         </span>
                       </button>
                     ) : (
                       <button
                         onClick={handleStartClimb}
-                        className="w-full py-20 md:py-24 rounded-3xl bg-gradient-to-b from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-[0.25em] shadow-[0_0_80px_rgba(245,158,11,0.75)] border-8 border-yellow-350 transition-all flex items-center justify-center gap-6 uppercase cursor-pointer text-4xl md:text-5xl"
+                        className="w-full py-6 md:py-7 rounded-2xl bg-gradient-to-b from-yellow-400 via-amber-405 to-yellow-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-[0.2em] shadow-[0_4px_30px_rgba(245,158,11,0.35)] border-4 border-yellow-350 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer"
                       >
-                        <span>LAUNCH EXPEDITION</span>
-                        <ArrowUpRight className="h-14 w-14 text-slate-950 stroke-[6px]" />
+                        <span className="text-xl md:text-2xl tracking-widest">LAUNCH EXPEDITION</span>
+                        <ArrowUpRight className="h-6 w-6 text-slate-950 stroke-[3.5px]" />
                       </button>
                     )}
                   </div>
@@ -541,14 +541,14 @@ const Index = () => {
                         <span className="text-xs text-yellow-400 font-black tracking-wider uppercase flex items-center gap-1 font-mono">
                           <Flame className="h-5 w-5 text-yellow-400 animate-pulse" /> ALTITUDE
                         </span>
-                        <div className="text-6xl font-black text-white font-mono tracking-tighter mt-1">
-                          {multiplier.toFixed(2)}<span className="text-yellow-400 text-4xl font-black ml-0.5">x</span>
+                        <div className="text-4xl font-black text-white font-mono tracking-tighter mt-1">
+                          {multiplier.toFixed(2)}<span className="text-yellow-400 text-2xl font-black ml-0.5">x</span>
                         </div>
                       </div>
                       <div className="h-12 w-[1px] bg-slate-800" />
                       <div className="flex flex-col text-right">
                         <span className="text-xs text-slate-400 font-black tracking-wider uppercase font-mono">RUN SCORE STATUS</span>
-                        <div className="text-3xl font-black text-indigo-400 font-mono tracking-tight mt-1">
+                        <div className="text-2xl font-black text-indigo-400 font-mono tracking-tight mt-1">
                           {multiplier.toFixed(2)} <span className="text-xs text-slate-400 font-bold font-sans">Locked</span>
                         </div>
                       </div>
