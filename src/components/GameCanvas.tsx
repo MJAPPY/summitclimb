@@ -137,9 +137,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
     switch (cosmetics.theme) {
       case 'sunny':
         return {
-          skyColors: ['#0f172a', '#1e293b', '#38bdf8', '#fed7aa'],
-          sunColor: 'rgba(253, 224, 71, 0.95)',
-          fogColor: 'rgba(240, 249, 255, 0.45)',
+          // Brilliant alpine blue sky gradient
+          skyColors: ['#0369a1', '#0ea5e9', '#38bdf8', '#bae6fd'],
+          sunColor: 'rgba(255, 255, 255, 0.98)',
+          fogColor: 'rgba(224, 242, 254, 0.45)',
           rockShadow: '#0f172a',
           rockHighlight: '#475569',
           snowColor: '#ffffff',
@@ -238,7 +239,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       size: 7 + Math.random() * 5,
       wingAngle: Math.random() * Math.PI,
       wingDir: 0.06 + Math.random() * 0.08,
-      color: cosmetics.theme === 'cyber' ? 'rgba(236, 72, 153, 0.7)' : 'rgba(15, 23, 42, 0.65)'
+      color: cosmetics.theme === 'cyber' ? 'rgba(236, 72, 153, 0.7)' : 'rgba(15, 23, 42, 0.85)'
     }));
   }, [cosmetics.weather, cosmetics.theme]);
 
