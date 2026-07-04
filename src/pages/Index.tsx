@@ -31,7 +31,8 @@ import {
   ChevronRight,
   Gift,
   Award,
-  Zap
+  Zap,
+  Coins as PotIcon
 } from 'lucide-react';
 
 const Index = () => {
@@ -120,7 +121,7 @@ const Index = () => {
       return;
     }
 
-    // Attempt real mainnet transfer to @tripseven if wallet is connected
+    // Attempt real mainnet transfer to wallet if connected
     if (walletConnected) {
       try {
         toast({
@@ -138,8 +139,7 @@ const Index = () => {
       }
     }
 
-    // Process payment success (Retain 5% for developer @tripseven, send 95% directly to weekly leaderboard pot)
-    const devCut = cost * 0.05;
+    // Process payment success (Retain 5% operator fee, send 95% directly to weekly leaderboard pot)
     const poolContribution = cost * 0.95;
 
     setBalance(prev => prev - cost);
@@ -148,7 +148,7 @@ const Index = () => {
 
     toast({
       title: "Climbs Added!",
-      description: `Bought ${count} goes for ${cost} XPR. Paid to @tripseven (5% retained, 95% added to Weekly Prize Pool!)`,
+      description: `Bought ${count} goes for ${cost} XPR. (5% operator fee retained, 95% added to Weekly Prize Pool!)`,
     });
   };
 
@@ -323,15 +323,20 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Global info ticks */}
-        <div className="hidden md:flex items-center gap-8 text-base">
+        {/* Global info ticks with the live wallet pot */}
+        <div className="hidden md:flex items-center gap-6">
+          <div className="flex items-center gap-2.5 bg-pink-500/15 border-2 border-pink-500 px-3.5 py-2 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+            <PotIcon className="h-4 w-4 text-pink-400 animate-bounce" />
+            <span className="font-retro text-[10px] text-pink-300 uppercase leading-none">WALLET POT:</span>
+            <span className="font-retro text-[11px] text-yellow-300 font-extrabold leading-none">{prizePool.toLocaleString()} XPR</span>
+          </div>
           <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 bg-green-400 animate-pulse border-2 border-black" />
-            <span className="font-retro uppercase text-xs text-green-400">ACTIVE: 1,420 PLAYERS</span>
+            <span className="w-2.5 h-2.5 bg-green-400 animate-pulse border border-black rounded-none" />
+            <span className="font-retro uppercase text-[9px] text-green-400 tracking-wider">1,420 ONLINE</span>
           </div>
         </div>
 
-        {/* Wallet trigger & settings with askguy.app credentials */}
+        {/* Wallet trigger & settings */}
         <div className="flex items-center gap-4">
           <button
             onClick={toggleMute}
@@ -475,7 +480,7 @@ const Index = () => {
             <div className="space-y-1">
               <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Climb runs cost exactly 2 XPR. Stake tokens pool into the grand pot. At Sunday reset, 95% is distributed to the Top 15 players on the cabinet ledger. 5% developer cut to @tripseven.
+                Climb runs cost exactly 2 XPR. Stake tokens pool into the grand pot. At Sunday reset, 95% is distributed to the Top 15 players on the cabinet ledger. 5% developer cut to payment contract.
               </p>
             </div>
 
@@ -541,7 +546,7 @@ const Index = () => {
                     ) : (
                       <button
                         onClick={handleStartClimb}
-                        className="w-full py-7 bg-gradient-to-b from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-base border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.6)]"
+                        className="w-full py-7 bg-gradient-to-b from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-base border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)]"
                       >
                         <span>INSERT COIN • CLIMB</span>
                         <ArrowUpRight className="h-5 w-5 stroke-[4px]" />
