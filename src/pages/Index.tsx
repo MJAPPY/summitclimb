@@ -515,7 +515,7 @@ const Index = () => {
                 <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
                   <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
                   <span className="text-[10px] text-slate-450 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
-                  <div className="text-2xl font-mono font-black text-emerald-450 mt-1">
+                  <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
                     25,000 XPR
                   </div>
                 </div>
@@ -527,7 +527,7 @@ const Index = () => {
               {/* Side-by-Side Classic Crash Layout: Game on Left, Controller Console on Right */}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 
-                {/* Left Area: Canvas screen & Instant altitude details */}
+                {/* Left Area: Canvas screen, GIANT ACTION TRIGGER & Instant altitude details */}
                 <div className="xl:col-span-8 space-y-6">
                   <GameCanvas
                     multiplier={multiplier}
@@ -535,7 +535,30 @@ const Index = () => {
                     cosmetics={cosmetics}
                   />
 
-                  {/* Altitude metrics & dynamic details stacked immediately below canvas */}
+                  {/* GIANT HIGH-CONTRAST ACTION TRIGGER: Directly underneath game screen for zero eye movement */}
+                  <div className="w-full">
+                    {gameState === 'climbing' ? (
+                      <button
+                        onClick={handleBank}
+                        className="w-full py-8.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest text-lg shadow-[0_0_50px_rgba(52,211,153,0.55)] border-4 border-emerald-300 transition-all flex flex-col items-center justify-center gap-1.5 animate-pulse cursor-pointer"
+                      >
+                        <span className="text-xs uppercase font-extrabold tracking-[0.2em] text-slate-900 opacity-95">SECURE HARNESS & RETREAT</span>
+                        <span className="text-3xl font-mono font-black text-slate-950">
+                          CASH OUT NOW: {(betAmount * multiplier).toFixed(4)} XPR
+                        </span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleStartClimb}
+                        className="w-full py-8.5 rounded-2xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-[0.15em] text-2xl shadow-[0_0_50px_rgba(245,158,11,0.45)] border-4 border-yellow-300 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer"
+                      >
+                        <span>LAUNCH EXPEDITION</span>
+                        <ArrowUpRight className="h-8 w-8 text-slate-950 stroke-[3px]" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Altitude metrics & dynamic details stacked immediately below action trigger */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Altitude Display Panel */}
                     <div className="p-5 bg-slate-905 border border-slate-800/80 rounded-2xl shadow-xl flex items-center justify-between">
@@ -583,17 +606,17 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Right Area: Ascent Controller action console right next to canvas */}
+                {/* Right Area: Ascent Controller settings panel next to canvas */}
                 <div className="xl:col-span-4 space-y-6">
                   
                   {/* Ascent Console Control Box */}
                   <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-5 shadow-2xl">
                     <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                       <span className="text-xs font-black text-white uppercase tracking-wider font-mono flex items-center gap-1.5">
-                        <Coins className="h-4 w-4 text-yellow-400" /> Ascent Console
+                        <Coins className="h-4 w-4 text-yellow-400" /> Stake Console
                       </span>
                       <span className="text-[9px] text-yellow-400 font-mono bg-yellow-400/10 px-2 py-0.5 rounded border border-yellow-400/20 font-black">
-                        XPR EXCLUSIVE
+                        XPR NATIVE
                       </span>
                     </div>
 
@@ -636,29 +659,6 @@ const Index = () => {
                           </button>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Large High-Contrast Climb Trigger Action */}
-                    <div className="pt-1">
-                      {gameState === 'climbing' ? (
-                        <button
-                          onClick={handleBank}
-                          className="w-full py-4.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:opacity-95 text-slate-950 font-black tracking-wider text-xs shadow-2xl border border-emerald-300 transition-all flex flex-col items-center justify-center gap-1.5 animate-pulse"
-                        >
-                          <span className="text-[9px] uppercase font-black tracking-widest text-slate-900 opacity-90 leading-none">SECURE HARNESS & RETREAT</span>
-                          <span className="text-sm font-mono font-black text-slate-950 leading-none">
-                            BANK NOW: {(betAmount * multiplier).toFixed(4)} XPR
-                          </span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={handleStartClimb}
-                          className="w-full py-4.5 rounded-xl bg-gradient-to-b from-yellow-400 to-amber-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-widest text-xs shadow-2xl border border-yellow-300 transition-all flex items-center justify-center gap-2 uppercase"
-                        >
-                          <span>LAUNCH EXPEDITION</span>
-                          <ArrowUpRight className="h-4.5 w-4.5 text-slate-950" />
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -731,6 +731,33 @@ const Index = () => {
                     </div>
                   </div>
 
+                </div>
+              </div>
+
+              {/* Informative game description moved out of the way of the live gameplay action */}
+              <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border-2 border-indigo-500/10 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl mt-6">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
+                <div className="space-y-3 max-w-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase">
+                      Ascent Crash Game
+                    </span>
+                    <span className="text-xs bg-indigo-400/10 text-indigo-400 border border-indigo-400/20 px-2.5 py-0.5 rounded-full font-mono font-black uppercase">
+                      XPR Native
+                    </span>
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">CLIMB THE PINNACLE & ESCAPE THE AVALANCHE</h2>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    Stake your XPR tokens to launch the brave climber Guy. As he climbs, your multiplier climbs. Cash out to secure your altitude bounty before the mountain collapses! Play responsibly on the secure WebAuth blockchain framework.
+                  </p>
+                </div>
+
+                <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
+                  <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
+                  <span className="text-[10px] text-slate-400 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
+                  <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
+                    25,000 XPR
+                  </div>
                 </div>
               </div>
 
