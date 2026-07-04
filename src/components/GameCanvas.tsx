@@ -498,7 +498,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         const baseOffset = (milestone.mult - multiplier) * 260;
         const flagX = guyXRef.current + baseOffset;
         
-        if (flagX > -50 && flagX < canvas.width + 50) {
+        if (flagX > -100 && flagX < canvas.width + 100) {
           const flagY = getSlopeY(flagX);
 
           // Shadow
@@ -528,10 +528,55 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           ctx.closePath();
           ctx.fill();
 
-          // Labels
+          // PREMIUM GLASS BADGE FOR PERFECT READABILITY ABOVE THE FLAG
+          ctx.save();
+          const labelText = milestone.label;
+          ctx.font = 'bold 10px sans-serif';
+          const textWidth = ctx.measureText(labelText).width;
+          
+          const paddingX = 8;
+          const paddingY = 4;
+          const badgeW = textWidth + paddingX * 2;
+          const badgeH = 18;
+          const badgeX = flagX - badgeW / 2;
+          const badgeY = flagY - 67; // Safely shifted above flagpole top to avoid overlap
+
+          // Render Glass container
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.95)'; // Deep high-contrast background
+          ctx.strokeStyle = '#eab308'; // High-contrast gold border
+          ctx.lineWidth = 1.5;
+
+          // Standard arc rounding helper
+          const r = 5;
+          ctx.beginPath();
+          ctx.moveTo(badgeX + r, badgeY);
+          ctx.lineTo(badgeX + badgeW - r, badgeY);
+          ctx.quadraticCurveTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + r);
+          ctx.lineTo(badgeX + badgeW, badgeY + badgeH - r);
+          ctx.quadraticCurveTo(badgeX + badgeW, badgeY + badgeH, badgeX + badgeW - r, badgeY + badgeH);
+          ctx.lineTo(badgeX + r, badgeY + badgeH);
+          ctx.quadraticCurveTo(badgeX, badgeY + badgeH, badgeX, badgeY + badgeH - r);
+          ctx.lineTo(badgeX, badgeY + r);
+          ctx.quadraticCurveTo(badgeX, badgeY, badgeX + r, badgeY);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Anchor indicator pointing down
+          ctx.fillStyle = '#eab308';
+          ctx.beginPath();
+          ctx.moveTo(flagX - 4, badgeY + badgeH);
+          ctx.lineTo(flagX + 4, badgeY + badgeH);
+          ctx.lineTo(flagX, badgeY + badgeH + 4);
+          ctx.closePath();
+          ctx.fill();
+
+          // Render Label Text
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 9px sans-serif';
-          ctx.fillText(milestone.label, flagX - 30, flagY - 34 + bannerWave / 2);
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(labelText, flagX, badgeY + badgeH / 2);
+          ctx.restore();
         }
       });
 
