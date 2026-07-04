@@ -138,16 +138,17 @@ class AudioSynthManager {
     const triggerBeat = () => {
       if (this.isMuted || !this.ctx) return;
       try {
-        // Deep resonance dual chambers compression sounds (Thump-thump)
+        // Soft, ambient pulse with almost zero high-frequency or sudden click energy
         const playThump = (delay: number) => {
           if (!this.ctx) return;
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(48, this.ctx.currentTime + delay);
+          osc.frequency.setValueAtTime(35, this.ctx.currentTime + delay);
           osc.frequency.exponentialRampToValueAtTime(1, this.ctx.currentTime + delay + 0.14);
 
-          gain.gain.setValueAtTime(0.4, this.ctx.currentTime + delay);
+          // Substantially lowered volume to remove sharp thuds
+          gain.gain.setValueAtTime(0.02, this.ctx.currentTime + delay);
           gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + 0.14);
 
           osc.connect(gain);
@@ -277,39 +278,34 @@ class AudioSynthManager {
         leadFlat.stop(now + 0.25);
         leadSubOctave.stop(now + 0.25);
 
-        // 3. BOUNCY ALPS BASSOON TUBA (Deep Bass Cadence)
-        const bassOsc = this.ctx.createOscillator();
-        const bassHarmonic = this.ctx.createOscillator();
-        const bassGain = this.ctx.createGain();
+        // 3. SMOOTH DOWNBEAT BASS (Downbeat only to prevent steady bass thumping noise)
+        if (this.currentYodelStep % 4 === 0) {
+          const bassOsc = this.ctx.createOscillator();
+          const bassGain = this.ctx.createGain();
 
-        bassOsc.type = 'triangle';
-        bassHarmonic.type = 'sawtooth'; // Sawtooth fifth adds rich woodwind resonance
+          // Warm pure sine tone replaces complex sawtooth woodwinds to eliminate thud peaks
+          bassOsc.type = 'sine';
+          bassOsc.frequency.setValueAtTime(bassFreq, now);
 
-        bassOsc.frequency.setValueAtTime(bassFreq, now);
-        bassHarmonic.frequency.setValueAtTime(bassFreq * 1.5, now);
+          // Slow swell-attack and soft decline completely blocks popping and heavy pulsing sounds
+          bassGain.gain.setValueAtTime(0, now);
+          bassGain.gain.linearRampToValueAtTime(0.03, now + 0.06); 
+          bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
-        // Bass mix envelope
-        bassGain.gain.setValueAtTime(0, now);
-        bassGain.gain.linearRampToValueAtTime(0.14, now + 0.02);
-        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          const bassFilter = this.ctx.createBiquadFilter();
+          bassFilter.type = 'lowpass';
+          bassFilter.frequency.setValueAtTime(120, now);
 
-        const bassFilter = this.ctx.createBiquadFilter();
-        bassFilter.type = 'lowpass';
-        bassFilter.frequency.setValueAtTime(250, now);
+          bassOsc.connect(bassFilter);
+          bassFilter.connect(bassGain);
+          bassGain.connect(this.ctx.destination);
+          if (this.delayNode) {
+            bassGain.connect(this.delayNode);
+          }
 
-        bassOsc.connect(bassFilter);
-        bassHarmonic.connect(bassFilter);
-        
-        bassFilter.connect(bassGain);
-        bassGain.connect(this.ctx.destination);
-        if (this.delayNode) {
-          bassGain.connect(this.delayNode);
+          bassOsc.start(now);
+          bassOsc.stop(now + 0.4);
         }
-
-        bassOsc.start(now);
-        bassHarmonic.start(now);
-        bassOsc.stop(now + 0.2);
-        bassHarmonic.stop(now + 0.2);
 
         this.currentYodelStep++;
       } catch (e) {
