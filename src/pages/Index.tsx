@@ -51,7 +51,7 @@ const Index = () => {
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(45);
 
-  // Dynamic live growing Weekly Prize Pool (increases directly as players stake entry fees!)
+  // Dynamic live growing Weekly Prize Pool
   const [prizePool, setPrizePool] = useState<number>(25000);
 
   // Stats
@@ -167,7 +167,7 @@ const Index = () => {
     });
   };
 
-  // Safe Cash out bank triggers - Locks the current multiplier score for weekly payouts
+  // Safe Cash out bank triggers
   const handleBank = () => {
     if (gameState !== 'climbing') return;
     setGameState('banked');
@@ -178,7 +178,7 @@ const Index = () => {
 
     const lockedScore = multiplier;
 
-    // Progression XP reward calculations based on lock-in height
+    // Progression XP reward calculations
     const xpEarned = Math.floor(lockedScore * 15);
     setXp(prev => {
       const nextXp = prev + xpEarned;
@@ -258,7 +258,7 @@ const Index = () => {
     });
   };
 
-  // Launch genuine wallet connection selector dialog
+  // Launch genuine wallet connection selector
   const handleConnectWallet = async () => {
     try {
       const connection = await protonService.connect();
@@ -279,7 +279,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-yellow-500 selection:text-slate-950">
-      {/* Cinematic top navbar styled after askguy.app */}
+      {/* Cinematic top navbar */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b-2 border-slate-800 px-5 lg:px-10 py-5 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-5">
           <SummitLogo size="sm" className="shrink-0 rounded-2xl animate-pulse w-18 h-18" />
@@ -471,7 +471,6 @@ const Index = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/5 rounded-full blur-xl" />
             
-            {/* Cleaned up avatar position container to avoid overlap issues */}
             <div className="w-16 h-16 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-4xl shadow-inner relative shrink-0">
               🧗
               <span className="absolute -top-1.5 -right-1.5 bg-yellow-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-md z-10 leading-none">
@@ -496,9 +495,9 @@ const Index = () => {
           
           {/* Standard Climb Screen */}
           {activeTab === 'climb' && (
-            <div className="space-y-6 font-display">
+            <div className="space-y-6">
               
-              {/* High-impact game introduction hero banner designed to capture immediate interest */}
+              {/* High-impact game introduction hero banner */}
               <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-905 border-2 border-indigo-500/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
                 <div className="space-y-3 max-w-xl">
@@ -519,19 +518,19 @@ const Index = () => {
                 <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col items-center text-center w-full md:w-auto shrink-0 relative">
                   <Award className="h-7 w-7 text-yellow-400 animate-bounce" />
                   <span className="text-[10px] text-slate-450 font-mono mt-2.5 uppercase tracking-widest block font-bold">WEEKLY POT STATUS</span>
-                  <div className="text-2xl font-mono font-black text-emerald-450 mt-1">
+                  <div className="text-2xl font-mono font-black text-emerald-400 mt-1">
                     {prizePool.toLocaleString()} XPR
                   </div>
                 </div>
               </div>
 
-              {/* Live Apex ticker right at the top for real-time vibe */}
+              {/* Live Apex ticker */}
               <HighScoresTicker />
 
-              {/* Side-by-Side Classic Crash Layout: Game on Left, Controller Console on Right */}
+              {/* Classic Crash Layout: Game on Left, Controller Console on Right */}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 
-                {/* Left Area: Canvas screen, GIANT ACTION TRIGGER & Instant altitude details */}
+                {/* Left Area: Canvas screen, GIGANTIC ACTION TRIGGER & Instant altitude details */}
                 <div className="xl:col-span-8 space-y-6">
                   <GameCanvas
                     multiplier={multiplier}
@@ -539,39 +538,38 @@ const Index = () => {
                     cosmetics={cosmetics}
                   />
 
-                  {/* GIANT HIGH-CONTRAST ACTION TRIGGER: Now with massive 3.5rem vertical padding, huge border depth and glowing background splits */}
+                  {/* THICK ACTION TRIGGER: Drastically thickened with 4rem vertical padding and huge text */}
                   <div className="w-full">
                     {gameState === 'climbing' ? (
                       <button
                         onClick={handleBank}
-                        className="w-full py-12 md:py-14 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest text-lg shadow-[0_0_60px_rgba(52,211,153,0.7)] border-8 border-emerald-300 transition-all flex flex-col items-center justify-center gap-2 animate-pulse cursor-pointer"
+                        className="w-full py-16 md:py-20 rounded-3xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-350 hover:to-emerald-500 text-slate-950 font-black tracking-widest shadow-[0_0_60px_rgba(52,211,153,0.7)] border-8 border-emerald-300 transition-all flex flex-col items-center justify-center gap-3 animate-pulse cursor-pointer"
                       >
-                        <span className="text-sm uppercase font-extrabold tracking-[0.25em] text-slate-900 opacity-95">SECURE SAFETY BELT</span>
-                        <span className="text-4xl font-mono font-black text-slate-950">
-                          LOCK IN: {multiplier.toFixed(2)}x MULTIPLIER
+                        <span className="text-base uppercase font-extrabold tracking-[0.3em] text-slate-900 opacity-95">SECURE SAFETY HARNESS</span>
+                        <span className="text-4xl md:text-5xl font-mono font-black text-slate-950">
+                          LOCK IN ALTITUDE: {multiplier.toFixed(2)}x
                         </span>
                       </button>
                     ) : (
                       <button
                         onClick={handleStartClimb}
-                        className="w-full py-12 md:py-14 rounded-2xl bg-gradient-to-b from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-[0.2em] text-3xl shadow-[0_0_60px_rgba(245,158,11,0.6)] border-8 border-yellow-350 transition-all flex items-center justify-center gap-4 uppercase cursor-pointer"
+                        className="w-full py-16 md:py-20 rounded-3xl bg-gradient-to-b from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-350 hover:to-amber-450 text-slate-950 font-black tracking-[0.25em] shadow-[0_0_60px_rgba(245,158,11,0.65)] border-8 border-yellow-350 transition-all flex items-center justify-center gap-5 uppercase cursor-pointer"
                       >
-                        <span>LAUNCH EXPEDITION</span>
-                        <ArrowUpRight className="h-10 w-10 text-slate-950 stroke-[4px]" />
+                        <span className="text-4xl md:text-5xl">LAUNCH EXPEDITION</span>
+                        <ArrowUpRight className="h-12 w-12 text-slate-950 stroke-[5px]" />
                       </button>
                     )}
                   </div>
 
-                  {/* Altitude metrics & dynamic details stacked immediately below action trigger */}
+                  {/* Altitude metrics & details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Altitude Display Panel */}
                     <div className="p-5 bg-slate-905 border border-slate-800/80 rounded-2xl shadow-xl flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-[10px] text-yellow-400 font-black tracking-wider uppercase flex items-center gap-1 font-mono">
                           <Flame className="h-4 w-4 text-yellow-400 animate-pulse" /> ALTITUDE
                         </span>
-                        <div className="text-4xl font-black text-white font-mono tracking-tighter mt-0.5">
-                          {multiplier.toFixed(2)}<span className="text-yellow-400 text-2xl font-black ml-0.5">x</span>
+                        <div className="text-5xl font-black text-white font-mono tracking-tighter mt-0.5">
+                          {multiplier.toFixed(2)}<span className="text-yellow-400 text-3xl font-black ml-0.5">x</span>
                         </div>
                       </div>
                       <div className="h-10 w-[1px] bg-slate-800" />
@@ -583,7 +581,6 @@ const Index = () => {
                       </div>
                     </div>
 
-                    {/* Slope & Environment details */}
                     <div className="grid grid-cols-2 gap-4 p-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl shadow-xl">
                       <div className="flex items-center gap-2.5">
                         <Mountain className="h-4 w-4 text-yellow-400 shrink-0" />
@@ -624,7 +621,6 @@ const Index = () => {
                       </span>
                     </div>
 
-                    {/* Synced Custom XPR input field directly replacing the auto-secure field */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-300 uppercase tracking-wider block">Custom Stake (XPR)</label>
                       <div className="relative">
@@ -644,7 +640,6 @@ const Index = () => {
                       </div>
                     </div>
 
-                    {/* Stake Selector */}
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-300 uppercase tracking-wider block">Or Select Preset</label>
                       <div className="grid grid-cols-4 gap-2">
@@ -738,7 +733,7 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Informative game description moved out of the way of the live gameplay action */}
+              {/* Informative game description */}
               <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border-2 border-indigo-500/10 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-xl mt-6">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
                 <div className="space-y-3 max-w-xl">
