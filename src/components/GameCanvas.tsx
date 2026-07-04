@@ -141,10 +141,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           skyColors: ['#0369a1', '#0ea5e9', '#38bdf8', '#bae6fd'],
           sunColor: 'rgba(255, 255, 255, 0.98)',
           fogColor: 'rgba(224, 242, 254, 0.45)',
-          rockShadow: '#0f172a',
-          rockHighlight: '#475569',
-          snowColor: '#ffffff',
-          snowIce: '#cbd5e1',
+          rockShadow: '#064e3b', // Deep evergreen/moss shadow for sunny grassy field
+          rockHighlight: '#047857',
+          snowColor: '#22c55e',  // Lush grass green
+          snowIce: '#10b981',    // Emerald green base
           gridColor: 'rgba(56, 189, 248, 0.12)'
         };
       case 'rain':
@@ -554,6 +554,31 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
+
+      // Lush Grassy Blades overlay when Sunny Theme is active
+      if (cosmetics.theme === 'sunny') {
+        ctx.save();
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2.5;
+        // Draw 35 sets of grass blades procedurally spaced along the visible slope
+        for (let x = 10; x < canvas.width; x += 36) {
+          const y = getSlopeY(x, scrollRef.current);
+          const windShift = Math.sin(t * 0.08 + x * 0.05) * 6;
+          
+          ctx.beginPath();
+          // Blade 1
+          ctx.moveTo(x, y);
+          ctx.quadraticCurveTo(x - 3 + windShift * 0.5, y - 8, x - 5 + windShift, y - 14);
+          // Blade 2 (tallest center blade)
+          ctx.moveTo(x + 3, y);
+          ctx.quadraticCurveTo(x + 2 + windShift * 0.5, y - 10, x + windShift, y - 18);
+          // Blade 3
+          ctx.moveTo(x - 3, y);
+          ctx.quadraticCurveTo(x - 5 + windShift * 0.5, y - 6, x - 8 + windShift, y - 10);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
 
       // 7. ANIMATED WILD BIRDS & SWAYING MOUNTAIN FAUNA
       birdsRef.current.forEach((bird) => {
