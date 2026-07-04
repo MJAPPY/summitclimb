@@ -7,12 +7,43 @@ class AudioSynthManager {
   private isMuted: boolean = false;
   private currentYodelStep: number = 0;
 
+  // Cinematic Alpine Delay / Reverb lines
+  private delayNode: DelayNode | null = null;
+  private delayFeedback: GainNode | null = null;
+  private delayWet: GainNode | null = null;
+
   private initCtx() {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.setupAlpineDelay();
     }
     if (this.ctx.state === 'suspended') {
       this.ctx.resume();
+    }
+  }
+
+  // Setup simulated spatial acoustic reflection off mountain peak cliffs
+  private setupAlpineDelay() {
+    if (!this.ctx) return;
+    try {
+      this.delayNode = this.ctx.createDelay(1.5);
+      this.delayFeedback = this.ctx.createGain();
+      this.delayWet = this.ctx.createGain();
+
+      // Realistic echoing times: 380ms delay reflecting a distant mountain wall
+      this.delayNode.delayTime.setValueAtTime(0.38, this.ctx.currentTime);
+      this.delayFeedback.gain.setValueAtTime(0.45, this.ctx.currentTime); // feedback echo
+      this.delayWet.gain.setValueAtTime(0.3, this.ctx.currentTime); // wet gain level
+
+      // Delay feedback loop routing
+      this.delayNode.connect(this.delayFeedback);
+      this.delayFeedback.connect(this.delayNode);
+
+      // Route dry to wet master output
+      this.delayNode.connect(this.delayWet);
+      this.delayWet.connect(this.ctx.destination);
+    } catch (e) {
+      console.warn("Could not set up mountain acoustic echo lines:", e);
     }
   }
 
@@ -38,15 +69,15 @@ class AudioSynthManager {
 
       this.stopWind();
 
-      // Wind noise buffer
-      const bufferSize = 2 * this.ctx.sampleRate;
+      // High-quality brownian approximation noise for howling alpine wind gusting
+      const bufferSize = 3 * this.ctx.sampleRate;
       const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
       const output = noiseBuffer.getChannelData(0);
       let lastOut = 0.0;
       for (let i = 0; i < bufferSize; i++) {
         const white = Math.random() * 2 - 1;
-        // Pink-ish noise filter approximation
-        output[i] = (lastOut * 0.95 + white * 0.05);
+        // True mountain howling wind filter calculation
+        output[i] = (lastOut * 0.98 + white * 0.02);
         lastOut = output[i];
       }
 
@@ -55,12 +86,12 @@ class AudioSynthManager {
       noiseSource.loop = true;
 
       this.windFilter = this.ctx.createBiquadFilter();
-      this.windFilter.type = 'lowpass';
-      this.windFilter.frequency.value = 350;
-      this.windFilter.Q.value = 3;
+      this.windFilter.type = 'bandpass'; // Bandpass for focused peak wind whistling
+      this.windFilter.frequency.setValueAtTime(450, this.ctx.currentTime);
+      this.windFilter.Q.value = 4;
 
       this.windGain = this.ctx.createGain();
-      this.windGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+      this.windGain.gain.setValueAtTime(0.06, this.ctx.currentTime);
 
       noiseSource.connect(this.windFilter);
       this.windFilter.connect(this.windGain);
@@ -75,12 +106,12 @@ class AudioSynthManager {
 
   updateWindIntensity(multiplier: number) {
     if (this.isMuted || !this.ctx || !this.windFilter || !this.windGain) return;
-    const factor = Math.min(multiplier, 15) / 15; // capped simulation scale
-    const targetFreq = 300 + factor * 800;
-    const targetGain = 0.05 + factor * 0.25;
+    const factor = Math.min(multiplier, 15) / 15;
+    const targetFreq = 400 + factor * 950;
+    const targetGain = 0.04 + factor * 0.28;
 
-    this.windFilter.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.3);
-    this.windGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.3);
+    this.windFilter.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.4);
+    this.windGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.4);
   }
 
   stopWind() {
@@ -97,8 +128,8 @@ class AudioSynthManager {
     this.initCtx();
     if (!this.ctx) return;
 
-    // Heartbeat pulse frequency speeds up as multiplier rises
-    const speedSec = Math.max(0.18, 0.8 - (multiplier - 1) * 0.08);
+    // Heartbeat pace accelerates dynamically based on current altitude/multiplier
+    const speedSec = Math.max(0.16, 0.75 - (multiplier - 1) * 0.075);
 
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
@@ -107,26 +138,26 @@ class AudioSynthManager {
     const triggerBeat = () => {
       if (this.isMuted || !this.ctx) return;
       try {
-        // Double beat synth: Thump-thump
+        // Deep resonance dual chambers compression sounds (Thump-thump)
         const playThump = (delay: number) => {
           if (!this.ctx) return;
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(55, this.ctx.currentTime + delay);
-          osc.frequency.exponentialRampToValueAtTime(10, this.ctx.currentTime + delay + 0.12);
+          osc.frequency.setValueAtTime(48, this.ctx.currentTime + delay);
+          osc.frequency.exponentialRampToValueAtTime(1, this.ctx.currentTime + delay + 0.14);
 
-          gain.gain.setValueAtTime(0.3, this.ctx.currentTime + delay);
-          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + delay + 0.12);
+          gain.gain.setValueAtTime(0.4, this.ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + 0.14);
 
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(this.ctx.currentTime + delay);
-          osc.stop(this.ctx.currentTime + delay + 0.15);
+          osc.stop(this.ctx.currentTime + delay + 0.16);
         };
 
         playThump(0);
-        playThump(0.12);
+        playThump(0.11);
       } catch (e) {}
     };
 
@@ -141,7 +172,7 @@ class AudioSynthManager {
     }
   }
 
-  // Synthesize bouncy polka-style yodeling music!
+  // Synthesize rich, warm, authentic accordion squeezing and dynamic vocal yodeling music!
   startYodelMusic() {
     if (this.isMuted) return;
     this.initCtx();
@@ -150,14 +181,13 @@ class AudioSynthManager {
     this.stopYodelMusic();
     this.currentYodelStep = 0;
 
-    // Classic cheerful Alpine polka yodeling sequence (frequencies in Hz)
-    // C4, E4, G4, C5 (The high voice crack), G4, E4, G4, D4, F4, G4, B4, G4, F4, G4
+    // Rich traditional Alpine progression chords
+    // C4, E4, G4, C5 (vocal crack), G4, E4, G4, D4, F4, G4, B4, G4, F4, G4
     const yodelSequence = [
       261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 392.00,
       293.66, 349.23, 392.00, 493.88, 392.00, 349.23, 392.00
     ];
 
-    // Accordion-style bouncy bass accompaniment roots
     const bassSequence = [
       130.81, 130.81, 130.81, 130.81, 130.81, 130.81, 130.81,
       146.83, 146.83, 146.83, 146.83, 146.83, 146.83, 146.83
@@ -170,60 +200,116 @@ class AudioSynthManager {
         const melodyFreq = yodelSequence[this.currentYodelStep % yodelSequence.length];
         const bassFreq = bassSequence[this.currentYodelStep % bassSequence.length];
 
-        // 1. Accordion/Yodel Lead voice (using Triangle wave for retro/folk timbre)
-        const leadOsc = this.ctx.createOscillator();
+        // 1. IMPROVED LEAD VOICE: Multiple oscillators + pitch vibrato for realistic vocal chords
+        const leadOsc1 = this.ctx.createOscillator();
+        const leadOsc2 = this.ctx.createOscillator(); // Detuned voice double
         const leadGain = this.ctx.createGain();
-        leadOsc.type = 'triangle';
 
-        // Add a yodel glide/vocal-crack effect on high notes
+        leadOsc1.type = 'triangle';
+        leadOsc2.type = 'sawtooth'; // Sawtooth detuned adds rich acoustic harmonics
+
+        // Natural warm singing voice vibrato (6Hz modulation LFO)
+        const vibratoLFO = this.ctx.createOscillator();
+        const vibratoGain = this.ctx.createGain();
+        vibratoLFO.frequency.setValueAtTime(5.8, now); // Human vocal frequency wobble
+        vibratoGain.gain.setValueAtTime(melodyFreq * 0.008, now); // Subtle 0.8% pitch bend
+
+        vibratoLFO.connect(vibratoGain);
+        vibratoGain.connect(leadOsc1.frequency);
+        vibratoGain.connect(leadOsc2.frequency);
+
+        // Vocal glide yodel "cracks"
         if (melodyFreq >= 450) {
-          // Slide upwards quickly to simulate yodeling "hee-hoo!"
-          leadOsc.frequency.setValueAtTime(melodyFreq - 80, now);
-          leadOsc.frequency.exponentialRampToValueAtTime(melodyFreq, now + 0.08);
+          // Quick slide upwards simulates authentic vocal registers cracking
+          leadOsc1.frequency.setValueAtTime(melodyFreq - 95, now);
+          leadOsc1.frequency.exponentialRampToValueAtTime(melodyFreq, now + 0.09);
+          
+          leadOsc2.frequency.setValueAtTime(melodyFreq - 95, now);
+          leadOsc2.frequency.exponentialRampToValueAtTime(melodyFreq, now + 0.09);
         } else {
-          leadOsc.frequency.setValueAtTime(melodyFreq, now);
+          leadOsc1.frequency.setValueAtTime(melodyFreq, now);
+          leadOsc2.frequency.setValueAtTime(melodyFreq + 2.5, now); // Detuned spread
         }
 
-        leadGain.gain.setValueAtTime(0.12, now);
-        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        // Squeeze bellows envelope: Warm attack and organic decay release
+        leadGain.gain.setValueAtTime(0, now);
+        leadGain.gain.linearRampToValueAtTime(0.12, now + 0.04); // Attack curve
+        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24); // Decay curve
 
-        // Simple bandpass filter to give it a reedy accordion vibe
-        const bandpass = this.ctx.createBiquadFilter();
-        bandpass.type = 'bandpass';
-        bandpass.frequency.setValueAtTime(800, now);
-        bandpass.Q.setValueAtTime(1.5, now);
+        // Reedy vocal track bandpass filtering
+        const vocalFilter = this.ctx.createBiquadFilter();
+        vocalFilter.type = 'bandpass';
+        vocalFilter.frequency.setValueAtTime(780, now);
+        vocalFilter.Q.setValueAtTime(1.8, now);
 
-        leadOsc.connect(bandpass);
-        bandpass.connect(leadGain);
+        leadOsc1.connect(vocalFilter);
+        leadOsc2.connect(vocalFilter);
+        
+        // Low mix for high harmonics sawtooth double
+        const synthMix = this.ctx.createGain();
+        synthMix.gain.setValueAtTime(0.02, now); // Keeps sawtooth background subtle
+        leadOsc2.connect(synthMix);
+
+        vocalFilter.connect(leadGain);
+        
+        // Route to dry and master alpine reflections
         leadGain.connect(this.ctx.destination);
+        if (this.delayNode) {
+          leadGain.connect(this.delayNode);
+        }
 
-        // 2. Polka Oom-pah Bass Accompaniment (Triangle wave for soft tubas)
+        // Start generators
+        vibratoLFO.start(now);
+        leadOsc1.start(now);
+        leadOsc2.start(now);
+
+        vibratoLFO.stop(now + 0.26);
+        leadOsc1.stop(now + 0.26);
+        leadOsc2.stop(now + 0.26);
+
+        // 2. BOUNCY ACCORDION OOM-PAH BASS (Warm tuba tone)
         const bassOsc = this.ctx.createOscillator();
+        const bassHarmonic = this.ctx.createOscillator();
         const bassGain = this.ctx.createGain();
+
         bassOsc.type = 'triangle';
+        bassHarmonic.type = 'triangle';
+
         bassOsc.frequency.setValueAtTime(bassFreq, now);
+        bassHarmonic.frequency.setValueAtTime(bassFreq * 1.5, now); // Perfect fifth fifth harmonic helper
 
-        // alternate bass and chord beats
         const isOffBeat = this.currentYodelStep % 2 === 1;
-        bassGain.gain.setValueAtTime(isOffBeat ? 0.08 : 0.15, now);
-        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        const volumeFactor = isOffBeat ? 0.07 : 0.16;
 
-        bassOsc.connect(bassGain);
+        bassGain.gain.setValueAtTime(0, now);
+        bassGain.gain.linearRampToValueAtTime(volumeFactor, now + 0.03);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+        const bassFilter = this.ctx.createBiquadFilter();
+        bassFilter.type = 'lowpass';
+        bassFilter.frequency.setValueAtTime(220, now);
+
+        bassOsc.connect(bassFilter);
+        bassHarmonic.connect(bassFilter);
+        bassFilter.connect(bassGain);
+        
         bassGain.connect(this.ctx.destination);
-
-        leadOsc.start(now);
-        leadOsc.stop(now + 0.25);
+        if (this.delayNode) {
+          bassGain.connect(this.delayNode);
+        }
 
         bassOsc.start(now);
-        bassOsc.stop(now + 0.25);
+        bassHarmonic.start(now);
+        bassOsc.stop(now + 0.22);
+        bassHarmonic.stop(now + 0.22);
 
         this.currentYodelStep++;
       } catch (e) {
-        console.warn(e);
+        console.warn("Synth step generation warning:", e);
       }
     };
 
-    // Trigger yodel beats at 130 BPM (approx 230ms per step)
+    // Trigger yodel tempo beat steps
     playStep();
     this.yodelInterval = setInterval(playStep, 230);
   }
@@ -242,21 +328,33 @@ class AudioSynthManager {
 
     try {
       const now = this.ctx.currentTime;
-      // Synthesize a majestic ascending chord arpeggio
-      const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99]; // C major triumph
+      // Synthesize a gorgeous shimmering arpeggio chord through mountain echoes
+      const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // Shimmering C-Major Triumph Chord
       notes.forEach((freq, idx) => {
         const osc = this.ctx!.createOscillator();
+        const subOsc = this.ctx!.createOscillator();
         const gain = this.ctx!.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
 
-        gain.gain.setValueAtTime(0.15, now + idx * 0.06);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.4);
+        osc.type = 'sine';
+        subOsc.type = 'triangle';
+
+        osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+        subOsc.frequency.setValueAtTime(freq + 1.5, now + idx * 0.05);
+
+        gain.gain.setValueAtTime(0.12, now + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.5);
 
         osc.connect(gain);
+        subOsc.connect(gain);
         gain.connect(this.ctx!.destination);
-        osc.start(now + idx * 0.06);
-        osc.stop(now + idx * 0.06 + 0.5);
+        if (this.delayNode) {
+          gain.connect(this.delayNode);
+        }
+
+        osc.start(now + idx * 0.05);
+        subOsc.start(now + idx * 0.05);
+        osc.stop(now + idx * 0.05 + 0.6);
+        subOsc.stop(now + idx * 0.05 + 0.6);
       });
     } catch (e) {}
   }
@@ -268,8 +366,8 @@ class AudioSynthManager {
 
     try {
       const now = this.ctx.currentTime;
-      // White noise blast combined with low sub drop
-      const bufferSize = this.ctx.sampleRate * 0.8;
+      // White noise blast combined with massive sub drop echo
+      const bufferSize = this.ctx.sampleRate * 1.2;
       const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
@@ -281,33 +379,36 @@ class AudioSynthManager {
 
       const filter = this.ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(300, now);
-      filter.frequency.exponentialRampToValueAtTime(30, now + 0.7);
+      filter.frequency.setValueAtTime(450, now);
+      filter.frequency.exponentialRampToValueAtTime(10, now + 1.0);
 
       const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.6, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+      gain.gain.setValueAtTime(0.7, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
 
       noise.connect(filter);
       filter.connect(gain);
       gain.connect(this.ctx.destination);
+      if (this.delayNode) {
+        gain.connect(this.delayNode);
+      }
 
       const sub = this.ctx.createOscillator();
       const subGain = this.ctx.createGain();
       sub.type = 'sawtooth';
-      sub.frequency.setValueAtTime(100, now);
-      sub.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+      sub.frequency.setValueAtTime(130, now);
+      sub.frequency.exponentialRampToValueAtTime(15, now + 0.85);
 
-      subGain.gain.setValueAtTime(0.4, now);
-      subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+      subGain.gain.setValueAtTime(0.45, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
 
       sub.connect(subGain);
       subGain.connect(this.ctx.destination);
 
       noise.start(now);
-      noise.stop(now + 0.85);
+      noise.stop(now + 1.2);
       sub.start(now);
-      sub.stop(now + 0.7);
+      sub.stop(now + 1.0);
     } catch (e) {}
   }
 }
