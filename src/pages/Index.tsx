@@ -296,9 +296,6 @@ const Index = () => {
             <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse border-2 border-emerald-950" />
             <span className="font-extrabold tracking-wide uppercase text-xs">Active Climbers: 1,420</span>
           </div>
-          <div className="font-mono bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-400">
-            Decay Seed: <span className="text-yellow-400 font-extrabold">0x777...guy</span>
-          </div>
         </div>
 
         {/* Wallet trigger & settings with askguy.app credentials */}
@@ -467,7 +464,7 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Mini active player badge - FIXED OVERLAP & ALIGNMENT */}
+          {/* Mini active player badge */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4 relative overflow-hidden shadow-xl">
             <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/5 rounded-full blur-xl" />
             
