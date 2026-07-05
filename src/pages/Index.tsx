@@ -697,7 +697,7 @@ const Index = () => {
             <div className="space-y-1">
               <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Stake tokens pool permanently into the grand pot. 93% is distributed to the Top 15 players on the all-time cabinet ledger. 7% developer cut to payment contract.
+                Stake tokens pool permanently into the grand pots. 93% is distributed to the Top 15 players on the cabinet ledger. 7% remains at @tripseven and @askguy.
               </p>
             </div>
           </div>

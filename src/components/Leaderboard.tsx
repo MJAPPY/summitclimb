@@ -121,7 +121,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePoo
             <span className="text-[10px] font-retro text-cyan-400 ml-1">XPR</span>
           </div>
           <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
-            Redistributed to top climbers
+            93% Distributed / 7% Operator Fee
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePoo
             <span className="text-[10px] font-retro text-purple-400 ml-1">GUY</span>
           </div>
           <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
-            Payout on Monday 7am UTC
+            93% Distributed / 7% Stays at @askguy
           </div>
         </div>
 
@@ -201,12 +201,13 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePoo
                   <th className="py-4 px-4 text-center">Location</th>
                   <th className="py-4 px-4 text-right">Runs</th>
                   <th className="py-4 px-4 text-right text-yellow-400">Apex Altitude</th>
-                  <th className="py-4 px-5 text-right text-cyan-400">All-Time Earnings</th>
+                  <th className="py-4 px-5 text-right text-cyan-400">Projected Earnings</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 font-retro text-xs bg-slate-950/40">
                 {competitors.map((player) => {
-                  const prizeValue = (player.prizeFraction / 100) * prizePool;
+                  const xprPrizeValue = (player.prizeFraction / 100) * (prizePool * 0.93);
+                  const guyPrizeValue = (player.prizeFraction / 100) * (guyPrizePool * 0.93);
                   const isTopThree = player.rank <= 3;
                   const rankStyle = 
                     player.rank === 1 ? 'border-4 border-yellow-400 bg-slate-950 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse' :
@@ -251,12 +252,15 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePoo
                           {player.bestScore.toFixed(2)}x
                         </span>
                       </td>
-                      <td className="py-4 px-5 text-right">
+                      <td className="py-4 px-5 text-right space-y-1">
                         <div className="font-black text-cyan-400 text-xs font-retro tracking-tighter text-gradient-neon">
-                          {prizeValue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} XPR
+                          {xprPrizeValue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} XPR
                         </div>
-                        <div className="text-[8px] text-slate-500 mt-1 font-retro uppercase">
-                          ({player.prizeFraction}% POT)
+                        <div className="font-black text-pink-500 text-[10px] font-retro tracking-tighter">
+                          {guyPrizeValue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} GUY
+                        </div>
+                        <div className="text-[8px] text-slate-500 font-retro uppercase">
+                          ({player.prizeFraction}% Split Pot)
                         </div>
                       </td>
                     </tr>
