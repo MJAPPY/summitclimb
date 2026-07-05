@@ -198,7 +198,6 @@ export function Leaderboard({ prizePool, guyPrizePool }: LeaderboardProps) {
                 <tr className="border-b-4 border-pink-500 text-pink-400 text-[10px] font-retro uppercase tracking-wider bg-slate-900/90 shadow-[0_4px_10px_rgba(236,72,153,0.2)]">
                   <th className="py-4 px-3 text-center w-20">Rank</th>
                   <th className="py-4 px-4">Climber Profile</th>
-                  <th className="py-4 px-4 text-center">Location</th>
                   <th className="py-4 px-4 text-right">Runs</th>
                   <th className="py-4 px-4 text-right text-yellow-400">Apex Altitude</th>
                   <th className="py-4 px-5 text-right text-cyan-400">Projected Earnings</th>
@@ -240,9 +239,6 @@ export function Leaderboard({ prizePool, guyPrizePool }: LeaderboardProps) {
                             )}
                           </div>
                         </div>
-                      </td>
-                      <td className="py-4 px-4 text-center text-[10px] text-slate-300 font-mono tracking-tight group-hover:text-pink-400">
-                        {player.country}
                       </td>
                       <td className="py-4 px-4 text-right text-[10px] text-slate-400 font-mono tracking-wider">
                         {player.gamesPlayed.toString().padStart(3, '0')} <span className="text-[8px] text-pink-500/60 font-retro">COINS</span>
