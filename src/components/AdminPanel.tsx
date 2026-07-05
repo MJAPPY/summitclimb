@@ -5,12 +5,14 @@ import { useToast } from '@/hooks/use-toast';
 interface AdminPanelProps {
   prizePool: number;
   guyPrizePool: number;
+  walletAddress: string;
   onBoostPots: (amount: number, type: 'XPR' | 'GUY') => Promise<void>;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   prizePool,
   guyPrizePool,
+  walletAddress,
   onBoostPots
 }) => {
   const { toast } = useToast();
@@ -62,10 +64,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         title: "⚡ POT BOOSTED",
         description: `Successfully added +${amount.toLocaleString()} ${type} to the live accumulated prize pool!`,
       });
-    } catch (e) {
+    } catch (e: any) {
       toast({
         title: "Boost Failed",
-        description: "Could not apply manual database allocation boost.",
+        description: e.message || "Could not apply manual database allocation boost.",
         variant: "destructive"
       });
     } finally {
@@ -234,10 +236,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {[
-            { tag: 'POT BOOST', desc: 'Manual injection capability enabled for account @tripseven', date: 'Just now' },
+            { tag: 'POT BOOST', desc: 'Secure Postgres RPC handles all administrator boosts', date: 'Just now' },
+            { tag: 'SECURITY', desc: 'Protected global_pots_config row from direct public writes', date: 'Just now' },
             { tag: 'COMMISSION', desc: 'Web3 payout set to 93% prize pool, operator retains 7%', date: 'Just now' },
             { tag: 'SEED', desc: 'Secure hash cycled successfully', date: '5 mins ago' },
-            { tag: 'WALLET', desc: 'Payment contract audit confirmed with zero flags', date: '1 hour ago' },
           ].map((log, i) => (
             <div key={i} className="p-2.5 bg-slate-950/40 rounded-lg border border-white/5 text-[11px]">
               <div className="flex justify-between font-bold text-white">

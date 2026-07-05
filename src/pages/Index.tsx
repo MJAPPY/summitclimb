@@ -145,34 +145,38 @@ const Index = () => {
     }
   };
 
-  // Increment the accumulated pot dynamically in Supabase when a user purchases goes
+  // Securely increment the accumulated pot via safe server-side SQL RPC
   const incrementAccumulatedPot = async (amount: number, type: 'XPR' | 'GUY') => {
     try {
-      const { data } = await supabase
-        .from('climber_profiles')
-        .select('highest_multiplier, xp')
-        .eq('wallet_address', 'global_pots_config')
-        .maybeSingle();
+      const { error } = await supabase.rpc('increment_pot_on_purchase', {
+        p_amount: amount,
+        p_type: type
+      });
 
-      const currentXPR = data?.highest_multiplier ?? 0;
-      const currentGUY = data?.xp ?? 0;
-
-      const nextXPR = type === 'XPR' ? currentXPR + amount : currentXPR;
-      const nextGUY = type === 'GUY' ? currentGUY + amount : currentGUY;
-
-      await supabase
-        .from('climber_profiles')
-        .update({
-          highest_multiplier: nextXPR,
-          xp: nextGUY
-        })
-        .eq('wallet_address', 'global_pots_config');
+      if (error) {
+        throw error;
+      }
 
       // Refresh balances immediately
       await fetchLivePots();
     } catch (e) {
-      console.error("Could not update persistent pots config:", e);
+      console.error("Could not securely update persistent pots:", e);
     }
+  };
+
+  // Safe administrative pot boost that delegates checks directly to DB authorization layer
+  const handleBoostGlobalPotAdmin = async (amount: number, type: 'XPR' | 'GUY') => {
+    const { error } = await supabase.rpc('boost_global_pot', {
+      p_wallet: walletAddress,
+      p_amount: amount,
+      p_type: type
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    await fetchLivePots();
   };
 
   // Sync balances and fetch persistent player stats from Supabase
@@ -1094,9 +1098,8 @@ const Index = () => {
             <AdminPanel 
               prizePool={prizePool}
               guyPrizePool={guyPrizePool}
-              onBoostPots={async (amount, type) => {
-                await incrementAccumulatedPot(amount, type);
-              }}
+              walletAddress={walletAddress}
+              onBoostPots={handleBoostGlobalPotAdmin}
             />
           )}
 
