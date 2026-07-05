@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, CheckCircle, RefreshCw, Shield, Cpu, ExternalLink } from 'lucide-react';
+import React from 'react';
+import { CheckCircle, Cpu, ExternalLink, Shield } from 'lucide-react';
 import { protonService } from '@/utils/proton';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,9 +21,7 @@ interface WalletModalProps {
 export const WalletModal: React.FC<WalletModalProps> = ({
   onClose,
   balance,
-  setBalance,
   guyBalance,
-  setGuyBalance,
   tokenType,
   setTokenType,
   walletConnected,
@@ -33,8 +31,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   onSyncBalances
 }) => {
   const { toast } = useToast();
-  const [amountInput, setAmountInput] = useState<string>('');
-  const [signingOnChain, setSigningOnChain] = useState<boolean>(false);
 
   // Active balance dynamically switching based on tokenType state
   const activeBalance = tokenType === 'XPR' ? balance : guyBalance;
@@ -69,83 +65,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     });
   };
 
-  // Push an actual transaction to the WebAuth blockchain!
-  const handleDeposit = async () => {
-    const amt = parseFloat(amountInput);
-    if (isNaN(amt) || amt <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please specify a value greater than 0.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSigningOnChain(true);
-    try {
-      // Dispatches request directly to connected mobile WebAuth/Anchor for real-world cryptographic signing!
-      await protonService.transfer(
-        'tripseven', 
-        amt, 
-        tokenType, 
-        `Deposit stake ${tokenType} into Summit payment contract`
-      );
-      
-      if (tokenType === 'XPR') {
-        setBalance(prev => prev + amt);
-      } else {
-        setGuyBalance(prev => prev + amt);
-      }
-
-      setAmountInput('');
-      onSyncBalances();
-      toast({
-        title: "Transaction Broadcasted",
-        description: `Successfully processed transaction on Proton mainnet!`,
-      });
-    } catch (error) {
-      toast({
-        title: "Transaction Rejected",
-        description: "User declined signature request or link timed out.",
-        variant: "destructive"
-      });
-    } finally {
-      setSigningOnChain(false);
-    }
-  };
-
-  const handleWithdraw = () => {
-    const amt = parseFloat(amountInput);
-    if (isNaN(amt) || amt <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount.",
-        variant: "destructive"
-      });
-      return;
-    }
-    if (amt > activeBalance) {
-      toast({
-        title: "Insufficient Balance",
-        description: `Your balance is only ${activeBalance} ${tokenType}.`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (tokenType === 'XPR') {
-      setBalance(prev => prev - amt);
-    } else {
-      setGuyBalance(prev => prev - amt);
-    }
-
-    setAmountInput('');
-    toast({
-      title: "Withdrawal Initialized",
-      description: `Dispatched ${amt} ${tokenType} back to main wallet.`,
-    });
-  };
-
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
       <div className="bg-slate-950 border-2 border-violet-500/50 rounded-2xl max-w-lg w-full overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.3)] relative">
@@ -175,17 +94,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          
-          {/* Real world signing status display */}
-          {signingOnChain && (
-            <div className="p-4 bg-violet-950/20 border border-violet-500/30 rounded-xl flex items-center gap-3 animate-pulse">
-              <RefreshCw className="h-5 w-5 text-violet-400 animate-spin" />
-              <div className="text-xs text-slate-300">
-                Awaiting cryptographic signature authorization directly from your <span className="font-bold text-white">WebAuth App</span>...
-              </div>
-            </div>
-          )}
-
           {/* STEP 1: Connected / Disconnected Dynamic UI Panels */}
           {!walletConnected ? (
             <div className="space-y-4">
@@ -206,7 +114,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                       <span className="text-[10px] text-slate-400 block font-mono">Open official Proton Web SDK drawer</span>
                     </div>
                   </div>
-                  <ArrowDownRight className="h-4 w-4 text-violet-400 group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
                 </button>
               </div>
 
@@ -276,42 +183,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 <div className="text-[10px] text-slate-400 mt-2 flex items-center gap-1 font-mono">
                   <Shield className="h-3 w-3 text-violet-400" />
                   Gasless Web3 transaction protocol active via @WebAuth link.
-                </div>
-              </div>
-
-              {/* Action amount form */}
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-slate-300">Transaction Value</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={amountInput}
-                      onChange={(e) => setAmountInput(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white font-bold placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-violet-500 text-sm"
-                    />
-                    <button
-                      onClick={() => setAmountInput(activeBalance.toString())}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 px-2.5 py-1 rounded-md transition-all"
-                    >
-                      MAX
-                    </button>
-                  </div>
-                  <button
-                    onClick={handleDeposit}
-                    disabled={signingOnChain}
-                    className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 font-bold px-4 rounded-xl border border-emerald-500/20 text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
-                  >
-                    <ArrowDownRight className="h-4 w-4" /> Deposit
-                  </button>
-                  <button
-                    onClick={handleWithdraw}
-                    disabled={signingOnChain}
-                    className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold px-4 rounded-xl border border-blue-500/20 text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
-                  >
-                    <ArrowUpRight className="h-4 w-4" /> Withdraw
-                  </button>
                 </div>
               </div>
             </div>
