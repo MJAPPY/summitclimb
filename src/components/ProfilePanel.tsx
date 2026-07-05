@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Award, Zap, Compass, Trophy, Share2, Clipboard, ChevronRight, Play, Star, ShieldAlert, Sparkles, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +22,6 @@ interface ProfilePanelProps {
   highestMultiplier: number;
   weeklyBest: number;
   referrals: number;
-  onOpenReplays: () => void;
   walletAddress?: string;
   cosmetics: CosmeticSettings;
   setCosmetics: React.Dispatch<React.SetStateAction<CosmeticSettings>>;
@@ -33,7 +34,6 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   highestMultiplier,
   weeklyBest,
   referrals,
-  onOpenReplays,
   walletAddress,
   cosmetics,
   setCosmetics
@@ -188,7 +188,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
         </div>
       </div>
 
-      {/* NEW: Level Wardrobe & Cosmetics Selector Console */}
+      {/* Level Wardrobe & Cosmetics Selector Console */}
       <div className="arcade-panel p-6 space-y-4">
         <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2 pb-3 border-b-2 border-dashed border-pink-500/30">
           <Sparkles className="h-4 w-4 text-pink-500 animate-pulse" /> COSMETICS WARDROBE
@@ -351,13 +351,6 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
                 </div>
               </div>
             ))}
-
-            <button
-              onClick={onOpenReplays}
-              className="w-full bg-slate-950 hover:bg-slate-900 text-yellow-400 hover:text-yellow-300 font-retro text-[10px] py-4 border-2 border-yellow-400 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer uppercase shadow-[4px_4px_0px_rgba(236,72,153,0.3)]"
-            >
-              <Play className="h-3.5 w-3.5 stroke-[3px]" /> VIEW REPLAY CONSOLE
-            </button>
           </div>
         </div>
 
