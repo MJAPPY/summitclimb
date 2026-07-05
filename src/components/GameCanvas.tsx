@@ -912,18 +912,44 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         }
       }
 
-      // 8. Milestones Flags
-      const milestones = [
-        { mult: 1.5, label: '1.5x' },
-        { mult: 2.0, label: '2.0x' },
-        { mult: 3.0, label: '3.0x' },
-        { mult: 5.0, label: '5.0x' },
-        { mult: 10.0, label: '10.0x' },
-        { mult: 15.0, label: '15.0x' },
-        { mult: 25.0, label: '25.0x' },
-      ];
+      // =========================================================================
+      // PROCEDURAL MILESTONE FLAGS (Continuously generated at intervals)
+      // =========================================================================
+      const dynamicMilestones: Array<{ mult: number; label: string }> = [];
+      const currentInt = Math.floor(multiplier);
+      
+      // Generate nearby milestones procedurally: from 3 steps behind up to 6 steps ahead
+      const startMark = Math.max(1, currentInt - 3);
+      const endMark = currentInt + 6;
 
-      milestones.forEach((milestone) => {
+      for (let m = startMark; m <= endMark; m++) {
+        // Main full integer multiplier flags
+        if (m > 1) {
+          dynamicMilestones.push({
+            mult: m,
+            label: `${m}.00x`
+          });
+        }
+        
+        // Half steps (e.g. 1.50x, 2.50x) at early altitudes (under 10x) to keep the pacing busy and fun
+        if (m < 10) {
+          dynamicMilestones.push({
+            mult: m + 0.5,
+            label: `${(m + 0.5).toFixed(2)}x`
+          });
+        }
+      }
+
+      // Ensure 1.50x is always there in early stages
+      if (multiplier < 2.0) {
+        dynamicMilestones.push({ mult: 1.50, label: '1.50x' });
+      }
+
+      // Filter unique milestones, sort, and render
+      const uniqueMilestones = Array.from(new Map(dynamicMilestones.map(item => [item.mult, item])).values())
+        .sort((a, b) => a.mult - b.mult);
+
+      uniqueMilestones.forEach((milestone) => {
         const delta = (milestone.mult - multiplier) * 360;
         const flagX = guyXRef.current + delta;
 
@@ -1003,7 +1029,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
           const textX = flagX - flagWidth / 2 - 2;
           const textY = flagTop + flagHeight / 2 + Math.sin((flagWidth / 2) * 0.05 - t * 0.15) * 3.5;
-          const displayLabel = milestone.mult % 1 === 0 ? `${Math.floor(milestone.mult)}x` : `${milestone.mult}x`;
+          const displayLabel = milestone.mult % 1 === 0 ? `${Math.floor(milestone.mult)}x` : `${milestone.mult.toFixed(1)}x`;
 
           ctx.fillStyle = '#000000';
           ctx.fillText(displayLabel, textX + 1.5, textY + 1.5);
