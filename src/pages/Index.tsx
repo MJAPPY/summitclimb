@@ -675,10 +675,10 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main Layout Workspace */}
+      {/* Main Workspace */}
       <div className="max-w-[1600px] mx-auto px-5 lg:px-10 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         
-        {/* Responsive, highly stylized Sidebar Navigation */}
+        {/* Navigation Sidebar */}
         <aside className="lg:col-span-3 space-y-6">
           <div className="arcade-panel p-5 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-pink-500">
@@ -1093,6 +1093,8 @@ const Index = () => {
               referrals={0}
               onOpenReplays={() => setActiveTab('replays')}
               walletAddress={activeUserAddress}
+              cosmetics={cosmetics}
+              setCosmetics={setCosmetics}
             />
           )}
 

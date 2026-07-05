@@ -1,6 +1,7 @@
 import React from 'react';
-import { Award, Zap, Compass, Trophy, Share2, Clipboard, ChevronRight, Play, Star, ShieldAlert } from 'lucide-react';
+import { Award, Zap, Compass, Trophy, Share2, Clipboard, ChevronRight, Play, Star, ShieldAlert, Sparkles, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { CosmeticSettings } from './GameCanvas';
 
 interface Achievement {
   id: string;
@@ -21,6 +22,8 @@ interface ProfilePanelProps {
   referrals: number;
   onOpenReplays: () => void;
   walletAddress?: string;
+  cosmetics: CosmeticSettings;
+  setCosmetics: React.Dispatch<React.SetStateAction<CosmeticSettings>>;
 }
 
 export const ProfilePanel: React.FC<ProfilePanelProps> = ({
@@ -31,7 +34,9 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   weeklyBest,
   referrals,
   onOpenReplays,
-  walletAddress
+  walletAddress,
+  cosmetics,
+  setCosmetics
 }) => {
   const { toast } = useToast();
   const nextLevelXp = level * 100;
@@ -47,11 +52,33 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
     { id: 'legend', title: 'SUMMIT LEGEND', desc: 'Secure a bank of over 20.00x multiplier.', unlocked: highestMultiplier >= 20, xpReward: 500, icon: '👑', rarity: 'Legendary' },
   ];
 
+  // Definitive Level Unlock list for Climber skins, Particle Trails, and Banners
+  const rewardsList = [
+    { type: 'climber', value: 'standard', name: 'Standard Climber', levelReq: 1, desc: 'Your trusty starting red parka', icon: '🧗' },
+    { type: 'trail', value: 'rainbow', name: 'Rainbow Trail', levelReq: 2, desc: 'Hyperspace particle trail', icon: '🌈' },
+    { type: 'climber', value: 'neon', name: 'Neon Pink Climber', levelReq: 3, desc: 'Synthetic high-vis cyberpunk suit', icon: '👾' },
+    { type: 'trail', value: 'fire', name: 'Volcanic Flame Trail', levelReq: 4, desc: 'Fierce trail of crackling embers', icon: '🔥' },
+    { type: 'climber', value: 'gold', name: 'Solid Gold Climber', levelReq: 5, desc: 'Pure luxurious golden space gear', icon: '👑' },
+    { type: 'trail', value: 'gold', name: 'Glittering Gold Trail', levelReq: 6, desc: 'A rich shimmering path of gold dust', icon: '✨' },
+    { type: 'climber', value: 'astro', name: 'Nebula Astronaut', levelReq: 8, desc: 'High-altitude deep space suit', icon: '👨‍🚀' },
+  ];
+
   const handleCopyReferral = () => {
     navigator.clipboard.writeText(`https://summit.game/ref/${activeUserRef}`);
     toast({
       title: "Referral Link Copied",
       description: "Recruit your squad to secure 15% deposit bonuses!",
+    });
+  };
+
+  const equipItem = (type: 'climber' | 'trail', value: any, itemName: string) => {
+    setCosmetics(prev => ({
+      ...prev,
+      [type]: value
+    }));
+    toast({
+      title: "Gear Equipped",
+      description: `Successfully geared up with the ${itemName}!`,
     });
   };
 
@@ -158,6 +185,82 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* NEW: Level Wardrobe & Cosmetics Selector Console */}
+      <div className="arcade-panel p-6 space-y-4">
+        <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2 pb-3 border-b-2 border-dashed border-pink-500/30">
+          <Sparkles className="h-4 w-4 text-pink-500 animate-pulse" /> COSMETICS WARDROBE
+        </h3>
+        <p className="text-[10px] font-retro text-slate-400 leading-normal uppercase pb-2">
+          Gain XP to level up your climber and unlock high-altitude cosmetic upgrades. Customize your look on the mountainside!
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {rewardsList.map((item, index) => {
+            const isUnlocked = level >= item.levelReq;
+            const isCurrentlyEquipped = cosmetics[item.type as 'climber' | 'trail'] === item.value;
+
+            return (
+              <div 
+                key={index} 
+                className={`p-4 border-2 flex flex-col justify-between transition-all rounded-none relative overflow-hidden ${
+                  isUnlocked 
+                    ? isCurrentlyEquipped 
+                      ? 'border-green-500 bg-green-500/5' 
+                      : 'border-pink-500/30 bg-slate-900/40 hover:border-pink-500/60'
+                    : 'border-white/5 bg-slate-950/25 opacity-40'
+                }`}
+              >
+                {/* Level Lock Overlay Indicator */}
+                {!isUnlocked && (
+                  <div className="absolute top-2 right-2 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-[8px] font-retro px-2 py-0.5">
+                    LOCK L. {item.levelReq}
+                  </div>
+                )}
+                {isUnlocked && isCurrentlyEquipped && (
+                  <div className="absolute top-2 right-2 bg-green-500/10 border border-green-500 text-green-400 text-[8px] font-retro px-2 py-0.5 flex items-center gap-1">
+                    <Check className="h-2 w-2" /> EQUIPPED
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="text-3xl select-none leading-none pt-1">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-retro text-[10px] text-white tracking-wide">
+                      {item.name}
+                    </h4>
+                    <p className="text-[8px] font-retro text-slate-400 leading-relaxed uppercase mt-1">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  {isUnlocked ? (
+                    <button
+                      onClick={() => equipItem(item.type as 'climber' | 'trail', item.value, item.name)}
+                      disabled={isCurrentlyEquipped}
+                      className={`w-full py-2 font-retro text-[9px] uppercase transition-all rounded-none ${
+                        isCurrentlyEquipped 
+                          ? 'bg-green-500/10 text-green-400 border border-green-500/30 cursor-default'
+                          : 'bg-pink-500 hover:bg-pink-400 text-slate-950 font-bold cursor-pointer'
+                      }`}
+                    >
+                      {isCurrentlyEquipped ? 'ACTIVE GEAR' : 'EQUIP GEAR'}
+                    </button>
+                  ) : (
+                    <div className="w-full py-2 bg-slate-950 border border-white/5 text-slate-600 font-retro text-[9px] text-center uppercase cursor-default">
+                      Level {item.levelReq} Required
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
