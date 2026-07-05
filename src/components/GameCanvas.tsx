@@ -155,7 +155,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           rockHighlight: '#1e293b',
           snowColor: '#64748b',
           snowIce: '#475569',
-          gridColor: 'rgba(148, 163, 184, 0.08)'
+          gridColor: 'rgba(14, 165, 233, 0.08)'
         };
       case 'cyber':
         return {
@@ -881,8 +881,28 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.restore();
       });
 
-      // 10. HERO CLIMBER AVATAR RENDERING WITH CAPE VECTOR OSCILLATIONS
+      // 10. HERO CLIMBER AVATAR RENDERING WITH SLOPE TILT, SQUASH/STRETCH AND SWAY
       ctx.save();
+      
+      // Calculate precise local slope angle to rotate climber body
+      const sampleSlopeY1 = getSlopeY(guyXRef.current - 8, scrollRef.current);
+      const sampleSlopeY2 = getSlopeY(guyXRef.current + 8, scrollRef.current);
+      const slopeAngle = Math.atan2(sampleSlopeY2 - sampleSlopeY1, 16);
+
+      // Determine stretch factors based on vertical climb speed bobs (Squash and Stretch)
+      const stretchAmount = gameState === 'climbing' ? Math.sin(t * 0.28) * 0.12 : 0;
+      const scaleX = 1 - stretchAmount;
+      const scaleY = 1 + stretchAmount;
+
+      // Determine wind drag sway at higher altitudes
+      const windSwayAngle = gameState === 'climbing' ? Math.min(0.24, multiplier * 0.015) : 0;
+
+      // Position, rotate, stretch, and skew the climber coordinate system dynamically!
+      ctx.translate(guyXRef.current, guyYRef.current + 16);
+      ctx.rotate(slopeAngle - windSwayAngle);
+      ctx.scale(scaleX, scaleY);
+      ctx.translate(0, -16);
+
       ctx.shadowBlur = 24;
       ctx.shadowColor = cosmetics.climber === 'gold' ? 'rgba(234, 179, 8, 0.85)' :
                         cosmetics.climber === 'neon' ? 'rgba(236, 72, 153, 0.85)' :
@@ -896,23 +916,22 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
                         cosmetics.climber === 'neon' ? '#a855f7' :
                         cosmetics.climber === 'astro' ? '#2563eb' : '#dc2626';
 
+      // Cape vector oscillations matching movement sway
       ctx.fillStyle = capeColor;
       ctx.beginPath();
-      ctx.moveTo(guyXRef.current - 12, guyYRef.current + 6);
-      
+      ctx.moveTo(-12, 6);
       const capeCount = 6;
       for (let c = 0; c <= capeCount; c++) {
-        const capeX = guyXRef.current - 12 - c * 6;
-        const capeWaveY = guyYRef.current + 12 + Math.sin(c * 0.6 - t * 0.32) * 8;
+        const capeX = -12 - c * 6;
+        const capeWaveY = 12 + Math.sin(c * 0.6 - t * 0.32) * 8;
         ctx.lineTo(capeX, capeWaveY);
       }
-      ctx.lineTo(guyXRef.current - 14, guyYRef.current + 32);
+      ctx.lineTo(-14, 32);
       ctx.closePath();
       ctx.fill();
 
       if (guyImageRef.current) {
         ctx.save();
-        ctx.translate(guyXRef.current, guyYRef.current);
         ctx.scale(-1, 1);
         ctx.drawImage(
           guyImageRef.current,
@@ -923,37 +942,67 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         );
         ctx.restore();
       } else {
+        // Draw geometric modular climber body
         ctx.fillStyle = '#fbcfe8';
         ctx.beginPath();
-        ctx.arc(guyXRef.current, guyYRef.current - 15, 11, 0, Math.PI * 2);
+        ctx.arc(0, -15, 11, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = '#0f172a';
-        ctx.fillRect(guyXRef.current + 2, guyYRef.current - 18, 9, 4);
+        ctx.fillRect(2, -18, 9, 4);
 
         ctx.fillStyle = climberColor;
-        ctx.fillRect(guyXRef.current - 12, guyYRef.current - 4, 24, 30);
+        ctx.fillRect(-12, -4, 24, 30);
 
         ctx.fillStyle = '#facc15';
         ctx.beginPath();
-        ctx.arc(guyXRef.current, guyYRef.current - 24, 12, Math.PI, 0);
+        ctx.arc(0, -24, 12, Math.PI, 0);
         ctx.fill();
-
-        ctx.strokeStyle = climberColor;
-        ctx.lineWidth = 5.5;
-        ctx.beginPath();
-        ctx.moveTo(guyXRef.current + 12, guyYRef.current + 4);
-        const rightArmBob = gameState === 'climbing' ? Math.sin(t * 0.25) * 8 : 0;
-        ctx.lineTo(guyXRef.current + 24, guyYRef.current - 4 + rightArmBob);
-        ctx.stroke();
       }
+
+      // Draw Ice Climbing pickaxe swinging dynamically to strike the mountain
+      const pickaxeSwingAngle = gameState === 'climbing' ? Math.sin(t * 0.22) * 0.65 - 0.2 : -0.3;
+      
+      ctx.save();
+      ctx.translate(10, 4);
+      ctx.rotate(pickaxeSwingAngle);
+      
+      // Axe shaft
+      ctx.strokeStyle = '#78350f'; // Wood handle
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -24);
+      ctx.stroke();
+
+      // Steel head pick
+      ctx.fillStyle = '#94a3b8'; // Iron
+      ctx.beginPath();
+      ctx.moveTo(-2, -24);
+      ctx.lineTo(14, -28);
+      ctx.lineTo(14, -22);
+      ctx.lineTo(-2, -20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Sharp pick point
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(8, -26);
+      ctx.lineTo(18, -32);
+      ctx.stroke();
+
       ctx.restore();
 
-      if (gameState === 'climbing' && t % 3 === 0) {
+      ctx.restore(); // Exit stretched and rotated local coordinates
+
+      // If active hacking, spawn ice chip sparks on pick swing peaks!
+      if (gameState === 'climbing' && t % 14 === 0) {
         for (let i = 0; i < 3; i++) {
           sparkParticlesRef.current.push({
-            x: guyXRef.current + 18,
-            y: guyYRef.current + 10,
+            x: guyXRef.current + 22,
+            y: guyYRef.current + 8,
             vx: -3 - Math.random() * 4,
             vy: -1 - Math.random() * 5,
             size: 1.5 + Math.random() * 2,
