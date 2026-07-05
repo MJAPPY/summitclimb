@@ -20,8 +20,6 @@ import {
   Settings, 
   History, 
   ArrowUpRight,
-  Sun,
-  CloudRain,
   Mountain,
   Sparkles,
   ShieldAlert,
@@ -30,8 +28,6 @@ import {
   Coins,
   ChevronRight,
   Gift,
-  Award,
-  Zap,
   Coins as PotIcon
 } from 'lucide-react';
 
@@ -139,10 +135,11 @@ const Index = () => {
     audioSynth.setMute(nextMuted);
   };
 
-  // Bulk buy goes transaction handler (Rate: 2 XPR per Go)
+  // Bulk buy goes transaction handler (Rate: 2 XPR per Go, or 10 GUY per Go)
   const handleBuyGoes = async (count: number) => {
     if (count <= 0) return;
-    const cost = count * 2;
+    const rate = tokenType === 'XPR' ? 2 : 10;
+    const cost = count * rate;
 
     const activeTokenBalance = tokenType === 'XPR' ? balance : guyBalance;
 
@@ -538,7 +535,7 @@ const Index = () => {
             <div className="space-y-1">
               <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Climb runs cost exactly 2 XPR or GUY. Stake tokens pool permanently into the grand pot. 93% is distributed to the Top 15 players on the all-time cabinet ledger. 7% developer cut to payment contract.
+                Stake tokens pool permanently into the grand pot. 93% is distributed to the Top 15 players on the all-time cabinet ledger. 7% developer cut to payment contract.
               </p>
             </div>
 
@@ -671,7 +668,7 @@ const Index = () => {
                       <span className="text-[10px] text-slate-400 font-retro">CREDITS SLOTS</span>
                     </div>
                     <div className="text-[9px] text-slate-500 font-retro leading-relaxed mt-1">
-                      2 XPR or GUY inserts exactly 1 play. Feed the coin slots below to load climber games.
+                      1 game credit requires inserting <span className="text-yellow-400 font-bold">2 XPR</span> or <span className="text-pink-400 font-bold">10 GUY</span> tokens. Feed the coin slots below to load climber games.
                     </div>
                   </div>
 
@@ -706,12 +703,14 @@ const Index = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-retro text-slate-300 uppercase block">SLOT INSERT VALUE ({tokenType})</label>
+                      <label className="text-[10px] font-retro text-slate-300 uppercase block">
+                        GAMES TO BUY (1 GAME = {tokenType === 'XPR' ? '2 XPR' : '10 GUY'})
+                      </label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <input
                             type="number"
-                            placeholder="Amt..."
+                            placeholder="Amount..."
                             value={customGoesInput}
                             onChange={(e) => setCustomGoesInput(e.target.value)}
                             disabled={gameState === 'climbing'}
@@ -731,22 +730,32 @@ const Index = () => {
                           BUY
                         </button>
                       </div>
+                      
+                      {/* Live calculation helper under the input */}
+                      {!isNaN(parseInt(customGoesInput)) && parseInt(customGoesInput) > 0 && (
+                        <p className="text-[9px] font-retro text-yellow-400 mt-1 uppercase">
+                          Est. Cost: {parseInt(customGoesInput) * (tokenType === 'XPR' ? 2 : 10)} {tokenType}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <label className="text-[10px] font-retro text-slate-300 uppercase block">QUICK CHUTE ({tokenType})</label>
                       <div className="grid grid-cols-2 gap-2.5">
-                        {[5, 15, 50, 100].map((amt) => (
-                          <button
-                            key={amt}
-                            onClick={() => handleBuyGoes(amt)}
-                            disabled={gameState === 'climbing'}
-                            className="p-3 bg-slate-900 hover:bg-slate-800 border-2 border-cyan-500 text-xs font-retro text-cyan-400 hover:text-cyan-300 transition-all flex flex-col items-center justify-center gap-1 active:scale-95"
-                          >
-                            <span className="text-[11px] text-white">{amt} GAMES</span>
-                            <span className="text-[8px] text-yellow-400">{amt * 2} {tokenType}</span>
-                          </button>
-                        ))}
+                        {[5, 15, 50, 100].map((amt) => {
+                          const rate = tokenType === 'XPR' ? 2 : 10;
+                          return (
+                            <button
+                              key={amt}
+                              onClick={() => handleBuyGoes(amt)}
+                              disabled={gameState === 'climbing'}
+                              className="p-3 bg-slate-900 hover:bg-slate-800 border-2 border-cyan-500 text-xs font-retro text-cyan-400 hover:text-cyan-300 transition-all flex flex-col items-center justify-center gap-1 active:scale-95"
+                            >
+                              <span className="text-[11px] text-white">{amt} GAMES</span>
+                              <span className="text-[8px] text-yellow-400">{amt * rate} {tokenType}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
