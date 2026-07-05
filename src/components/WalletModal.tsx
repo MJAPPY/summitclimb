@@ -7,23 +7,30 @@ interface WalletModalProps {
   onClose: () => void;
   balance: number;
   setBalance: React.Dispatch<React.SetStateAction<number>>;
-  tokenType: 'XPR';
-  setTokenType: (token: 'XPR') => void;
+  guyBalance: number;
+  setGuyBalance: React.Dispatch<React.SetStateAction<number>>;
+  tokenType: 'XPR' | 'GUY';
+  setTokenType: (token: 'XPR' | 'GUY') => void;
   walletConnected: boolean;
   setWalletConnected: (connected: boolean) => void;
   walletAddress: string;
   setWalletAddress: (address: string) => void;
+  onSyncBalances: () => void;
 }
 
 export const WalletModal: React.FC<WalletModalProps> = ({
   onClose,
   balance,
   setBalance,
+  guyBalance,
+  setGuyBalance,
   tokenType,
+  setTokenType,
   walletConnected,
   setWalletConnected,
   walletAddress,
-  setWalletAddress
+  setWalletAddress,
+  onSyncBalances
 }) => {
   const { toast } = useToast();
   const [amountInput, setAmountInput] = useState<string>('');
@@ -38,9 +45,12 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     status: 'completed' | 'pending';
   }>>([
     { id: 'TX-901', type: 'deposit', amount: 250, token: 'XPR', time: '10 mins ago', status: 'completed' },
-    { id: 'TX-802', type: 'win', amount: 84.5, token: 'XPR', time: '2 hours ago', status: 'completed' },
+    { id: 'TX-802', type: 'deposit', amount: 15, token: 'GUY', time: '1 hour ago', status: 'completed' },
     { id: 'TX-703', type: 'withdraw', amount: 100, token: 'XPR', time: 'Yesterday', status: 'completed' },
   ]);
+
+  // Active balance dynamically switching based on tokenType state
+  const activeBalance = tokenType === 'XPR' ? balance : guyBalance;
 
   // Handle Proton SDK login process dynamically triggering the authentic WebAuth.com overlay
   const handleSDKConnection = async () => {
@@ -48,6 +58,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       const connection = await protonService.connect();
       setWalletAddress(connection.actor);
       setWalletConnected(true);
+      onSyncBalances();
       toast({
         title: "Proton Connected",
         description: `Linked session successfully via Proton Web SDK for @${connection.actor}`,
@@ -86,9 +97,19 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     setSigningOnChain(true);
     try {
       // Dispatches request directly to connected mobile WebAuth/Anchor for real-world cryptographic signing!
-      const txResult = await protonService.transfer('tripseven', amt, tokenType, 'Deposit stake into Summit payment contract');
+      const txResult = await protonService.transfer(
+        'tripseven', 
+        amt, 
+        tokenType, 
+        `Deposit stake ${tokenType} into Summit payment contract`
+      );
       
-      setBalance(prev => prev + amt);
+      if (tokenType === 'XPR') {
+        setBalance(prev => prev + amt);
+      } else {
+        setGuyBalance(prev => prev + amt);
+      }
+
       setTransactions(prev => [
         {
           id: txResult.processed.id.slice(0, 10).toUpperCase(),
@@ -101,6 +122,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         ...prev
       ]);
       setAmountInput('');
+      onSyncBalances();
       toast({
         title: "Transaction Broadcasted",
         description: `Successfully processed transaction ${txResult.processed.id.slice(0, 8)} on Proton mainnet!`,
@@ -126,16 +148,21 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       });
       return;
     }
-    if (amt > balance) {
+    if (amt > activeBalance) {
       toast({
         title: "Insufficient Balance",
-        description: `Your balance is only ${balance} ${tokenType}.`,
+        description: `Your balance is only ${activeBalance} ${tokenType}.`,
         variant: "destructive"
       });
       return;
     }
 
-    setBalance(prev => prev - amt);
+    if (tokenType === 'XPR') {
+      setBalance(prev => prev - amt);
+    } else {
+      setGuyBalance(prev => prev - amt);
+    }
+
     setTransactions(prev => [
       {
         id: 'TX-' + Math.floor(Math.random() * 900 + 100),
@@ -248,11 +275,37 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                 </button>
               </div>
 
+              {/* Multi-Token Toggle Selector Switch */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  onClick={() => setTokenType('XPR')}
+                  className={`p-3.5 border-2 text-center transition-all flex flex-col items-center justify-center rounded-xl ${
+                    tokenType === 'XPR' 
+                      ? 'border-violet-500 bg-violet-500/10 text-white' 
+                      : 'border-white/5 bg-slate-900/40 text-slate-400 hover:border-white/10'
+                  }`}
+                >
+                  <span className="text-[10px] font-mono tracking-widest block mb-1">XPR TOKEN</span>
+                  <span className="text-base font-black">{balance.toFixed(2)} XPR</span>
+                </button>
+                <button
+                  onClick={() => setTokenType('GUY')}
+                  className={`p-3.5 border-2 text-center transition-all flex flex-col items-center justify-center rounded-xl ${
+                    tokenType === 'GUY' 
+                      ? 'border-violet-500 bg-violet-500/10 text-white' 
+                      : 'border-white/5 bg-slate-900/40 text-slate-400 hover:border-white/10'
+                  }`}
+                >
+                  <span className="text-[10px] font-mono tracking-widest block mb-1">GUY TOKEN</span>
+                  <span className="text-base font-black">{guyBalance.toFixed(2)} GUY</span>
+                </button>
+              </div>
+
               {/* Balance card */}
               <div className="p-5 bg-gradient-to-br from-slate-900 to-violet-950/20 border border-violet-500/10 rounded-xl">
-                <span className="text-xs font-bold text-violet-400 tracking-wider">AVAILABLE BALANCE</span>
+                <span className="text-xs font-bold text-violet-400 tracking-wider">SELECTED ACTIVE BALANCE</span>
                 <div className="flex items-baseline gap-2 mt-1.5">
-                  <span className="text-3xl font-black text-white">{balance.toFixed(2)}</span>
+                  <span className="text-3xl font-black text-white">{activeBalance.toFixed(2)}</span>
                   <span className="text-sm font-bold text-slate-400">{tokenType}</span>
                 </div>
                 <div className="text-[10px] text-slate-400 mt-2 flex items-center gap-1 font-mono">
@@ -274,7 +327,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                       className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white font-bold placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-violet-500 text-sm"
                     />
                     <button
-                      onClick={() => setAmountInput(balance.toString())}
+                      onClick={() => setAmountInput(activeBalance.toString())}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 px-2.5 py-1 rounded-md transition-all"
                     >
                       MAX

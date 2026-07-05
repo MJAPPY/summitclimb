@@ -48,8 +48,9 @@ const Index = () => {
   const [walletAddress, setWalletAddress] = useState<string>('');
 
   // Currency & Player progression states starting completely fresh!
-  const [balance, setBalance] = useState<number>(0);
-  const tokenType = 'XPR';
+  const [balance, setBalance] = useState<number>(0);         // XPR Balance
+  const [guyBalance, setGuyBalance] = useState<number>(0);   // GUY Balance
+  const [tokenType, setTokenType] = useState<'XPR' | 'GUY'>('XPR');
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(0);
 
@@ -93,6 +94,17 @@ const Index = () => {
     }
   }, [activeTab, isAdmin]);
 
+  // Sync balances helper function querying standard Proton Mainnet RPC API
+  const handleSyncBalances = async (actorName: string) => {
+    try {
+      const results = await protonService.getBalances(actorName);
+      setBalance(results.XPR);
+      setGuyBalance(results.GUY);
+    } catch (e) {
+      console.warn("Could not sync live wallet balances:", e);
+    }
+  };
+
   // Attempt to restore user's verified session silently when loading the app
   useEffect(() => {
     const autoLogin = async () => {
@@ -100,6 +112,7 @@ const Index = () => {
       if (activeSession) {
         setWalletAddress(activeSession.actor);
         setWalletConnected(true);
+        handleSyncBalances(activeSession.actor);
         toast({
           title: "Session Restored",
           description: `Welcome back to the Summit, @${activeSession.actor}!`,
@@ -108,6 +121,15 @@ const Index = () => {
     };
     autoLogin();
   }, []);
+
+  // Poll balances every 20 seconds if wallet is connected
+  useEffect(() => {
+    if (!walletConnected || !walletAddress) return;
+    const interval = setInterval(() => {
+      handleSyncBalances(walletAddress);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [walletConnected, walletAddress]);
 
   // Toggle sound
   const toggleMute = () => {
@@ -121,10 +143,12 @@ const Index = () => {
     if (count <= 0) return;
     const cost = count * 2;
 
-    if (balance < cost) {
+    const activeTokenBalance = tokenType === 'XPR' ? balance : guyBalance;
+
+    if (activeTokenBalance < cost) {
       toast({
         title: "Insufficient Balance",
-        description: `You need ${cost} XPR to purchase ${count} games. Deposit more tokens.`,
+        description: `You need ${cost} ${tokenType} to purchase ${count} games. Deposit more tokens.`,
         variant: "destructive"
       });
       return;
@@ -135,9 +159,9 @@ const Index = () => {
       try {
         toast({
           title: "Sending Signature Request",
-          description: "Authorize the XPR games purchase in your WebAuth app...",
+          description: `Authorize the ${tokenType} games purchase in your WebAuth app...`,
         });
-        await protonService.transfer('tripseven', cost, 'XPR', `Purchase ${count} climbs bundle - GUYS Summit`);
+        await protonService.transfer('tripseven', cost, tokenType, `Purchase ${count} climbs bundle - GUYS Summit`);
       } catch (e) {
         toast({
           title: "Transaction Failed",
@@ -151,14 +175,26 @@ const Index = () => {
     // Process payment success (Retain 7% operator fee, send 93% directly to weekly leaderboard pot)
     const poolContribution = cost * 0.93;
 
-    setBalance(prev => prev - cost);
+    if (tokenType === 'XPR') {
+      setBalance(prev => prev - cost);
+    } else {
+      setGuyBalance(prev => prev - cost);
+    }
+
     setRemainingGoes(prev => prev + count);
-    setPrizePool(prev => prev + poolContribution);
+    
+    if (tokenType === 'XPR') {
+      setPrizePool(prev => prev + poolContribution);
+    }
 
     toast({
       title: "Climbs Added!",
-      description: `Bought ${count} games for ${cost} XPR. (7% operator fee retained, 93% added to All-Time Prize Pool!)`,
+      description: `Bought ${count} games for ${cost} ${tokenType}. (93% added to All-Time Prize Pool!)`,
     });
+
+    if (walletConnected) {
+      handleSyncBalances(walletAddress);
+    }
   };
 
   // Start ascending summit climb (costs exactly 1 remaining go)
@@ -250,6 +286,7 @@ const Index = () => {
       const connection = await protonService.connect();
       setWalletAddress(connection.actor);
       setWalletConnected(true);
+      handleSyncBalances(connection.actor);
       toast({
         title: "Proton Connected",
         description: `Successfully linked session for actor @${connection.actor}!`,
@@ -360,13 +397,19 @@ const Index = () => {
               onClick={() => setWalletOpen(true)}
               className="bg-slate-900 border-2 border-cyan-400 rounded-none px-4 py-2 text-sm flex items-center gap-3.5 hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all text-left relative overflow-hidden group font-retro"
             >
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-white leading-none">@{walletAddress}</span>
-                  <CheckCircle2 className="h-3.5 w-3.5 text-green-400 shrink-0" />
+              <div className="flex items-center gap-4">
+                <div className="border-r border-cyan-400/20 pr-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-white leading-none">@{walletAddress}</span>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-400 shrink-0" />
+                  </div>
+                  <div className="text-[10px] text-cyan-400 mt-1 leading-none font-bold">
+                    {balance.toFixed(2)} XPR
+                  </div>
                 </div>
-                <div className="text-[10px] text-cyan-400 mt-1 leading-none font-bold">
-                  {balance.toFixed(2)} XPR
+                <div>
+                  <span className="text-[8px] font-mono tracking-widest text-pink-400 block leading-none">GUY</span>
+                  <span className="text-xs text-pink-400 font-bold block mt-1 leading-none">{guyBalance.toFixed(2)}</span>
                 </div>
               </div>
             </button>
@@ -492,7 +535,7 @@ const Index = () => {
             <div className="space-y-1">
               <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Climb runs cost exactly 2 XPR. Stake tokens pool permanently into the grand pot. 93% is distributed to the Top 15 players on the all-time cabinet ledger. 7% developer cut to payment contract.
+                Climb runs cost exactly 2 XPR or GUY. Stake tokens pool permanently into the grand pot. 93% is distributed to the Top 15 players on the all-time cabinet ledger. 7% developer cut to payment contract.
               </p>
             </div>
 
@@ -625,7 +668,7 @@ const Index = () => {
                       <span className="text-[10px] text-slate-400 font-retro">CREDITS SLOTS</span>
                     </div>
                     <div className="text-[9px] text-slate-500 font-retro leading-relaxed mt-1">
-                      2 XPR inserts exactly 1 play. Feed the coin slots below to load climber games.
+                      2 XPR or GUY inserts exactly 1 play. Feed the coin slots below to load climber games.
                     </div>
                   </div>
 
@@ -635,13 +678,32 @@ const Index = () => {
                       <span className="text-xs font-retro text-white uppercase flex items-center gap-2">
                         <Coins className="h-4 w-4 text-yellow-400" /> COIN CHUTE
                       </span>
-                      <span className="text-[9px] text-yellow-400 font-retro bg-yellow-400/10 px-2 py-1 rounded">
-                        2 XPR PER GAME
-                      </span>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => setTokenType('XPR')}
+                          className={`px-2 py-1 text-[8px] font-retro border transition-all ${
+                            tokenType === 'XPR' 
+                              ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10' 
+                              : 'border-white/5 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          XPR Chute
+                        </button>
+                        <button
+                          onClick={() => setTokenType('GUY')}
+                          className={`px-2 py-1 text-[8px] font-retro border transition-all ${
+                            tokenType === 'GUY' 
+                              ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10' 
+                              : 'border-white/5 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          GUY Chute
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-retro text-slate-300 uppercase block">SLOT INSERT VALUE</label>
+                      <label className="text-[10px] font-retro text-slate-300 uppercase block">SLOT INSERT VALUE ({tokenType})</label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <input
@@ -669,7 +731,7 @@ const Index = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-retro text-slate-300 uppercase block">QUICK CHUTE</label>
+                      <label className="text-[10px] font-retro text-slate-300 uppercase block">QUICK CHUTE ({tokenType})</label>
                       <div className="grid grid-cols-2 gap-2.5">
                         {[5, 15, 50, 100].map((amt) => (
                           <button
@@ -679,7 +741,7 @@ const Index = () => {
                             className="p-3 bg-slate-900 hover:bg-slate-800 border-2 border-cyan-500 text-xs font-retro text-cyan-400 hover:text-cyan-300 transition-all flex flex-col items-center justify-center gap-1 active:scale-95"
                           >
                             <span className="text-[11px] text-white">{amt} GAMES</span>
-                            <span className="text-[8px] text-yellow-400">{amt * 2} XPR</span>
+                            <span className="text-[8px] text-yellow-400">{amt * 2} {tokenType}</span>
                           </button>
                         ))}
                       </div>
@@ -753,12 +815,15 @@ const Index = () => {
           onClose={() => setWalletOpen(false)}
           balance={balance}
           setBalance={setBalance}
+          guyBalance={guyBalance}
+          setGuyBalance={setGuyBalance}
           tokenType={tokenType}
-          setTokenType={() => {}}
+          setTokenType={setTokenType}
           walletConnected={walletConnected}
           setWalletConnected={setWalletConnected}
           walletAddress={walletAddress}
           setWalletAddress={setWalletAddress}
+          onSyncBalances={() => handleSyncBalances(walletAddress)}
         />
       )}
 
