@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Clock, Users, Award, ShieldAlert, Sparkles, Flame } from 'lucide-react';
+import { supabase } from '@/utils/supabase';
 
 interface Competitor {
   rank: number;
@@ -8,7 +9,7 @@ interface Competitor {
   gamesPlayed: number;
   country: string;
   avatar: string;
-  prizeFraction: number; // percentage of the pot
+  prizeFraction: number;
 }
 
 interface LeaderboardProps {
@@ -17,31 +18,66 @@ interface LeaderboardProps {
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePool }) => {
-  const [participants, setParticipants] = useState<number>(1420);
+  const [participants, setParticipants] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<string>('00D : 00H : 00M : 00S');
-  
-  // Real high score mock contenders
-  const [competitors, setCompetitors] = useState<Competitor[]>([
-    { rank: 1, username: 'cyber_goat', bestScore: 24.50, gamesPlayed: 148, country: 'AUT', avatar: '', prizeFraction: 40 },
-    { rank: 2, username: 'tripseven', bestScore: 18.92, gamesPlayed: 84, country: 'USA', avatar: '', prizeFraction: 25 },
-    { rank: 3, username: 'snow_shredder', bestScore: 14.11, gamesPlayed: 120, country: 'SUI', avatar: '', prizeFraction: 15 },
-    { rank: 4, username: 'yodel_king', bestScore: 9.35, gamesPlayed: 56, country: 'GER', avatar: '', prizeFraction: 8 },
-    { rank: 5, username: 'peak_chaser', bestScore: 7.20, gamesPlayed: 92, country: 'CAN', avatar: '', prizeFraction: 5 },
-  ]);
+  const [competitors, setCompetitors] = useState<Competitor[]>([]);
 
-  // Live countdown calculating precise duration to upcoming Monday 07:00 AM UTC
+  // Fetch real score statistics live from Supabase without any hardcoded items
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('climber_leaderboard')
+          .select('wallet_address, score, games_played, country')
+          .order('score', { ascending: false })
+          .limit(15);
+
+        if (error) {
+          console.error("Leaderboard fetch error:", error);
+          return;
+        }
+
+        if (data) {
+          // Format scores and calculate prize fractions dynamically
+          const formatted: Competitor[] = data.map((row, idx) => {
+            // Distribute prize fraction exponentially (Top 3 gets higher %)
+            let fraction = 5;
+            if (idx === 0) fraction = 40;
+            else if (idx === 1) fraction = 25;
+            else if (idx === 2) fraction = 15;
+            else if (idx === 3) fraction = 8;
+            else if (idx === 4) fraction = 5;
+
+            return {
+              rank: idx + 1,
+              username: `@${row.wallet_address}`,
+              bestScore: row.score ?? 1.00,
+              gamesPlayed: row.games_played ?? 0,
+              country: row.country ?? 'USA',
+              avatar: '',
+              prizeFraction: fraction
+            };
+          });
+
+          setCompetitors(formatted);
+          setParticipants(formatted.length);
+        }
+      } catch (err) {
+        console.warn("Could not query leaderboard:", err);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
+
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
       const nextMonday = new Date();
-      
-      const currentDay = now.getUTCDay(); // 0 = Sun, 1 = Mon, 2 = Tue, ...
+      const currentDay = now.getUTCDay();
       const currentHour = now.getUTCHours();
-      
-      // Compute days to add to reach next Monday
       let daysToAdd = (1 - currentDay + 7) % 7;
       
-      // If it is Monday, check if we already passed 7:00 AM UTC
       if (currentDay === 1 && currentHour >= 7) {
         daysToAdd = 7;
       }
@@ -74,7 +110,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePoo
 
   return (
     <div className="space-y-6 crt-screen">
-      {/* 90s Style Dynamic Stats Marquee Rows */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Arcade XPR Pot Card */}
         <div className="p-5 bg-slate-950 border-4 border-cyan-500 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.15),transparent_60%)]">
@@ -134,7 +169,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePoo
       {/* Cyberpunk Arcade Board Header */}
       <div className="bg-slate-950 border-4 border-pink-500 rounded-none p-6 relative shadow-[0_0_30px_rgba(236,72,153,0.5)]">
         
-        {/* Subtle decorative retro corner brackets */}
         <div className="absolute top-2 left-2 text-pink-500 font-retro text-xs select-none">[+]</div>
         <div className="absolute top-2 right-2 text-pink-500 font-retro text-xs select-none">[+]</div>
         <div className="absolute bottom-2 left-2 text-pink-500 font-retro text-xs select-none">[+]</div>

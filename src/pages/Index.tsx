@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameCanvas, CosmeticSettings } from '@/components/GameCanvas';
 import { WalletModal } from '@/components/WalletModal';
 import { ProfilePanel } from '@/components/ProfilePanel';
@@ -10,6 +10,7 @@ import { HighScoresTicker } from '@/components/HighScoresTicker';
 import { audioSynth } from '@/utils/audio';
 import { protonService } from '@/utils/proton';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/utils/supabase';
 import { 
   Compass, 
   Volume2, 
@@ -72,6 +73,9 @@ const Index = () => {
   // Hidden crash point calculation
   const [hiddenCollapsePoint, setHiddenCollapsePoint] = useState<number>(0);
 
+  // Track climb start time to enforce 10-second survival rule
+  const climbStartTimeRef = useRef<number>(0);
+
   // Cosmetics control
   const [cosmetics, setCosmetics] = useState<CosmeticSettings>({
     climber: 'standard',
@@ -91,14 +95,66 @@ const Index = () => {
     }
   }, [activeTab, isAdmin]);
 
-  // Sync balances helper function querying standard Proton Mainnet RPC API
+  // Sync balances and fetch persistent player stats from Supabase
   const handleSyncBalances = async (actorName: string) => {
     try {
+      // Fetch RPC blockchain token counts
       const results = await protonService.getBalances(actorName);
       setBalance(results.XPR);
       setGuyBalance(results.GUY);
+
+      // Secure persistent cloud-saves retrieval via Supabase
+      const { data, error } = await supabase
+        .from('climber_profiles')
+        .select('remaining_goes, highest_multiplier, level, xp, lifetime_games')
+        .eq('wallet_address', actorName.toLowerCase())
+        .maybeSingle();
+
+      if (error) {
+        console.error("Database fetch error:", error);
+      }
+
+      if (data) {
+        setRemainingGoes(data.remaining_goes ?? 0);
+        setHighestMultiplier(data.highest_multiplier ?? 1.00);
+        setLevel(data.level ?? 1);
+        setXp(data.xp ?? 0);
+        setLifetimeGames(data.lifetime_games ?? 0);
+      } else {
+        // Initialize new user row in database
+        const { error: insertError } = await supabase
+          .from('climber_profiles')
+          .insert([{ 
+            wallet_address: actorName.toLowerCase(), 
+            remaining_goes: 0, 
+            highest_multiplier: 1.00,
+            level: 1,
+            xp: 0,
+            lifetime_games: 0
+          }]);
+        if (insertError) console.error("Database insert error:", insertError);
+      }
     } catch (e) {
       console.warn("Could not sync live wallet balances:", e);
+    }
+  };
+
+  // Sync persistent credits to DB when modified
+  const savePersistentStats = async (goesCount: number, bestMult: number, lvl: number, activeXp: number, gamesCount: number) => {
+    if (!walletConnected || !walletAddress) return;
+    try {
+      await supabase
+        .from('climber_profiles')
+        .update({
+          remaining_goes: goesCount,
+          highest_multiplier: bestMult,
+          level: lvl,
+          xp: activeXp,
+          lifetime_games: gamesCount
+        })
+        .eq('wallet_address', walletAddress.toLowerCase());
+    } catch (e) {
+      console.error("Failed to persist stats online:", e);
     }
   };
 
@@ -152,7 +208,6 @@ const Index = () => {
       return;
     }
 
-    // Attempt real mainnet transfer to wallet if connected
     if (walletConnected) {
       try {
         toast({
@@ -170,7 +225,6 @@ const Index = () => {
       }
     }
 
-    // Process payment success (Retain 7% operator fee, send 93% directly to weekly leaderboard pot)
     const poolContribution = cost * 0.93;
 
     if (tokenType === 'XPR') {
@@ -179,7 +233,8 @@ const Index = () => {
       setGuyBalance(prev => prev - cost);
     }
 
-    setRemainingGoes(prev => prev + count);
+    const nextGoes = remainingGoes + count;
+    setRemainingGoes(nextGoes);
     
     if (tokenType === 'XPR') {
       setPrizePool(prev => prev + poolContribution);
@@ -187,9 +242,14 @@ const Index = () => {
       setGuyPrizePool(prev => prev + poolContribution);
     }
 
+    // Persist immediately to live database
+    if (walletConnected) {
+      await savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
+    }
+
     toast({
       title: "Climbs Added!",
-      description: `Bought ${count} games for ${cost} ${tokenType}. (93% added to All-Time Prize Pool!)`,
+      description: `Bought ${count} games for ${cost} ${tokenType}. persistent credits locked.`,
     });
 
     if (walletConnected) {
@@ -210,8 +270,13 @@ const Index = () => {
       return;
     }
 
-    // Deduct exactly 1 climb go
-    setRemainingGoes(prev => prev - 1);
+    const nextGoes = remainingGoes - 1;
+    setRemainingGoes(nextGoes);
+    
+    // Save state update directly to Supabase
+    if (walletConnected) {
+      savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
+    }
     
     setMultiplier(1.00);
     setGameState('climbing');
@@ -221,6 +286,9 @@ const Index = () => {
       weather: 'clear'
     }));
 
+    // Start precision millisecond duration check
+    climbStartTimeRef.current = Date.now();
+
     // Generate random secure collapse point
     const randSeed = Math.random();
     let calculatedCollapse = 1.01;
@@ -229,7 +297,6 @@ const Index = () => {
     }
     setHiddenCollapsePoint(calculatedCollapse);
 
-    // Audio triggers
     audioSynth.startWind();
     audioSynth.playHeartbeat(1.00);
     audioSynth.startYodelMusic();
@@ -240,8 +307,8 @@ const Index = () => {
     });
   };
 
-  // Safe Cash out bank triggers - Locks the current multiplier score for weekly payouts
-  const handleBank = () => {
+  // Safe Cash out bank triggers
+  const handleBank = async () => {
     if (gameState !== 'climbing') return;
     setGameState('banked');
 
@@ -250,33 +317,57 @@ const Index = () => {
     audioSynth.playBankSound();
 
     const lockedScore = multiplier;
-
-    // Progression XP reward calculations based on lock-in height
     const xpEarned = Math.floor(lockedScore * 15);
-    setXp(prev => {
-      const nextXp = prev + xpEarned;
-      const threshold = level * 100;
-      if (nextXp >= threshold) {
-        setLevel(l => l + 1);
-        toast({
-          title: "🚀 LEVEL UP!",
-          description: `You reached Level ${level + 1}! Claiming bonus gear.`,
-        });
-        return nextXp - threshold;
-      }
-      return nextXp;
-    });
+    
+    let nextLevel = level;
+    let nextXp = xp + xpEarned;
+    const threshold = level * 100;
 
-    setLifetimeGames(prev => prev + 1);
+    if (nextXp >= threshold) {
+      nextLevel += 1;
+      nextXp -= threshold;
+      toast({
+        title: "🚀 LEVEL UP!",
+        description: `You reached Level ${nextLevel}! Claiming bonus gear.`,
+      });
+    }
 
+    const nextGamesCount = lifetimeGames + 1;
+    setLifetimeGames(nextGamesCount);
+
+    let nextBest = highestMultiplier;
     if (lockedScore > highestMultiplier) {
+      nextBest = lockedScore;
       setHighestMultiplier(lockedScore);
       setWeeklyBest(lockedScore);
+
+      // Record high score dynamically to the cloud leaderboard database!
+      if (walletConnected && walletAddress) {
+        try {
+          await supabase
+            .from('climber_leaderboard')
+            .upsert({
+              wallet_address: walletAddress.toLowerCase(),
+              score: lockedScore,
+              games_played: nextGamesCount,
+              country: 'USA'
+            }, { onConflict: 'wallet_address' });
+        } catch (dbErr) {
+          console.error("Failed to commit scoreboard entry:", dbErr);
+        }
+      }
+    }
+
+    setLevel(nextLevel);
+    setXp(nextXp);
+
+    if (walletConnected) {
+      await savePersistentStats(remainingGoes, nextBest, nextLevel, nextXp, nextGamesCount);
     }
 
     toast({
       title: "Altitude Secured!",
-      description: `Score of ${lockedScore.toFixed(2)}x registered into All-Time Leaderboard! Earned +${xpEarned} XP.`,
+      description: `Score of ${lockedScore.toFixed(2)}x registered. Earned +${xpEarned} XP.`,
     });
   };
 
@@ -313,7 +404,6 @@ const Index = () => {
           audioSynth.updateWindIntensity(nextVal);
           audioSynth.playHeartbeat(nextVal);
 
-          // DYNAMIC SCENIC STAGE LEVEL TRANSITIONS BASED ON CURRENT MULTIPLIER SLOPES
           if (nextVal < 1.50) {
             setCosmetics(c => ({ ...c, theme: 'sunny', weather: 'clear' }));
           } else if (nextVal >= 1.50 && nextVal < 3.00) {
@@ -326,19 +416,29 @@ const Index = () => {
             setCosmetics(c => ({ ...c, theme: 'cyber', weather: 'neonrain' }));
           }
 
-          if (nextVal >= hiddenCollapsePoint) {
+          // Compute exact elapsed climbing seconds
+          const elapsedSecs = (Date.now() - climbStartTimeRef.current) / 1000;
+
+          // GUARANTEE NO COLLAPSE OCCURS BEFORE 10 FULL SECONDS OF ACTIVE FLIGHT
+          if (nextVal >= hiddenCollapsePoint && elapsedSecs >= 10.0) {
             setGameState('collapsed');
-            setLifetimeGames(prev => prev + 1);
+            const nextGamesCount = lifetimeGames + 1;
+            setLifetimeGames(nextGamesCount);
+
+            if (walletConnected) {
+              savePersistentStats(remainingGoes, highestMultiplier, level, xp, nextGamesCount);
+            }
+
             audioSynth.stopHeartbeat();
             audioSynth.stopYodelMusic();
             audioSynth.playCollapseSound();
             toast({
               title: "Mountain Collapsed!",
-              description: `A severe avalanche occurred at ${hiddenCollapsePoint.toFixed(2)}x. Climb failed.`,
+              description: `A severe avalanche occurred at ${nextVal.toFixed(2)}x. Climb failed.`,
               variant: "destructive"
             });
             clearInterval(interval);
-            return hiddenCollapsePoint;
+            return nextVal;
           }
 
           return nextVal;
@@ -347,7 +447,7 @@ const Index = () => {
     }
 
     return () => clearInterval(interval);
-  }, [gameState, hiddenCollapsePoint]);
+  }, [gameState, hiddenCollapsePoint, remainingGoes, highestMultiplier, level, xp, lifetimeGames, walletConnected]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-pink-500 selection:text-white relative overflow-hidden crt-flicker">
@@ -500,7 +600,6 @@ const Index = () => {
                 <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
-              {/* Conditionally render the Admin SYSTEM SET tab only for tripseven */}
               {isAdmin && (
                 <button
                   onClick={() => setActiveTab('admin')}
@@ -520,7 +619,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Interactive All-Time pot explainer item block */}
           <div className="arcade-panel-cyan p-6 space-y-4">
             <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
               <Gift className="h-36 w-36 text-cyan-400" />
@@ -572,13 +670,12 @@ const Index = () => {
           {activeTab === 'climb' && (
             <div className="space-y-6">
               
-              {/* Live Apex ticker placed at the top for real-time dynamic feel */}
               <HighScoresTicker />
 
-              {/* Classic Crash Layout: Game on Left, Controller Console on Right */}
+              {/* Classic Crash Layout */}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 
-                {/* Left Area: Canvas screen, COMPACT & SLEEK ACTION TRIGGER & Instant altitude details */}
+                {/* Left Area */}
                 <div className="xl:col-span-8 space-y-6 crt-screen">
                   <GameCanvas
                     multiplier={multiplier}
@@ -655,7 +752,7 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Right Area: Ascent Controller settings panel next to canvas */}
+                {/* Right Area */}
                 <div className="xl:col-span-4 space-y-6">
                   
                   {/* Expedition Go Counter Panel */}
@@ -731,7 +828,6 @@ const Index = () => {
                         </button>
                       </div>
                       
-                      {/* Live calculation helper under the input */}
                       {!isNaN(parseInt(customGoesInput)) && parseInt(customGoesInput) > 0 && (
                         <p className="text-[9px] font-retro text-yellow-400 mt-1 uppercase">
                           Est. Cost: {parseInt(customGoesInput) * (tokenType === 'XPR' ? 2 : 10)} {tokenType}
@@ -760,7 +856,6 @@ const Index = () => {
                     </div>
                   </div>
 
-                  {/* Active Altitude Stage Explainer Card */}
                   <div className="arcade-panel-cyan p-6 space-y-4">
                     <span className="text-xs font-retro text-white uppercase flex items-center gap-1.5 pb-2 border-b border-cyan-500">
                       <Sparkles className="h-4 w-4 text-cyan-400" /> ACTIVE CLIMB STAGES
@@ -798,7 +893,6 @@ const Index = () => {
             </div>
           )}
 
-          {/* Other displays mapping onto corresponding navigation menus */}
           {activeTab === 'leaderboard' && <Leaderboard prizePool={prizePool} guyPrizePool={guyPrizePool} />}
 
           {activeTab === 'profile' && (
@@ -821,7 +915,6 @@ const Index = () => {
         </main>
       </div>
 
-      {/* Wallet balance modal drawer overlays */}
       {walletOpen && (
         <WalletModal
           onClose={() => setWalletOpen(false)}
@@ -839,7 +932,6 @@ const Index = () => {
         />
       )}
 
-      {/* Aesthetic bottom footer disclaimer */}
       <footer className="mt-12 py-10 border-t-4 border-pink-500 text-center text-[10px] text-slate-500 space-y-6 relative z-10 bg-slate-950">
         <SummitLogo size="lg" className="mx-auto border-4 border-cyan-400 rounded-none shadow-[0_0_15px_rgba(6,182,212,0.4)]" />
         <div>
