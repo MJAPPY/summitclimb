@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CheckCircle, Cpu, ExternalLink, Shield } from 'lucide-react';
 import { protonService } from '@/utils/proton';
 import { useToast } from '@/hooks/use-toast';
@@ -21,7 +21,9 @@ interface WalletModalProps {
 export const WalletModal: React.FC<WalletModalProps> = ({
   onClose,
   balance,
+  setBalance,
   guyBalance,
+  setGuyBalance,
   tokenType,
   setTokenType,
   walletConnected,
@@ -31,6 +33,13 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   onSyncBalances
 }) => {
   const { toast } = useToast();
+
+  // Sync balances immediately on mount if already connected to ensure they are up-to-date
+  useEffect(() => {
+    if (walletConnected && walletAddress) {
+      onSyncBalances();
+    }
+  }, [walletConnected, walletAddress]);
 
   // Active balance dynamically switching based on tokenType state
   const activeBalance = tokenType === 'XPR' ? balance : guyBalance;
@@ -59,6 +68,8 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     await protonService.disconnect();
     setWalletConnected(false);
     setWalletAddress('');
+    setBalance(0);
+    setGuyBalance(0);
     toast({
       title: "Disconnected",
       description: "Ended active Proton link protocol session.",
