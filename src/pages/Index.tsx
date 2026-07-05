@@ -33,7 +33,8 @@ import {
   ChevronRight,
   Gift,
   Coins as PotIcon,
-  Lock
+  Lock,
+  RefreshCw
 } from 'lucide-react';
 
 const Index = () => {
@@ -54,6 +55,9 @@ const Index = () => {
   const [tokenType, setTokenType] = useState<'XPR' | 'GUY'>('XPR');
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(0);
+
+  // Balance refreshing state
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // Remaining climb Goes Counter (Default starts with 0 for unauthenticated users)
   const [remainingGoes, setRemainingGoes] = useState<number>(0);
@@ -215,6 +219,36 @@ const Index = () => {
       }
     } catch (e) {
       console.warn("Could not sync live database stats:", e);
+    }
+  };
+
+  // Trigger manual sync/refresh for player balances
+  const handleManualRefresh = async () => {
+    if (!walletConnected || !walletAddress) {
+      toast({
+        title: "No Wallet Linked",
+        description: "Connect your WebAuth wallet first to refresh balances.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await handleSyncBalances(walletAddress);
+      await fetchLivePots();
+      toast({
+        title: "Balances Synchronized",
+        description: "Refreshed live ledger balances successfully.",
+      });
+    } catch (err) {
+      toast({
+        title: "Sync Interrupted",
+        description: "Failed to connect to blockchain RPC nodes.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -581,6 +615,18 @@ const Index = () => {
 
         {/* Wallet trigger & settings */}
         <div className="flex items-center gap-4">
+          {/* Manual Refresh Button for Account Balances */}
+          {walletConnected && (
+            <button
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="p-3 bg-slate-900 hover:bg-slate-800 text-cyan-400 hover:text-cyan-300 border-2 border-cyan-500 shadow-md transition-all rounded-none disabled:opacity-50"
+              title="Refresh Player Balances"
+            >
+              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+          )}
+
           <button
             onClick={toggleMute}
             className="p-3 bg-slate-900 hover:bg-slate-800 text-pink-400 hover:text-pink-300 border-2 border-pink-500 shadow-md transition-all rounded-none"
