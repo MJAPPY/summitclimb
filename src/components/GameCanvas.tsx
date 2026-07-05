@@ -12,47 +12,9 @@ interface GameCanvasProps {
   multiplier: number;
   gameState: 'idle' | 'climbing' | 'banked' | 'collapsed';
   cosmetics: CosmeticSettings;
-  isLeaping?: boolean; // Receive leap visual triggers from gameplay core
 }
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, cosmetics, isLeaping = false }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  
-  // High fidelity particle engines (Atmospheric elements, wind drifts, rock slides, sparks)
-  const weatherParticlesRef = useRef<Array<{
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    size: number;
-    color: string;
-    opacity: number;
-    phase: number;
-    amplitude: number;
-  }>>([]);
-
-  const sparkParticlesRef = useRef<Array<{
-    x: number;
-    <dyad-write path="src/components/GameCanvas.tsx" description="Complete implementation of GameCanvas rendering high altitude leaps, trailing stars, falling boulders, and grazing Swiss fauna.">
-import React, { useRef, useEffect } from 'react';
-
-export interface CosmeticSettings {
-  climber: 'standard' | 'gold' | 'neon' | 'astro';
-  theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic';
-  weather: 'clear' | 'snow' | 'rain' | 'storm' | 'blizzard' | 'neonrain';
-  flag: 'summit' | 'gold777' | 'pirate' | 'cyber';
-  trail: 'none' | 'rainbow' | 'gold' | 'fire' | 'neon';
-}
-
-interface GameCanvasProps {
-  multiplier: number;
-  gameState: 'idle' | 'climbing' | 'banked' | 'collapsed';
-  cosmetics: CosmeticSettings;
-  isLeaping?: boolean; // Leaping state from Index.tsx
-}
-
-export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, cosmetics, isLeaping = false }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, cosmetics }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   
@@ -679,27 +641,33 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       const animalEndIdx = animalStartIdx + Math.ceil(canvas.width / animalSpacing) + 2;
 
       for (let i = animalStartIdx; i <= animalEndIdx; i++) {
+        // Deterministic pseudo-random generation based on index
         const hash = Math.abs(Math.sin(i * 123.456 + 789));
         const animalOffset = Math.cos(i * 987.654) * 90;
         const animalX = (i * animalSpacing) - scrollOffset + animalOffset;
         const animalY = getSlopeY(animalX, scrollRef.current);
 
+        // Render standard animals within active screen bounds (leaving room for margins)
         if (animalX > -80 && animalX < canvas.width + 80) {
+          // Keep away from player start spawn area
           if (Math.abs(animalX - guyXRef.current) > 75 || gameState !== 'climbing') {
             const animalType = hash < 0.45 ? 'goat' : hash < 0.90 ? 'cow' : 'none';
             const lookingDir = Math.sin(i * 543.21) > 0 ? 1 : -1;
             const chewBob = Math.sin(t * 0.06 + i) * 2;
 
             if (animalType === 'goat') {
+              // 1. GRAZING MOUNTAIN GOAT
               ctx.save();
               ctx.translate(animalX, animalY);
               ctx.scale(lookingDir, 1);
 
+              // Shadow
               ctx.fillStyle = 'rgba(15, 23, 42, 0.25)';
               ctx.beginPath();
               ctx.ellipse(0, 2, 16, 5, 0, 0, Math.PI * 2);
               ctx.fill();
 
+              // Legs
               ctx.strokeStyle = '#475569';
               ctx.lineWidth = 2.5;
               ctx.beginPath();
@@ -709,11 +677,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
               ctx.moveTo(7, 0); ctx.lineTo(7, 12);
               ctx.stroke();
 
+              // Body
               ctx.fillStyle = '#ffffff';
               ctx.beginPath();
               ctx.ellipse(0, -2, 12, 8, 0, 0, Math.PI * 2);
               ctx.fill();
 
+              // Head with cute grazing bobbing motion
               ctx.save();
               ctx.translate(10, -8 + chewBob * 0.6);
               ctx.fillStyle = '#ffffff';
@@ -721,6 +691,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
               ctx.arc(0, 0, 5, 0, Math.PI * 2);
               ctx.fill();
 
+              // Beard
               ctx.strokeStyle = '#cbd5e1';
               ctx.lineWidth = 1.5;
               ctx.beginPath();
@@ -728,6 +699,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
               ctx.lineTo(2, 8);
               ctx.stroke();
 
+              // Curved Horns
               ctx.strokeStyle = '#facc15';
               ctx.lineWidth = 1.8;
               ctx.beginPath();
@@ -737,6 +709,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
               ctx.restore();
 
+              // Fluffy Tail
               ctx.fillStyle = '#ffffff';
               ctx.beginPath();
               ctx.arc(-11, -5, 3, 0, Math.PI * 2);
@@ -744,15 +717,18 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
               ctx.restore();
             } else if (animalType === 'cow') {
+              // 2. RETRO SWISS ALPINE COW
               ctx.save();
               ctx.translate(animalX, animalY);
               ctx.scale(lookingDir, 1);
 
+              // Shadow
               ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
               ctx.beginPath();
               ctx.ellipse(0, 4, 22, 6, 0, 0, Math.PI * 2);
               ctx.fill();
 
+              // Sturdy Cow Legs
               ctx.strokeStyle = '#1e293b';
               ctx.lineWidth = 4;
               ctx.beginPath();
@@ -762,17 +738,20 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
               ctx.moveTo(13, 0); ctx.lineTo(13, 14);
               ctx.stroke();
 
+              // Cow pink udders
               ctx.fillStyle = '#fda4af';
               ctx.beginPath();
               ctx.ellipse(0, 3, 5, 4, 0, 0, Math.PI * 2);
               ctx.fill();
 
-              ctx.fillStyle = '#f8fafc'; 
+              // Large Boxy spotted Body
+              ctx.fillStyle = '#f8fafc'; // White base
               ctx.fillRect(-18, -14, 34, 18);
               ctx.strokeStyle = '#0f172a';
               ctx.lineWidth = 1.5;
               ctx.strokeRect(-18, -14, 34, 18);
 
+              // Dark Spots
               ctx.fillStyle = '#1e293b';
               ctx.beginPath();
               ctx.arc(-10, -8, 5, 0, Math.PI * 2);
@@ -781,26 +760,33 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
               ctx.arc(-1, -12, 5, 0, Math.PI * 2);
               ctx.fill();
 
+              // Cow Head with dynamic grazing tilt
               ctx.save();
               ctx.translate(20, -11 + chewBob * 0.7);
               
+              // Neck connector
               ctx.fillStyle = '#f8fafc';
               ctx.fillRect(-6, -2, 8, 8);
 
+              // Face block
               ctx.fillRect(-2, -5, 11, 11);
               ctx.strokeRect(-2, -5, 11, 11);
 
+              // Black spot over eye
               ctx.fillStyle = '#1e293b';
               ctx.fillRect(0, -4, 4, 4);
 
+              // Pink snout
               ctx.fillStyle = '#fda4af';
               ctx.fillRect(5, 1, 5, 5);
 
+              // Ears
               ctx.fillStyle = '#f8fafc';
               ctx.beginPath();
               ctx.ellipse(-3, -4, 4, 1.8, -Math.PI/6, 0, Math.PI*2);
               ctx.fill();
 
+              // Little Horns
               ctx.strokeStyle = '#f59e0b';
               ctx.lineWidth = 2;
               ctx.beginPath();
@@ -808,6 +794,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
               ctx.quadraticCurveTo(4, -10, 6, -9);
               ctx.stroke();
 
+              // Classic Golden Swiss Neck Bell
               ctx.fillStyle = '#facc15';
               ctx.strokeStyle = '#d97706';
               ctx.lineWidth = 1.2;
@@ -821,6 +808,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
               ctx.restore();
 
+              // Tail with fluffy tip shaking
               const tailShake = Math.sin(t * 0.12 + i) * 3;
               ctx.strokeStyle = '#f8fafc';
               ctx.lineWidth = 2;
@@ -829,6 +817,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
               ctx.quadraticCurveTo(-24 + tailShake, -4, -22 + tailShake, 2);
               ctx.stroke();
 
+              // Tail tip puff
               ctx.fillStyle = '#1e293b';
               ctx.beginPath();
               ctx.arc(-22 + tailShake, 2, 2.5, 0, Math.PI * 2);
@@ -929,10 +918,12 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       const dynamicMilestones: Array<{ mult: number; label: string }> = [];
       const currentInt = Math.floor(multiplier);
       
+      // Generate nearby milestones procedurally: from 3 steps behind up to 6 steps ahead
       const startMark = Math.max(1, currentInt - 3);
       const endMark = currentInt + 6;
 
       for (let m = startMark; m <= endMark; m++) {
+        // Main full integer multiplier flags
         if (m > 1) {
           dynamicMilestones.push({
             mult: m,
@@ -940,6 +931,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           });
         }
         
+        // Half steps (e.g. 1.50x, 2.50x) at early altitudes (under 10x) to keep the pacing busy and fun
         if (m < 10) {
           dynamicMilestones.push({
             mult: m + 0.5,
@@ -948,10 +940,12 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         }
       }
 
+      // Ensure 1.50x is always there in early stages
       if (multiplier < 2.0) {
         dynamicMilestones.push({ mult: 1.50, label: '1.50x' });
       }
 
+      // Filter unique milestones, sort, and render
       const uniqueMilestones = Array.from(new Map(dynamicMilestones.map(item => [item.mult, item])).values())
         .sort((a, b) => a.mult - b.mult);
 
@@ -1059,10 +1053,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       guyXRef.current += (targetClimbX - guyXRef.current) * 0.12;
       const guyBaseY = getSlopeY(guyXRef.current, scrollRef.current);
       
-      // Implement leap mechanics: offset the Y value high into the sky if leap is active!
-      const leapYOffset = isLeaping ? Math.sin((t * 0.25) % Math.PI) * 110 : 0;
-      const bounceBob = gameState === 'climbing' && !isLeaping ? Math.abs(Math.sin(t * 0.28)) * 14 : 0;
-      guyYRef.current = guyBaseY - 32 - bounceBob - leapYOffset;
+      const bounceBob = gameState === 'climbing' ? Math.abs(Math.sin(t * 0.28)) * 14 : 0;
+      guyYRef.current = guyBaseY - 32 - bounceBob;
 
       if (cosmetics.trail !== 'none' && gameState === 'climbing') {
         let trailColor = '#38bdf8';
@@ -1080,7 +1072,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           x: guyXRef.current - 12,
           y: guyYRef.current + 18,
           alpha: 1,
-          size: isLeaping ? 12 + Math.random() * 12 : 6 + Math.random() * 8, // Draw a thicker, gorgeous shockwave trail during leaps
+          size: 6 + Math.random() * 8,
           color: trailColor,
           vx: -5 - Math.random() * 3,
           vy: 2 + (Math.random() - 0.5) * 3
@@ -1115,24 +1107,22 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       // 10. HERO CLIMBER AVATAR RENDERING WITH SLOPE TILT, SQUASH/STRETCH AND SWAY
       ctx.save();
       
+      // Calculate precise local slope angle to rotate climber body
       const sampleSlopeY1 = getSlopeY(guyXRef.current - 8, scrollRef.current);
       const sampleSlopeY2 = getSlopeY(guyXRef.current + 8, scrollRef.current);
       const slopeAngle = Math.atan2(sampleSlopeY2 - sampleSlopeY1, 16);
 
+      // Determine stretch factors based on vertical climb speed bobs (Squash and Stretch)
       const stretchAmount = gameState === 'climbing' ? Math.sin(t * 0.28) * 0.12 : 0;
       const scaleX = 1 - stretchAmount;
       const scaleY = 1 + stretchAmount;
 
+      // Determine wind drag sway at higher altitudes
       const windSwayAngle = gameState === 'climbing' ? Math.min(0.24, multiplier * 0.015) : 0;
 
+      // Position, rotate, stretch, and skew the climber coordinate system dynamically!
       ctx.translate(guyXRef.current, guyYRef.current + 16);
       ctx.rotate(slopeAngle - windSwayAngle);
-      
-      // Spin the climber slightly if they are performing an epic leap to look extra stylized!
-      if (isLeaping) {
-        ctx.rotate(Math.sin(t * 0.15) * 0.35);
-      }
-
       ctx.scale(scaleX, scaleY);
       ctx.translate(0, -16);
 
@@ -1149,6 +1139,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
                         cosmetics.climber === 'neon' ? '#a855f7' :
                         cosmetics.climber === 'astro' ? '#2563eb' : '#dc2626';
 
+      // Cape vector oscillations matching movement sway
       ctx.fillStyle = capeColor;
       ctx.beginPath();
       ctx.moveTo(-12, 6);
@@ -1174,6 +1165,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         );
         ctx.restore();
       } else {
+        // Draw geometric modular climber body
         ctx.fillStyle = '#fbcfe8';
         ctx.beginPath();
         ctx.arc(0, -15, 11, 0, Math.PI * 2);
@@ -1191,20 +1183,23 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.fill();
       }
 
+      // Draw Ice Climbing pickaxe swinging dynamically to strike the mountain
       const pickaxeSwingAngle = gameState === 'climbing' ? Math.sin(t * 0.22) * 0.65 - 0.2 : -0.3;
       
       ctx.save();
       ctx.translate(10, 4);
       ctx.rotate(pickaxeSwingAngle);
       
-      ctx.strokeStyle = '#78350f'; 
+      // Axe shaft
+      ctx.strokeStyle = '#78350f'; // Wood handle
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(0, -24);
       ctx.stroke();
 
-      ctx.fillStyle = '#94a3b8'; 
+      // Steel head pick
+      ctx.fillStyle = '#94a3b8'; // Iron
       ctx.beginPath();
       ctx.moveTo(-2, -24);
       ctx.lineTo(14, -28);
@@ -1213,6 +1208,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
       ctx.closePath();
       ctx.fill();
 
+      // Sharp pick point
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
@@ -1222,8 +1218,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
       ctx.restore();
 
-      ctx.restore(); 
+      ctx.restore(); // Exit stretched and rotated local coordinates
 
+      // If active hacking, spawn ice chip sparks on pick swing peaks!
       if (gameState === 'climbing' && t % 14 === 0) {
         for (let i = 0; i < 3; i++) {
           sparkParticlesRef.current.push({
@@ -1307,7 +1304,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         });
       }
 
-      // 12. EXPLOSIVE AVALANCHE COLLAPSE WITH SNOWBALLS TUMBLING DOWN
+      // 12. EXPLOSIVE AVALANCHE COLLAPSE WITH EXACTLY 3 SNOWBALLS TUMBLING DOWN
       if (gameState === 'collapsed') {
         const boomRadius = 140;
         const boomGrad = ctx.createRadialGradient(
@@ -1324,6 +1321,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         ctx.arc(guyXRef.current, guyYRef.current, boomRadius, 0, Math.PI * 2);
         ctx.fill();
 
+        // Exactly 3 massive distinct snowballs falling down the screen
         const avalancheColor = cosmetics.theme === 'cyber' ? '#ec4899' : '#ffffff';
         ctx.fillStyle = avalancheColor;
         ctx.strokeStyle = cosmetics.theme === 'cyber' ? '#00ffff' : '#cbd5e1';
@@ -1331,17 +1329,21 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
 
         for (let b = 1; b <= 3; b++) {
           const ballAge = t % 40;
+          // Space out the 3 snowballs using distinct trajectories
           const angleOffset = (b * Math.PI) / 3;
           const fallingDistance = ballAge * 10;
           
+          // Generate falling vectors moving down and slightly outward
           const ballX = guyXRef.current - 40 + (b * 40) + Math.cos(angleOffset) * (fallingDistance * 0.3);
           const ballY = guyYRef.current - 10 + fallingDistance + (ballAge * ballAge * 0.12);
 
           ctx.save();
+          // Shadow effect
           ctx.shadowColor = cosmetics.theme === 'cyber' ? '#ec4899' : 'rgba(0,0,0,0.4)';
           ctx.shadowBlur = 15;
 
           ctx.beginPath();
+          // Larger, high impact snow boulders
           ctx.arc(ballX, ballY, 28 - b * 3, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
@@ -1364,7 +1366,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [multiplier, gameState, cosmetics, isLeaping]);
+  }, [multiplier, gameState, cosmetics]);
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70 shadow-2xl backdrop-blur-xl">

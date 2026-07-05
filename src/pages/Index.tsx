@@ -34,19 +34,8 @@ import {
   Gift,
   Coins as PotIcon,
   Lock,
-  RefreshCw,
-  Zap,
-  MessageSquare,
-  Send,
-  Music
+  RefreshCw
 } from 'lucide-react';
-
-interface ChatMessage {
-  id: string;
-  sender: string;
-  text: string;
-  time: string;
-}
 
 const Index = () => {
   const { toast } = useToast();
@@ -60,9 +49,9 @@ const Index = () => {
   const [walletConnected, setWalletConnected] = useState<boolean>(false);
   const [walletAddress, setWalletAddress] = useState<string>('');
 
-  // Currency & Player progression states
-  const [balance, setBalance] = useState<number>(0);         
-  const [guyBalance, setGuyBalance] = useState<number>(0);   
+  // Currency & Player progression states starting completely fresh!
+  const [balance, setBalance] = useState<number>(0);         // XPR Balance
+  const [guyBalance, setGuyBalance] = useState<number>(0);   // GUY Balance
   const [tokenType, setTokenType] = useState<'XPR' | 'GUY'>('XPR');
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(0);
@@ -70,12 +59,12 @@ const Index = () => {
   // Balance refreshing state
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Remaining climb Goes Counter
+  // Remaining climb Goes Counter (Default starts with 0 for unauthenticated users)
   const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
-  // Pots states
-  const [prizePool, setPrizePool] = useState<number>(0); 
-  const [guyPrizePool, setGuyPrizePool] = useState<number>(0); 
+  // Pots states backed by game-purchased accumulated values in Supabase
+  const [prizePool, setPrizePool] = useState<number>(0); // Starts at 0
+  const [guyPrizePool, setGuyPrizePool] = useState<number>(0); // Starts at 0
 
   // Stats reset
   const [lifetimeGames, setLifetimeGames] = useState<number>(0);
@@ -85,17 +74,6 @@ const Index = () => {
   // Active climb mechanics state
   const [gameState, setGameState] = useState<'idle' | 'climbing' | 'banked' | 'collapsed'>('idle');
   const [multiplier, setMultiplier] = useState<number>(1.00);
-
-  // Interactive Leap mechanics state
-  const [isLeaping, setIsLeaping] = useState<boolean>(false);
-  const [leapCooldown, setLeapCooldown] = useState<number>(0);
-
-  // Live Clan Chat/Feeds module
-  const [chatInput, setChatInput] = useState<string>('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '1', sender: '@tripseven', text: 'Staking 500 GUY into the Monday reward pools! Let\'s go!', time: '1m ago' },
-    { id: '2', sender: '@askguy', text: 'Cyber stage reached! Multiplier exceeds 10x!', time: 'Just now' },
-  ]);
 
   // Custom bulk goes purchase custom amount state
   const [customGoesInput, setCustomGoesInput] = useState<string>('10');
@@ -122,64 +100,21 @@ const Index = () => {
   });
 
   const activeUserAddress = walletConnected && walletAddress ? walletAddress : '';
+
+  // Check if active user has administrator clearances
   const isAdmin = walletConnected && walletAddress.toLowerCase() === 'tripseven';
 
+  // Safeguard: Fallback to Arcade Climb if not authorized
   useEffect(() => {
     if (activeTab === 'admin' && !isAdmin) {
       setActiveTab('climb');
     }
   }, [activeTab, isAdmin]);
 
-  // Handle Spacebar listener for active leaps!
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        // Prevent page scrolling
-        e.preventDefault();
-        triggerLeapSkill();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, isLeaping, leapCooldown]);
-
-  // Active Leap Skill
-  const triggerLeapSkill = () => {
-    if (gameState !== 'climbing') return;
-    if (isLeaping || leapCooldown > 0) return;
-
-    setIsLeaping(true);
-    setLeapCooldown(100); // 5 seconds cool-down (100 steps)
-    audioSynth.playLeapSound();
-
-    // Reward an instant, epic boost multiplier bonus to active risk-takers!
-    setMultiplier(prev => parseFloat((prev + 0.15 + Math.random() * 0.10).toFixed(2)));
-
-    toast({
-      title: "EPIC LEAP!",
-      description: "Triggered speed jump boost! Multiplier surged!",
-    });
-
-    // End leap state after 1.1 seconds
-    setTimeout(() => {
-      setIsLeaping(false);
-    }, 1100);
-  };
-
-  // Leap Cooldown ticker
-  useEffect(() => {
-    let interval: any = null;
-    if (leapCooldown > 0) {
-      interval = setInterval(() => {
-        setLeapCooldown(prev => Math.max(0, prev - 2));
-      }, 100);
-    }
-    return () => clearInterval(interval);
-  }, [leapCooldown]);
-
-  // Fetch live accumulated game pots
+  // Fetch only the accumulated game pots from both the database and the actual Proton RPC wallet balances
   const fetchLivePots = async () => {
     try {
+      // 1. Fetch fallback from Supabase configurations
       const { data, error } = await supabase
         .from('climber_profiles')
         .select('highest_multiplier, xp')
@@ -190,10 +125,12 @@ const Index = () => {
         console.error("Error loading global pots from database:", error);
       }
 
+      // 2. Query exact on-chain balances for tripseven and askguy directly via Proton Web SDK/RPC
       try {
         const tripsevenBalance = await protonService.getBalances('tripseven');
         const askguyBalance = await protonService.getBalances('askguy');
 
+        // Accept whatever the RPC actual returned, even if it is exactly 0
         setPrizePool(tripsevenBalance.XPR);
         setGuyPrizePool(askguyBalance.GUY);
       } catch (rpcErr) {
@@ -208,6 +145,7 @@ const Index = () => {
     }
   };
 
+  // Securely increment the accumulated pot via safe server-side table insert trigger
   const incrementAccumulatedPot = async (amount: number, type: 'XPR' | 'GUY') => {
     try {
       const { error } = await supabase
@@ -218,12 +156,14 @@ const Index = () => {
         throw error;
       }
 
+      // Refresh balances immediately
       await fetchLivePots();
     } catch (e) {
       console.error("Could not securely update persistent pots:", e);
     }
   };
 
+  // Safe administrative pot boost that delegates checks directly to DB authorization layer
   const handleBoostGlobalPotAdmin = async (amount: number, type: 'XPR' | 'GUY') => {
     const { error } = await supabase.rpc('boost_global_pot', {
       p_wallet: walletAddress,
@@ -238,15 +178,18 @@ const Index = () => {
     await fetchLivePots();
   };
 
+  // Sync balances and fetch persistent player stats from Supabase
   const handleSyncBalances = async (actorName: string) => {
     if (!actorName) return;
     try {
       if (walletConnected) {
+        // Fetch RPC blockchain token counts
         const results = await protonService.getBalances(actorName);
         setBalance(results.XPR);
         setGuyBalance(results.GUY);
       }
 
+      // Secure persistent cloud-saves retrieval via Supabase
       const { data, error } = await supabase
         .from('climber_profiles')
         .select('remaining_goes, highest_multiplier, level, xp, lifetime_games')
@@ -264,6 +207,7 @@ const Index = () => {
         setXp(data.xp ?? 0);
         setLifetimeGames(data.lifetime_games ?? 0);
       } else {
+        // Initialize new user row in database
         const { error: insertError } = await supabase
           .from('climber_profiles')
           .insert([{ 
@@ -281,6 +225,7 @@ const Index = () => {
     }
   };
 
+  // Trigger manual sync/refresh for player balances
   const handleManualRefresh = async () => {
     if (!walletConnected || !walletAddress) {
       toast({
@@ -310,6 +255,7 @@ const Index = () => {
     }
   };
 
+  // Sync persistent credits to DB when modified
   const savePersistentStats = async (goesCount: number, bestMult: number, lvl: number, activeXp: number, gamesCount: number) => {
     if (!walletConnected || !walletAddress) return;
     try {
@@ -328,6 +274,7 @@ const Index = () => {
     }
   };
 
+  // Load pots on mount and attempt silent session restore
   useEffect(() => {
     fetchLivePots();
 
@@ -346,6 +293,7 @@ const Index = () => {
     autoLogin();
   }, []);
 
+  // Poll balances, pots and scores every 15 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchLivePots();
@@ -356,12 +304,14 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [walletConnected, walletAddress]);
 
+  // Toggle sound
   const toggleMute = () => {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
     audioSynth.setMute(nextMuted);
   };
 
+  // Bulk buy goes transaction handler (Rate: 2 XPR per Go, or 10 GUY per Go)
   const handleBuyGoes = async (count: number) => {
     if (!walletConnected) {
       toast({
@@ -409,11 +359,13 @@ const Index = () => {
       setGuyBalance(prev => prev - cost);
     }
 
+    // Increment global persistent pots with the exact amount paid into the game
     await incrementAccumulatedPot(cost, tokenType);
 
     const nextGoes = remainingGoes + count;
     setRemainingGoes(nextGoes);
 
+    // Persist immediately to live database
     await savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
 
     toast({
@@ -421,9 +373,11 @@ const Index = () => {
       description: `Bought ${count} games for ${cost} ${tokenType}. persistent credits locked.`,
     });
 
+    // Re-sync user stats
     handleSyncBalances(walletAddress);
   };
 
+  // Start ascending summit climb (costs exactly 1 remaining go)
   const handleStartClimb = () => {
     if (!walletConnected) {
       handleConnectWallet();
@@ -443,6 +397,7 @@ const Index = () => {
     const nextGoes = remainingGoes - 1;
     setRemainingGoes(nextGoes);
     
+    // Save state update directly to Supabase
     savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
     
     setMultiplier(1.00);
@@ -453,11 +408,14 @@ const Index = () => {
       weather: 'clear'
     }));
 
+    // Start precision millisecond duration check
     climbStartTimeRef.current = Date.now();
 
+    // Generate random secure collapse point with exponentially higher limits (up to 200x)
     const randSeed = Math.random();
-    let calculatedCollapse = 1.80; 
+    let calculatedCollapse = 1.80; // Safer early threshold
     if (randSeed > 0.02) {
+      // Drastically increased scalability from 4.8 to 12.0 with a power of 2.2 to allow sky-high scores
       calculatedCollapse = parseFloat((1.80 + Math.pow(Math.random() * 12.0, 2.2)).toFixed(2));
     }
     setHiddenCollapsePoint(calculatedCollapse);
@@ -472,6 +430,7 @@ const Index = () => {
     });
   };
 
+  // Safe Cash out bank triggers
   const handleBank = async () => {
     if (gameState !== 'climbing') return;
     setGameState('banked');
@@ -505,6 +464,7 @@ const Index = () => {
       setHighestMultiplier(lockedScore);
       setWeeklyBest(lockedScore);
 
+      // Record high score dynamically to the cloud leaderboard database!
       if (walletConnected && walletAddress) {
         try {
           await supabase
@@ -526,16 +486,19 @@ const Index = () => {
 
     await savePersistentStats(remainingGoes, nextBest, nextLevel, nextXp, nextGamesCount);
 
+    // Launch run results card
     setSummaryResult('banked');
     setSummaryMultiplier(lockedScore);
     setSummaryXpEarned(xpEarned);
     setSummaryOpen(true);
   };
 
+  // Set local state workaround helper
   const setSelfLifeTimes = (val: number) => {
     setLifetimeGames(val);
   };
 
+  // Launch genuine wallet connection selector dialog
   const handleConnectWallet = async () => {
     try {
       const connection = await protonService.connect();
@@ -555,33 +518,14 @@ const Index = () => {
     }
   };
 
-  // Soundboard triggers
-  const playSoundEffect = (type: 'chest' | 'head' | 'tremolo' | 'echo_peak') => {
-    audioSynth.playInteractiveSound(type);
-  };
-
-  // Chat message send
-  const handleSendChat = () => {
-    if (!chatInput.trim()) return;
-    const senderName = walletConnected ? `@${walletAddress}` : 'Player 1';
-    const newMsg: ChatMessage = {
-      id: Date.now().toString(),
-      sender: senderName,
-      text: chatInput,
-      time: 'Just now'
-    };
-    setMessages(prev => [newMsg, ...prev].slice(0, 15));
-    setChatInput('');
-  };
-
   // Game step interval
   useEffect(() => {
     let interval: any = null;
     if (gameState === 'climbing') {
-      let speedStep = 0.006; 
+      let speedStep = 0.006; // Slightly slowed down multiplier speed step so the runs are longer and feel more controllable
       interval = setInterval(() => {
         setMultiplier((prev) => {
-          const growthFactor = 1 + (prev - 1) * 0.08; 
+          const growthFactor = 1 + (prev - 1) * 0.08; // More gradual growth progression curve
           const nextVal = parseFloat((prev + speedStep * growthFactor).toFixed(2));
 
           audioSynth.updateWindIntensity(nextVal);
@@ -599,8 +543,10 @@ const Index = () => {
             setCosmetics(c => ({ ...c, theme: 'cyber', weather: 'neonrain' }));
           }
 
+          // Compute exact elapsed climbing seconds
           const elapsedSecs = (Date.now() - climbStartTimeRef.current) / 1000;
 
+          // GUARANTEE NO COLLAPSE OCCURS BEFORE 10 FULL SECONDS OF ACTIVE FLIGHT
           if (nextVal >= hiddenCollapsePoint && elapsedSecs >= 10.0) {
             setGameState('collapsed');
             const nextGamesCount = lifetimeGames + 1;
@@ -614,6 +560,7 @@ const Index = () => {
             audioSynth.stopYodelMusic();
             audioSynth.playCollapseSound();
 
+            // Set collapse details into card
             setSummaryResult('collapsed');
             setSummaryMultiplier(nextVal);
             setSummaryXpEarned(0);
@@ -677,6 +624,7 @@ const Index = () => {
 
         {/* Wallet trigger & settings */}
         <div className="flex items-center gap-4">
+          {/* Manual Refresh Button for Account Balances */}
           {walletConnected && (
             <button
               onClick={handleManualRefresh}
@@ -898,115 +846,37 @@ const Index = () => {
                     multiplier={multiplier}
                     gameState={gameState}
                     cosmetics={cosmetics}
-                    isLeaping={isLeaping}
                   />
 
-                  {/* ACTIVE ACTION CONTROLS */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                    
-                    {/* Main Start / Collect Button */}
-                    <div className="sm:col-span-8">
-                      {!walletConnected ? (
-                        <button
-                          onClick={handleConnectWallet}
-                          className="w-full py-7 bg-gradient-to-r from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-xs border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)] flash-fast"
-                        >
-                          <Wallet className="h-5 w-5" />
-                          <span>CONNECT WEBAUTH TO CLIMB</span>
-                        </button>
-                      ) : gameState === 'climbing' ? (
-                        <button
-                          onClick={handleBank}
-                          className="w-full py-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-slate-950 font-retro text-sm border-b-8 border-green-700 active:border-b-2 active:translate-y-1.5 transition-all flex flex-col items-center justify-center gap-2 glow-green shadow-[0_0_40px_rgba(34,197,94,0.6)] cursor-pointer"
-                        >
-                          <span className="text-[9px] text-green-950 tracking-[0.2em] font-black uppercase">HIT TO COLLECT</span>
-                          <span className="text-base font-black">
-                            LOCK ALTITUDE: {multiplier.toFixed(2)}x
-                          </span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={handleStartClimb}
-                          className="w-full py-7 bg-gradient-to-b from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-xs border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)]"
-                        >
-                          <span>Insert coin - press to play</span>
-                          <ArrowUpRight className="h-5 w-5 stroke-[4px]" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* NEW Active Skill button: Leaping / Multiplier Surge Dash */}
-                    <div className="sm:col-span-4">
+                  {/* RETRO ARCADE BUTTONS */}
+                  <div className="w-full">
+                    {!walletConnected ? (
                       <button
-                        onClick={triggerLeapSkill}
-                        disabled={gameState !== 'climbing' || leapCooldown > 0}
-                        className={`w-full h-full py-5 flex flex-col items-center justify-center rounded-none font-retro text-xs border-2 transition-all relative overflow-hidden select-none ${
-                          gameState === 'climbing'
-                            ? leapCooldown > 0
-                              ? 'border-slate-800 bg-slate-950 text-slate-600 cursor-default'
-                              : 'border-yellow-400 bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400 hover:text-slate-950 active:translate-y-1 shadow-[0_0_15px_rgba(250,204,21,0.25)]'
-                            : 'border-white/5 bg-slate-950/40 text-slate-600 cursor-default opacity-50'
-                        }`}
+                        onClick={handleConnectWallet}
+                        className="w-full py-7 bg-gradient-to-r from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-xs border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)] flash-fast"
                       >
-                        {leapCooldown > 0 ? (
-                          <>
-                            <span className="text-[9px] block">COOLING...</span>
-                            <span className="text-base font-black mt-1 font-mono">{(leapCooldown/20).toFixed(1)}s</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-                              <Zap className="h-3 w-3 animate-bounce" /> LEAP SKILL
-                            </span>
-                            <span className="text-base font-black mt-1">SPACEBAR</span>
-                          </>
-                        )}
-                        {/* Cooldown loading ring overlay */}
-                        {leapCooldown > 0 && (
-                          <div 
-                            className="absolute bottom-0 left-0 h-1 bg-yellow-400 transition-all duration-100" 
-                            style={{ width: `${leapCooldown}%` }} 
-                          />
-                        )}
+                        <Wallet className="h-5 w-5" />
+                        <span>CONNECT WEBAUTH TO CLIMB</span>
                       </button>
-                    </div>
-
-                  </div>
-
-                  {/* INTERACTIVE ALPS SOUNDBOARD KEYBOARD */}
-                  <div className="arcade-panel p-5 space-y-4">
-                    <h3 className="text-[10px] font-retro text-purple-400 tracking-wider flex items-center gap-2 pb-2 border-b-2 border-dashed border-purple-500/20">
-                      <Music className="h-4 w-4 text-pink-500 animate-bounce" /> YODEL SOUNDBOARD COMMANDER
-                    </h3>
-                    <p className="text-[9px] text-slate-400 font-retro uppercase leading-relaxed">
-                      Tap these hotkeys to yodel live melodies that echo off the high canyon walls!
-                    </p>
-                    <div className="grid grid-cols-4 gap-2">
+                    ) : gameState === 'climbing' ? (
                       <button
-                        onClick={() => playSoundEffect('chest')}
-                        className="py-3 bg-slate-900 hover:bg-pink-500/20 text-white font-retro text-[8px] border border-pink-500/30 hover:border-pink-500 transition-all active:scale-95"
+                        onClick={handleBank}
+                        className="w-full py-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-slate-950 font-retro text-sm border-b-8 border-green-700 active:border-b-2 active:translate-y-1.5 transition-all flex flex-col items-center justify-center gap-2 glow-green shadow-[0_0_40px_rgba(34,197,94,0.6)] cursor-pointer"
                       >
-                        LOW<br/>CHEST
+                        <span className="text-[9px] text-green-950 tracking-[0.2em] font-black uppercase">HIT TO COLLECT</span>
+                        <span className="text-base font-black">
+                          LOCK ALTITUDE: {multiplier.toFixed(2)}x
+                        </span>
                       </button>
+                    ) : (
                       <button
-                        onClick={() => playSoundEffect('head')}
-                        className="py-3 bg-slate-900 hover:bg-cyan-500/20 text-white font-retro text-[8px] border border-cyan-500/30 hover:border-cyan-500 transition-all active:scale-95"
+                        onClick={handleStartClimb}
+                        className="w-full py-7 bg-gradient-to-b from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-xs border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)]"
                       >
-                        HIGH<br/>HEAD
+                        <span>Insert coin - press to play</span>
+                        <ArrowUpRight className="h-5 w-5 stroke-[4px]" />
                       </button>
-                      <button
-                        onClick={() => playSoundEffect('tremolo')}
-                        className="py-3 bg-slate-900 hover:bg-yellow-500/20 text-white font-retro text-[8px] border border-yellow-500/30 hover:border-yellow-500 transition-all active:scale-95"
-                      >
-                        REED<br/>TREM
-                      </button>
-                      <button
-                        onClick={() => playSoundEffect('echo_peak')}
-                        className="py-3 bg-slate-900 hover:bg-purple-500/20 text-white font-retro text-[8px] border border-purple-500/30 hover:border-purple-500 transition-all active:scale-95"
-                      >
-                        VALLEY<br/>ECHO
-                      </button>
-                    </div>
+                    )}
                   </div>
 
                   {/* Altitude metrics & details */}
@@ -1172,44 +1042,6 @@ const Index = () => {
                           );
                         })}
                       </div>
-                    </div>
-                  </div>
-
-                  {/* CLAN CHAT FEED */}
-                  <div className="arcade-panel p-5 space-y-4">
-                    <h3 className="text-[10px] font-retro text-cyan-400 tracking-wider flex items-center gap-2 pb-2 border-b-2 border-dashed border-cyan-500/20">
-                      <MessageSquare className="h-4 w-4 text-cyan-400" /> SUMMIT CLAN CHAT ROOM
-                    </h3>
-                    
-                    {/* Live messages container */}
-                    <div className="space-y-3 max-h-[140px] overflow-y-auto pr-1">
-                      {messages.map((msg) => (
-                        <div key={msg.id} className="text-[10px] font-retro uppercase leading-relaxed bg-slate-950/40 p-2 border border-white/5">
-                          <div className="flex justify-between items-center text-pink-400">
-                            <span>{msg.sender}</span>
-                            <span className="text-[7px] text-slate-500 font-mono">{msg.time}</span>
-                          </div>
-                          <p className="text-slate-300 mt-1 lowercase first-letter:uppercase leading-snug">{msg.text}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Send input */}
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Type message..."
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
-                        className="flex-1 bg-slate-950 border border-white/10 p-2.5 text-white font-retro text-[8px] focus:outline-none"
-                      />
-                      <button
-                        onClick={handleSendChat}
-                        className="px-3 bg-pink-500 hover:bg-pink-400 text-slate-950 font-bold active:scale-95 transition-transform"
-                      >
-                        <Send className="h-3.5 w-3.5" />
-                      </button>
                     </div>
                   </div>
 
