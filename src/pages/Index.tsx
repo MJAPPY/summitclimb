@@ -411,11 +411,12 @@ const Index = () => {
     // Start precision millisecond duration check
     climbStartTimeRef.current = Date.now();
 
-    // Generate random secure collapse point
+    // Generate random secure collapse point with exponentially higher limits (up to 200x)
     const randSeed = Math.random();
-    let calculatedCollapse = 1.01;
-    if (randSeed > 0.05) {
-      calculatedCollapse = parseFloat((1.01 + Math.pow(Math.random() * 4.8, 1.8)).toFixed(2));
+    let calculatedCollapse = 1.80; // Safer early threshold
+    if (randSeed > 0.02) {
+      // Drastically increased scalability from 4.8 to 12.0 with a power of 2.2 to allow sky-high scores
+      calculatedCollapse = parseFloat((1.80 + Math.pow(Math.random() * 12.0, 2.2)).toFixed(2));
     }
     setHiddenCollapsePoint(calculatedCollapse);
 
@@ -521,10 +522,10 @@ const Index = () => {
   useEffect(() => {
     let interval: any = null;
     if (gameState === 'climbing') {
-      let speedStep = 0.01;
+      let speedStep = 0.006; // Slightly slowed down multiplier speed step so the runs are longer and feel more controllable
       interval = setInterval(() => {
         setMultiplier((prev) => {
-          const growthFactor = 1 + (prev - 1) * 0.12;
+          const growthFactor = 1 + (prev - 1) * 0.08; // More gradual growth progression curve
           const nextVal = parseFloat((prev + speedStep * growthFactor).toFixed(2));
 
           audioSynth.updateWindIntensity(nextVal);
