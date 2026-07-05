@@ -588,7 +588,7 @@ const Index = () => {
               SUMMIT <span className="text-gradient-neon flash-fast">CLIMB</span>
             </h1>
             <span className="text-[10px] font-retro text-cyan-400 tracking-wider block leading-none mt-2 uppercase">
-              INSERT PLAY: HERO CLIMBER GUY ONLY
+              INSERT COIN - PRESS TO PLAY
             </span>
           </div>
         </div>
@@ -786,21 +786,21 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="arcade-panel-cyan p-6 space-y-4 relative overflow-hidden">
+          <div className="arcade-panel-cyan p-6 space-y-4">
             <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
               <Gift className="h-36 w-36 text-cyan-400" />
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="p-1.5 bg-cyan-500/20 text-cyan-400 text-[10px] font-retro tracking-widest uppercase">
-                DISTRIBUTION PROTOCOL
+              <span className="p-1.5 bg-cyan-500/20 text-cyan-400 text-xs font-retro">
+                JACKPOT
               </span>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="text-[10px] font-retro text-white tracking-wider leading-tight uppercase">PROPORTIONAL SPLIT</h4>
-              <p className="text-[10px] text-slate-400 leading-relaxed font-sans font-medium">
-                Every loaded coin directly expands the prize pool. <strong className="text-cyan-400">93%</strong> of accumulated tokens is split among the top 15 ranked climbers. The remaining <strong className="text-pink-400">7%</strong> supports the server operators.
+            <div className="space-y-1">
+              <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
+              <p className="text-[10px] text-slate-400 leading-normal">
+                Stake tokens pool permanently into the grand pots. 93% is distributed to the Top 15 players on the cabinet ledger. 7% remains at @tripseven and @askguy.
               </p>
             </div>
           </div>
@@ -868,7 +868,7 @@ const Index = () => {
                         onClick={handleStartClimb}
                         className="w-full py-7 bg-gradient-to-b from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-xs border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)]"
                       >
-                        <span>INSERT PLAY: HERO CLIMBER GUY ONLY</span>
+                        <span>Insert coin - press to play</span>
                         <ArrowUpRight className="h-5 w-5 stroke-[4px]" />
                       </button>
                     )}
@@ -1162,7 +1162,7 @@ const Index = () => {
             SUMMIT CABINET © 1994 ALL RIGHT STAKED. ENJOY EXPLORATION GAMES!
           </p>
           <p className="mt-3 font-retro text-yellow-400 tracking-widest text-xs uppercase animate-pulse">
-            INSERT PLAY: HERO CLIMBER GUY ONLY
+            INSERT COIN - PRESS TO PLAY
           </p>
         </div>
       </footer>
