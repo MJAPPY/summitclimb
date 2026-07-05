@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
 import { GameCanvas, CosmeticSettings } from '@/components/GameCanvas';
 import { WalletModal } from '@/components/WalletModal';
@@ -30,7 +32,8 @@ import {
   Coins,
   ChevronRight,
   Gift,
-  Coins as PotIcon
+  Coins as PotIcon,
+  Lock
 } from 'lucide-react';
 
 const Index = () => {
@@ -52,8 +55,8 @@ const Index = () => {
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(0);
 
-  // Remaining climb Goes Counter (Default starts with 5 complimentary goes for guests to play immediately)
-  const [remainingGoes, setRemainingGoes] = useState<number>(5);
+  // Remaining climb Goes Counter (Default starts with 0 for unauthenticated users)
+  const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
   // Pots states
   const [prizePool, setPrizePool] = useState<number>(45000);
@@ -92,17 +95,7 @@ const Index = () => {
     trail: 'rainbow'
   });
 
-  // Unique guest identity generator preserved locally
-  const getGuestAddress = () => {
-    let localId = localStorage.getItem('summit_guest_id');
-    if (!localId) {
-      localId = 'guest_' + Math.random().toString(36).substring(2, 8);
-      localStorage.setItem('summit_guest_id', localId);
-    }
-    return localId;
-  };
-
-  const activeUserAddress = walletConnected && walletAddress ? walletAddress : getGuestAddress();
+  const activeUserAddress = walletConnected && walletAddress ? walletAddress : '';
 
   // Check if active user has administrator clearances
   const isAdmin = walletConnected && walletAddress.toLowerCase() === 'tripseven';
@@ -116,6 +109,7 @@ const Index = () => {
 
   // Sync balances and fetch persistent player stats from Supabase
   const handleSyncBalances = async (actorName: string) => {
+    if (!actorName) return;
     try {
       if (walletConnected) {
         // Fetch RPC blockchain token counts
@@ -142,12 +136,12 @@ const Index = () => {
         setXp(data.xp ?? 0);
         setLifetimeGames(data.lifetime_games ?? 0);
       } else {
-        // Initialize new user/guest row in database
+        // Initialize new user row in database
         const { error: insertError } = await supabase
           .from('climber_profiles')
           .insert([{ 
             wallet_address: actorName.toLowerCase(), 
-            remaining_goes: walletConnected ? 0 : 5, // guests get 5 complimentary slots
+            remaining_goes: 0,
             highest_multiplier: 1.00,
             level: 1,
             xp: 0,
@@ -162,6 +156,7 @@ const Index = () => {
 
   // Sync persistent credits to DB when modified
   const savePersistentStats = async (goesCount: number, bestMult: number, lvl: number, activeXp: number, gamesCount: number) => {
+    if (!walletConnected || !walletAddress) return;
     try {
       await supabase
         .from('climber_profiles')
@@ -172,7 +167,7 @@ const Index = () => {
           xp: activeXp,
           lifetime_games: gamesCount
         })
-        .eq('wallet_address', activeUserAddress.toLowerCase());
+        .eq('wallet_address', walletAddress.toLowerCase());
     } catch (e) {
       console.error("Failed to persist stats online:", e);
     }
@@ -190,9 +185,6 @@ const Index = () => {
           title: "Session Restored",
           description: `Welcome back to the Summit, @${activeSession.actor}!`,
         });
-      } else {
-        // Fetch guest account saves immediately
-        handleSyncBalances(getGuestAddress());
       }
     };
     autoLogin();
@@ -200,10 +192,12 @@ const Index = () => {
 
   // Poll balances and scores every 15 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      handleSyncBalances(activeUserAddress);
-    }, 15000);
-    return () => clearInterval(interval);
+    if (walletConnected && walletAddress) {
+      const interval = setInterval(() => {
+        handleSyncBalances(walletAddress);
+      }, 15000);
+      return () => clearInterval(interval);
+    }
   }, [walletConnected, walletAddress]);
 
   // Toggle sound
@@ -215,13 +209,21 @@ const Index = () => {
 
   // Bulk buy goes transaction handler (Rate: 2 XPR per Go, or 10 GUY per Go)
   const handleBuyGoes = async (count: number) => {
+    if (!walletConnected) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your WebAuth wallet to purchase climb credits.",
+        variant: "destructive"
+      });
+      return;
+    }
     if (count <= 0) return;
     const rate = tokenType === 'XPR' ? 2 : 10;
     const cost = count * rate;
 
     const activeTokenBalance = tokenType === 'XPR' ? balance : guyBalance;
 
-    if (walletConnected && activeTokenBalance < cost) {
+    if (activeTokenBalance < cost) {
       toast({
         title: "Insufficient Balance",
         description: `You need ${cost} ${tokenType} to purchase ${count} games. Deposit more tokens.`,
@@ -230,31 +232,27 @@ const Index = () => {
       return;
     }
 
-    if (walletConnected) {
-      try {
-        toast({
-          title: "Sending Signature Request",
-          description: `Authorize the ${tokenType} games purchase in your WebAuth app...`,
-        });
-        await protonService.transfer('tripseven', cost, tokenType, `Purchase ${count} climbs bundle - GUYS Summit`);
-      } catch (e) {
-        toast({
-          title: "Transaction Failed",
-          description: "Signature request was rejected by WebAuth link.",
-          variant: "destructive"
-        });
-        return;
-      }
+    try {
+      toast({
+        title: "Sending Signature Request",
+        description: `Authorize the ${tokenType} games purchase in your WebAuth app...`,
+      });
+      await protonService.transfer('tripseven', cost, tokenType, `Purchase ${count} climbs bundle - GUYS Summit`);
+    } catch (e) {
+      toast({
+        title: "Transaction Failed",
+        description: "Signature request was rejected by WebAuth link.",
+        variant: "destructive"
+      });
+      return;
     }
 
     const poolContribution = cost * 0.93;
 
-    if (walletConnected) {
-      if (tokenType === 'XPR') {
-        setBalance(prev => prev - cost);
-      } else {
-        setGuyBalance(prev => prev - cost);
-      }
+    if (tokenType === 'XPR') {
+      setBalance(prev => prev - cost);
+    } else {
+      setGuyBalance(prev => prev - cost);
     }
 
     const nextGoes = remainingGoes + count;
@@ -274,13 +272,15 @@ const Index = () => {
       description: `Bought ${count} games for ${cost} ${tokenType}. persistent credits locked.`,
     });
 
-    handleSyncBalances(walletAddress || activeUser);
+    handleSyncBalances(walletAddress);
   };
-
-  const activeUser = walletConnected ? walletAddress : "anonymous";
 
   // Start ascending summit climb (costs exactly 1 remaining go)
   const handleStartClimb = () => {
+    if (!walletConnected) {
+      handleConnectWallet();
+      return;
+    }
     if (gameState === 'climbing') return;
 
     if (remainingGoes <= 0) {
@@ -362,17 +362,19 @@ const Index = () => {
       setWeeklyBest(lockedScore);
 
       // Record high score dynamically to the cloud leaderboard database!
-      try {
-        await supabase
-          .from('climber_leaderboard')
-          .upsert({
-            wallet_address: activeUserAddress.toLowerCase(),
-            score: lockedScore,
-            games_played: nextGamesCount,
-            country: 'USA'
-          }, { onConflict: 'wallet_address' });
-      } catch (dbErr) {
-        console.error("Failed to commit scoreboard entry:", dbErr);
+      if (walletConnected && walletAddress) {
+        try {
+          await supabase
+            .from('climber_leaderboard')
+            .upsert({
+              wallet_address: walletAddress.toLowerCase(),
+              score: lockedScore,
+              games_played: nextGamesCount,
+              country: 'USA'
+            }, { onConflict: 'wallet_address' });
+        } catch (dbErr) {
+          console.error("Failed to commit scoreboard entry:", dbErr);
+        }
       }
     }
 
@@ -442,7 +444,9 @@ const Index = () => {
             const nextGamesCount = lifetimeGames + 1;
             setLifetimeGames(nextGamesCount);
 
-            savePersistentStats(remainingGoes, highestMultiplier, level, xp, nextGamesCount);
+            if (walletConnected) {
+              savePersistentStats(remainingGoes, highestMultiplier, level, xp, nextGamesCount);
+            }
 
             audioSynth.stopHeartbeat();
             audioSynth.stopYodelMusic();
@@ -588,7 +592,17 @@ const Index = () => {
               </button>
 
               <button
-                onClick={() => setActiveTab('profile')}
+                onClick={() => {
+                  if (!walletConnected) {
+                    toast({
+                      title: "Wallet Required",
+                      description: "Please connect your WebAuth wallet to view climb achievements.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  setActiveTab('profile');
+                }}
                 className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
                   activeTab === 'profile' 
                     ? 'bg-yellow-400/10 border-yellow-400 text-yellow-300 shadow-[0_0_15px_rgba(250,204,21,0.3)]' 
@@ -603,7 +617,17 @@ const Index = () => {
               </button>
 
               <button
-                onClick={() => setActiveTab('replays')}
+                onClick={() => {
+                  if (!walletConnected) {
+                    toast({
+                      title: "Wallet Required",
+                      description: "Please connect your WebAuth wallet to view flight replay tapes.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  setActiveTab('replays');
+                }}
                 className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
                   activeTab === 'replays' 
                     ? 'bg-purple-500/10 border-purple-500 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
@@ -670,7 +694,7 @@ const Index = () => {
 
             <div className="min-w-0">
               <div className="text-xs font-retro text-white truncate">
-                @{activeUserAddress}{" "}
+                {walletConnected ? `@${walletAddress}` : "PLAYER 1"}{" "}
                 <span className="text-[8px] text-pink-400 bg-pink-400/10 px-1 py-0.5 rounded leading-none font-bold">LV.{level}</span>
               </div>
               <p className="text-[10px] font-retro text-slate-400 mt-1 leading-tight">
@@ -702,7 +726,15 @@ const Index = () => {
 
                   {/* RETRO ARCADE BUTTONS */}
                   <div className="w-full">
-                    {gameState === 'climbing' ? (
+                    {!walletConnected ? (
+                      <button
+                        onClick={handleConnectWallet}
+                        className="w-full py-7 bg-gradient-to-r from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-xs border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)] flash-fast"
+                      >
+                        <Wallet className="h-5 w-5" />
+                        <span>CONNECT WEBAUTH TO CLIMB</span>
+                      </button>
+                    ) : gameState === 'climbing' ? (
                       <button
                         onClick={handleBank}
                         className="w-full py-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-slate-950 font-retro text-sm border-b-8 border-green-700 active:border-b-2 active:translate-y-1.5 transition-all flex flex-col items-center justify-center gap-2 glow-green shadow-[0_0_40px_rgba(34,197,94,0.6)] cursor-pointer"
@@ -787,7 +819,23 @@ const Index = () => {
                   </div>
 
                   {/* Bulk Goes Purchase Console */}
-                  <div className="arcade-panel p-6 space-y-5">
+                  <div className="arcade-panel p-6 space-y-5 relative overflow-hidden">
+                    {!walletConnected && (
+                      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-4 text-center">
+                        <Lock className="h-10 w-10 text-pink-500 animate-bounce mb-3" />
+                        <span className="font-retro text-[10px] text-white uppercase block mb-1">COIN CHUTE LOCKED</span>
+                        <p className="text-[9px] text-slate-400 max-w-[200px] leading-relaxed uppercase mb-4">
+                          Connect your WebAuth wallet to load game credits.
+                        </p>
+                        <button
+                          onClick={handleConnectWallet}
+                          className="px-4 py-2 bg-pink-500 hover:bg-pink-400 text-white font-retro text-[10px] uppercase rounded-none border border-black shadow-[2px_2px_0px_#000]"
+                        >
+                          CONNECT
+                        </button>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between pb-3 border-b border-pink-500">
                       <span className="text-xs font-retro text-white uppercase flex items-center gap-2">
                         <Coins className="h-4 w-4 text-yellow-400" /> COIN CHUTE
@@ -912,7 +960,7 @@ const Index = () => {
 
           {activeTab === 'leaderboard' && <Leaderboard prizePool={prizePool} guyPrizePool={guyPrizePool} />}
 
-          {activeTab === 'profile' && (
+          {activeTab === 'profile' && walletConnected && (
             <ProfilePanel
               level={level}
               xp={xp}
@@ -925,7 +973,7 @@ const Index = () => {
             />
           )}
 
-          {activeTab === 'replays' && <ReplayManager />}
+          {activeTab === 'replays' && walletConnected && <ReplayManager />}
 
           {activeTab === 'admin' && isAdmin && <AdminPanel />}
 
