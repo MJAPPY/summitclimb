@@ -59,8 +59,8 @@ const Index = () => {
   const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
   // Pots states backed by game-purchased accumulated values in Supabase
-  const [prizePool, setPrizePool] = useState<number>(5000); // Seeds with 5000 XPR
-  const [guyPrizePool, setGuyPrizePool] = useState<number>(25000); // Seeds with 25000 GUY
+  const [prizePool, setPrizePool] = useState<number>(0); // Starts at 0
+  const [guyPrizePool, setGuyPrizePool] = useState<number>(0); // Starts at 0
 
   // Stats reset
   const [lifetimeGames, setLifetimeGames] = useState<number>(0);
@@ -126,17 +126,14 @@ const Index = () => {
         const tripsevenBalance = await protonService.getBalances('tripseven');
         const askguyBalance = await protonService.getBalances('askguy');
 
-        // Verify we got valid real-world balances back, otherwise fall back to database values
-        const realXPR = tripsevenBalance.XPR > 0 ? tripsevenBalance.XPR : (data?.highest_multiplier ?? 5000);
-        const realGUY = askguyBalance.GUY > 0 ? askguyBalance.GUY : (data?.xp ?? 25000);
-
-        setPrizePool(realXPR);
-        setGuyPrizePool(realGUY);
+        // Accept whatever the RPC actual returned, even if it is exactly 0
+        setPrizePool(tripsevenBalance.XPR);
+        setGuyPrizePool(askguyBalance.GUY);
       } catch (rpcErr) {
         console.warn("Could not query live on-chain balances, using database configs:", rpcErr);
         if (data) {
-          setPrizePool(data.highest_multiplier ?? 5000);
-          setGuyPrizePool(data.xp ?? 25000);
+          setPrizePool(data.highest_multiplier ?? 0);
+          setGuyPrizePool(data.xp ?? 0);
         }
       }
     } catch (e) {
@@ -153,8 +150,8 @@ const Index = () => {
         .eq('wallet_address', 'global_pots_config')
         .maybeSingle();
 
-      const currentXPR = data?.highest_multiplier ?? 5000;
-      const currentGUY = data?.xp ?? 25000;
+      const currentXPR = data?.highest_multiplier ?? 0;
+      const currentGUY = data?.xp ?? 0;
 
       const nextXPR = type === 'XPR' ? currentXPR + amount : currentXPR;
       const nextGUY = type === 'GUY' ? currentGUY + amount : currentGUY;
@@ -167,8 +164,8 @@ const Index = () => {
         })
         .eq('wallet_address', 'global_pots_config');
 
-      setPrizePool(nextXPR);
-      setGuyPrizePool(nextGUY);
+      // Refresh balances immediately
+      await fetchLivePots();
     } catch (e) {
       console.error("Could not update persistent pots config:", e);
     }
