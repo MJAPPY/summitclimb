@@ -183,7 +183,6 @@ class AudioSynthManager {
     this.currentYodelStep = 0;
 
     // Authentic, cheerful Alpine folk progression chords & melodies
-    // Traditional Austrian/Swiss cadence phrases: C major and G dominant
     const yodelSequence = [
       329.63, 392.00, 523.25, 659.25, 523.25, 392.00, // C-E-G-C-E-C-G vocal chest yodel
       392.00, 493.88, 587.33, 783.99, 587.33, 493.88, // G dominant chord register shifts
@@ -207,30 +206,24 @@ class AudioSynthManager {
         const bassFreq = bassSequence[index];
 
         // 1. PHYSICAL ACCORDION MUSETTE LEAD GENERATOR
-        // Accordion musette requires triple-reed detuning. One master reed, 
-        // one sharp (+4 cents), and one flat (-4 cents). This produces the iconic sweet tremolo sound.
         const leadCenter = this.ctx.createOscillator();
         const leadSharp = this.ctx.createOscillator();
         const leadFlat = this.ctx.createOscillator();
-        const leadSubOctave = this.ctx.createOscillator(); // Authentic deep octave reed
+        const leadSubOctave = this.ctx.createOscillator(); 
         
         const leadGain = this.ctx.createGain();
 
-        // Waveform: Rich triangle for organic woodiness, combined with sawtooth detunes
         leadCenter.type = 'triangle';
         leadSharp.type = 'sawtooth';
         leadFlat.type = 'sawtooth';
         leadSubOctave.type = 'triangle';
 
-        // Detuning values (in cents)
         leadSharp.detune.setValueAtTime(14, now);
         leadFlat.detune.setValueAtTime(-14, now);
-        leadSubOctave.frequency.setValueAtTime(melodyFreq * 0.5, now); // 1 Octave below
+        leadSubOctave.frequency.setValueAtTime(melodyFreq * 0.5, now);
 
-        // Glide-up yodel pitch crack simulation
         const pitchGlissandoTime = 0.08;
         if (melodyFreq >= 500) {
-          // Instant high-to-low chest/head register cracking
           leadCenter.frequency.setValueAtTime(melodyFreq - 150, now);
           leadCenter.frequency.exponentialRampToValueAtTime(melodyFreq, now + pitchGlissandoTime);
           leadSharp.frequency.setValueAtTime(melodyFreq - 150, now);
@@ -243,19 +236,16 @@ class AudioSynthManager {
           leadFlat.frequency.setValueAtTime(melodyFreq, now);
         }
 
-        // Bellows Pressure Envelope: Realistic accordion sound swells at the note peak
         leadGain.gain.setValueAtTime(0, now);
-        leadGain.gain.linearRampToValueAtTime(0.08, now + 0.03); // Bellows attack
-        leadGain.gain.linearRampToValueAtTime(0.07, now + 0.12); // Sustain
-        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24); // Release decay
+        leadGain.gain.linearRampToValueAtTime(0.08, now + 0.03); 
+        leadGain.gain.linearRampToValueAtTime(0.07, now + 0.12); 
+        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24); 
 
-        // Musette Reed Filter to round off sharp edges
         const musetteFilter = this.ctx.createBiquadFilter();
         musetteFilter.type = 'bandpass';
         musetteFilter.frequency.setValueAtTime(880, now);
         musetteFilter.Q.setValueAtTime(1.5, now);
 
-        // Connect generator array
         leadCenter.connect(musetteFilter);
         leadSharp.connect(musetteFilter);
         leadFlat.connect(musetteFilter);
@@ -267,7 +257,6 @@ class AudioSynthManager {
           leadGain.connect(this.delayNode);
         }
 
-        // Start instruments
         leadCenter.start(now);
         leadSharp.start(now);
         leadFlat.start(now);
@@ -278,16 +267,13 @@ class AudioSynthManager {
         leadFlat.stop(now + 0.25);
         leadSubOctave.stop(now + 0.25);
 
-        // 3. SMOOTH DOWNBEAT BASS (Downbeat only to prevent steady bass thumping noise)
         if (this.currentYodelStep % 4 === 0) {
           const bassOsc = this.ctx.createOscillator();
           const bassGain = this.ctx.createGain();
 
-          // Warm pure sine tone replaces complex sawtooth woodwinds to eliminate thud peaks
           bassOsc.type = 'sine';
           bassOsc.frequency.setValueAtTime(bassFreq, now);
 
-          // Slow swell-attack and soft decline completely blocks popping and heavy pulsing sounds
           bassGain.gain.setValueAtTime(0, now);
           bassGain.gain.linearRampToValueAtTime(0.03, now + 0.06); 
           bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
@@ -313,7 +299,6 @@ class AudioSynthManager {
       }
     };
 
-    // Humanized rhythmic scheduling: slightly swinging the polka feel
     const stepTimeMs = 230;
     const playAndSchedule = () => {
       if (this.isMuted || !this.yodelInterval) return;
@@ -331,6 +316,111 @@ class AudioSynthManager {
     }
   }
 
+  // Interactive Live Soundboard triggers (synthesizes unique folk frequencies with echoes)
+  playInteractiveSound(type: 'chest' | 'head' | 'tremolo' | 'echo_peak') {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      let notes: number[] = [];
+      let detuneVal = 0;
+      let waveform: OscillatorType = 'triangle';
+
+      switch (type) {
+        case 'chest':
+          notes = [261.63, 329.63, 392.00]; // Low rich major triad
+          waveform = 'triangle';
+          break;
+        case 'head':
+          notes = [523.25, 659.25, 783.99, 1046.50]; // Bright high register sweep
+          waveform = 'sine';
+          detuneVal = 10;
+          break;
+        case 'tremolo':
+          notes = [392.00, 440.00, 493.88]; // Detuned musette accordion squeeze
+          waveform = 'sawtooth';
+          detuneVal = 25;
+          break;
+        case 'echo_peak':
+          notes = [587.33, 783.99, 1174.66]; // Alpine echoes off mountain rocks
+          waveform = 'sine';
+          break;
+      }
+
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+
+        osc.type = waveform;
+        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+        
+        if (detuneVal > 0) {
+          osc.detune.setValueAtTime(detuneVal, now);
+        }
+
+        // Apply pitch glide for that yodel "crack" flavor
+        if (type === 'head' || type === 'echo_peak') {
+          osc.frequency.setValueAtTime(freq * 0.7, now + idx * 0.04);
+          osc.frequency.exponentialRampToValueAtTime(freq, now + idx * 0.04 + 0.12);
+        }
+
+        gain.gain.setValueAtTime(0.08, now + idx * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.45);
+
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        if (this.delayNode) {
+          gain.connect(this.delayNode);
+        }
+
+        osc.start(now + idx * 0.04);
+        osc.stop(now + idx * 0.04 + 0.5);
+      });
+    } catch (e) {
+      console.warn("Live soundboard error:", e);
+    }
+  }
+
+  // Synthesis sound when doing a skill dash or high leap jump
+  playLeapSound() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc2.type = 'triangle';
+
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(1480, now + 0.35); // Whizzing laser pitch sweep up
+
+      osc2.frequency.setValueAtTime(224, now);
+      osc2.frequency.exponentialRampToValueAtTime(1485, now + 0.35);
+
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+      osc.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.ctx.destination);
+      if (this.delayNode) {
+        gain.connect(this.delayNode);
+      }
+
+      osc.start(now);
+      osc2.start(now);
+      osc.stop(now + 0.45);
+      osc2.stop(now + 0.45);
+    } catch (e) {}
+  }
+
   playBankSound() {
     if (this.isMuted) return;
     this.initCtx();
@@ -338,8 +428,7 @@ class AudioSynthManager {
 
     try {
       const now = this.ctx.currentTime;
-      // Synthesize a gorgeous shimmering arpeggio chord through mountain echoes
-      const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // Shimmering C-Major Triumph Chord
+      const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; 
       notes.forEach((freq, idx) => {
         const osc = this.ctx!.createOscillator();
         const subOsc = this.ctx!.createOscillator();
@@ -376,7 +465,6 @@ class AudioSynthManager {
 
     try {
       const now = this.ctx.currentTime;
-      // White noise blast combined with massive sub drop echo
       const bufferSize = this.ctx.sampleRate * 1.2;
       const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
       const data = buffer.getChannelData(0);
