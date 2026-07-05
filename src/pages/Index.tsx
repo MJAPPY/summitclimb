@@ -582,17 +582,36 @@ const Index = () => {
       {/* 90s grid background aesthetic */}
       <div className="retro-grid pointer-events-none" />
 
-      {/* Cyber top navbar styled like a neon cabinet header */}
+      {/* Cyber top navbar styled like a neon cabinet header with premium logo title layout */}
       <header className="sticky top-0 z-40 bg-slate-950 border-b-4 border-pink-500 px-5 lg:px-10 py-4 flex items-center justify-between shadow-[0_4px_30px_rgba(236,72,153,0.4)]">
         <div className="flex items-center gap-5">
-          <SummitLogo size="sm" className="shrink-0 border-2 border-cyan-400 rounded-none w-14 h-14" />
-          <div>
-            <h1 className="text-xl md:text-2xl font-black tracking-tight text-white uppercase font-retro leading-none">
-              SUMMIT <span className="text-gradient-neon flash-fast">CLIMB</span>
-            </h1>
-            <span className="text-[10px] font-retro text-cyan-400 tracking-wider block leading-none mt-2 uppercase">
-              REACH THE PINNACLE
-            </span>
+          <SummitLogo size="sm" className="shrink-0 border-2 border-cyan-400 rounded-none w-14 h-14 animate-pulse" />
+          <div className="flex flex-col items-start gap-1">
+            {/* 1. Thin pink horizon dividers surrounding sub-header ON XPR NETWORK */}
+            <div className="flex items-center gap-2 w-full">
+              <div className="h-[2px] bg-pink-500 flex-grow min-w-[12px]" />
+              <span className="font-retro text-[8px] text-pink-500 tracking-widest whitespace-nowrap uppercase">
+                ON XPR NETWORK
+              </span>
+              <div className="h-[2px] bg-pink-500 flex-grow min-w-[12px]" />
+            </div>
+
+            {/* 2 & 3. Bold white pixelated SUMMIT title and brush-stroke permanent marker font for CLIMB with yellow-to-magenta gradient */}
+            <div className="flex items-baseline gap-2 leading-none mt-0.5">
+              <span className="text-lg md:text-xl font-retro title-summit-text uppercase tracking-wider block">
+                SUMMIT
+              </span>
+              <span className="text-2xl md:text-3xl font-climb-script title-climb-gradient rotate-[-3deg] inline-block ml-1">
+                Climb
+              </span>
+            </div>
+
+            {/* 4. Sub-title slogan enclosed inside slanted pink neon cyber box container */}
+            <div className="title-badge-box px-3 py-1 mt-1">
+              <span className="font-retro text-[7px] text-pink-400 font-bold tracking-wider whitespace-nowrap block uppercase">
+                THE ONCHAIN CLIMB TO THE TOP
+              </span>
+            </div>
           </div>
         </div>
 
@@ -694,7 +713,7 @@ const Index = () => {
                 onClick={() => setActiveTab('climb')}
                 className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
                   activeTab === 'climb' 
-                    ? 'bg-pink-500/10 border-pink-500 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.3)]' 
+                    ? 'bg-pink-500/10 border-pink-500 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.35)]' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
                 }`}
               >
@@ -709,7 +728,7 @@ const Index = () => {
                 onClick={() => setActiveTab('leaderboard')}
                 className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
                   activeTab === 'leaderboard' 
-                    ? 'bg-cyan-500/10 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
+                    ? 'bg-cyan-500/10 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.35)]' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
                 }`}
               >
@@ -734,7 +753,7 @@ const Index = () => {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
                   activeTab === 'profile' 
-                    ? 'bg-yellow-400/10 border-yellow-400 text-yellow-300 shadow-[0_0_15px_rgba(250,204,21,0.3)]' 
+                    ? 'bg-yellow-400/10 border-yellow-400 text-yellow-300 shadow-[0_0_15px_rgba(250,204,21,0.35)]' 
                     : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
                 }`}
               >
@@ -750,7 +769,7 @@ const Index = () => {
                   onClick={() => setActiveTab('admin')}
                   className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
                     activeTab === 'admin' 
-                      ? 'bg-red-500/10 border-red-500 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+                      ? 'bg-red-500/10 border-red-500 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.35)]' 
                       : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
                 }`}
               >
