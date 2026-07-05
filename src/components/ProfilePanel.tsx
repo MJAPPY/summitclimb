@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, Zap, Compass, Trophy, Share2, Clipboard, ChevronRight, Play } from 'lucide-react';
+import { Award, Zap, Compass, Trophy, Share2, Clipboard, ChevronRight, Play, Star, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Achievement {
@@ -9,6 +9,7 @@ interface Achievement {
   unlocked: boolean;
   xpReward: number;
   icon: string;
+  rarity: 'Common' | 'Rare' | 'Epic' | 'Legendary';
 }
 
 interface ProfilePanelProps {
@@ -37,134 +38,179 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   const xpPercent = Math.min(100, (xp / nextLevelXp) * 100);
   const activeUserRef = walletAddress || 'anonymous';
 
-  // Simulated static achievements list
+  // Custom high-fidelity Achievements lists with color coded rarity tiers
   const achievements: Achievement[] = [
-    { id: 'first-climb', title: 'First Climb', desc: 'Step onto the snowy summit slopes once.', unlocked: true, xpReward: 50, icon: '🏔' },
-    { id: '5x-club', title: '5x Altitude Club', desc: 'Successfully bank any multiplier above 5.00x.', unlocked: highestMultiplier >= 5, xpReward: 100, icon: '⚡' },
-    { id: '10x-club', title: 'Double Digit Ascent', desc: 'Secure a bank of 10.00x or larger.', unlocked: highestMultiplier >= 10, xpReward: 250, icon: '🔥' },
-    { id: 'goat', title: 'Mountain Goat', desc: 'Climb a cumulative total of over 50 games.', unlocked: lifetimeGames >= 50, xpReward: 300, icon: '🐐' },
-    { id: 'legend', title: 'Summit Legend', desc: 'Secure a bank of over 20.00x multiplier.', unlocked: highestMultiplier >= 20, xpReward: 500, icon: '👑' },
+    { id: 'first-climb', title: 'FIRST STEP', desc: 'Step onto the snowy summit slopes once.', unlocked: true, xpReward: 50, icon: '🏔️', rarity: 'Common' },
+    { id: '5x-club', title: 'ALTITUDE CLUB', desc: 'Successfully bank any multiplier above 5.00x.', unlocked: highestMultiplier >= 5, xpReward: 100, icon: '⚡', rarity: 'Rare' },
+    { id: '10x-club', title: 'DOUBLE DIGIT', desc: 'Secure a bank of 10.00x or larger.', unlocked: highestMultiplier >= 10, xpReward: 250, icon: '🔥', rarity: 'Epic' },
+    { id: 'goat', title: 'MOUNTAIN GOAT', desc: 'Climb a cumulative total of over 50 games.', unlocked: lifetimeGames >= 50, xpReward: 300, icon: '🐐', rarity: 'Epic' },
+    { id: 'legend', title: 'SUMMIT LEGEND', desc: 'Secure a bank of over 20.00x multiplier.', unlocked: highestMultiplier >= 20, xpReward: 500, icon: '👑', rarity: 'Legendary' },
   ];
 
   const handleCopyReferral = () => {
     navigator.clipboard.writeText(`https://summit.game/ref/${activeUserRef}`);
     toast({
-      title: "Referral Copied",
-      description: "Share this link with your clan to earn 15% deposit bonuses!",
+      title: "Referral Link Copied",
+      description: "Recruit your squad to secure 15% deposit bonuses!",
     });
   };
 
+  const getRarityStyle = (rarity: string) => {
+    switch (rarity) {
+      case 'Legendary': return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+      case 'Epic': return 'text-purple-400 bg-purple-500/10 border-purple-500/30';
+      case 'Rare': return 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30';
+      default: return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Top Banner with character badge & leveling card */}
-      <div className="p-6 bg-gradient-to-br from-slate-900 via-indigo-950/20 to-slate-950 border border-white/10 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-        {/* Level badge */}
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            {/* Circular glow outer ring */}
-            <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-md" />
-            <div className="w-20 h-20 bg-gradient-to-tr from-violet-600 to-fuchsia-600 rounded-full flex items-center justify-center border-2 border-white/20 text-3xl font-black text-white shadow-xl">
-              {level}
-            </div>
-            <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full uppercase">
-              LEVEL
-            </div>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">Elite CLIMB Climber</h2>
-            <p className="text-xs text-slate-400 mt-1">XP Progress to level {level + 1}</p>
-            {/* Level Bar */}
-            <div className="w-48 mt-2">
-              <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5">
-                <div
-                  className="bg-gradient-to-r from-violet-500 to-fuchsia-500 h-full rounded-full"
-                  style={{ width: `${xpPercent}%` }}
-                />
+    <div className="space-y-8 crt-screen">
+      
+      {/* Dynamic Profile Hub & Stats Board */}
+      <div className="bg-slate-950 border-4 border-pink-500 rounded-none p-6 shadow-[0_0_20px_rgba(236,72,153,0.35)] relative overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.1),transparent_65%)]">
+        
+        {/* Corner Retro Markers */}
+        <div className="absolute top-2 left-2 text-pink-500 font-retro text-[8px] select-none">[PROFILE_ENG]</div>
+        <div className="absolute top-2 right-2 text-pink-500 font-retro text-[8px] select-none">[SYS_OK]</div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-3">
+          
+          {/* Circular Retro Level Badge */}
+          <div className="lg:col-span-4 flex items-center gap-5 border-b lg:border-b-0 lg:border-r border-dashed border-pink-500/30 pb-6 lg:pb-0 lg:pr-6">
+            <div className="relative shrink-0">
+              <div className="absolute inset-0 bg-pink-500/30 rounded-full blur-md animate-pulse" />
+              <div className="w-24 h-24 bg-slate-950 border-4 border-pink-500 rounded-full flex flex-col items-center justify-center relative z-10 shadow-[0_0_15px_rgba(236,72,153,0.5)]">
+                <span className="text-[10px] font-retro text-pink-400 leading-none">LVL</span>
+                <span className="text-4xl font-retro font-black text-white mt-1 leading-none">{level}</span>
               </div>
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
-                <span>{xp} XP</span>
-                <span>{nextLevelXp} XP</span>
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-950 font-retro text-[8px] px-2.5 py-0.5 border border-black uppercase font-bold shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                CLIMBER
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Highlight Lifetime statistics */}
-        <div className="grid grid-cols-2 gap-3 border-y md:border-y-0 md:border-x border-white/5 py-4 md:py-0 md:px-6">
-          <div>
-            <div className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">LIFETIME GAMES</div>
-            <div className="text-xl font-black text-white mt-1">{lifetimeGames} Runs</div>
-          </div>
-          <div>
-            <div className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">MAX MULTIPLIER</div>
-            <div className="text-xl font-black text-emerald-400 mt-1">{highestMultiplier.toFixed(2)}x</div>
-          </div>
-          <div className="mt-2">
-            <div className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">WEEKLY BEST</div>
-            <div className="text-xl font-black text-violet-400 mt-1">{weeklyBest.toFixed(2)}x</div>
-          </div>
-          <div className="mt-2">
-            <div className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">CLAN REFERRALS</div>
-            <div className="text-xl font-black text-indigo-400 mt-1">{referrals} Users</div>
-          </div>
-        </div>
-
-        {/* Action Button: Referrals link copy */}
-        <div className="space-y-3">
-          <span className="text-xs font-bold text-slate-300">Invite & Earn Bonuses</span>
-          <div className="flex bg-slate-950/80 border border-white/10 rounded-xl p-2 items-center justify-between">
-            <div className="text-xs text-slate-400 font-mono overflow-hidden whitespace-nowrap text-ellipsis pr-2">
-              summit.game/ref/{activeUserRef}
+            <div className="space-y-2.5">
+              <h2 className="text-sm font-retro text-white tracking-wide leading-tight">
+                ELITE CLIMBER
+              </h2>
+              <p className="text-[9px] font-retro text-cyan-400 uppercase tracking-wider">
+                XP progress to Level {level + 1}
+              </p>
+              
+              {/* Retro XP Progress Bar */}
+              <div className="w-full sm:w-56">
+                <div className="w-full bg-slate-900 h-4 border-2 border-pink-500 rounded-none p-0.5 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 h-full"
+                    style={{ width: `${xpPercent}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[8px] font-retro text-slate-400 mt-1">
+                  <span>{xp} XP</span>
+                  <span>{nextLevelXp} XP</span>
+                </div>
+              </div>
             </div>
-            <button
-              onClick={handleCopyReferral}
-              className="bg-violet-600 hover:bg-violet-700 text-white p-2 rounded-lg transition-all shrink-0"
-              title="Copy link"
-            >
-              <Clipboard className="h-4 w-4" />
-            </button>
           </div>
-          <p className="text-[10px] text-slate-500">Recruit friends to earn 15% lifetime bonus of all their secure banks.</p>
+
+          {/* Quick Metrics Multi-Grid */}
+          <div className="lg:col-span-4 grid grid-cols-2 gap-4 border-b lg:border-b-0 lg:border-r border-dashed border-pink-500/30 pb-6 lg:pb-0 lg:pr-6">
+            <div className="bg-slate-900/60 border border-white/5 p-3 relative group hover:border-cyan-400/30 transition-colors">
+              <span className="text-[8px] font-retro text-slate-400 uppercase block leading-none">LIFETIME RUNS</span>
+              <span className="text-sm font-retro font-black text-white block mt-2 text-gradient-neon">{lifetimeGames} Runs</span>
+            </div>
+
+            <div className="bg-slate-900/60 border border-white/5 p-3 relative group hover:border-yellow-400/30 transition-colors">
+              <span className="text-[8px] font-retro text-slate-400 uppercase block leading-none">MAX ALTITUDE</span>
+              <span className="text-sm font-retro font-black text-emerald-400 block mt-2">{highestMultiplier.toFixed(2)}x</span>
+            </div>
+
+            <div className="bg-slate-900/60 border border-white/5 p-3 relative group hover:border-purple-400/30 transition-colors">
+              <span className="text-[8px] font-retro text-slate-400 uppercase block leading-none">WEEKLY BEST</span>
+              <span className="text-sm font-retro font-black text-purple-400 block mt-2">{weeklyBest.toFixed(2)}x</span>
+            </div>
+
+            <div className="bg-slate-900/60 border border-white/5 p-3 relative group hover:border-pink-400/30 transition-colors">
+              <span className="text-[8px] font-retro text-slate-400 uppercase block leading-none">CLAN CO-OP</span>
+              <span className="text-sm font-retro font-black text-pink-400 block mt-2">{referrals} Users</span>
+            </div>
+          </div>
+
+          {/* Share & Invite Module */}
+          <div className="lg:col-span-4 space-y-3">
+            <span className="text-[10px] font-retro text-yellow-400 uppercase block tracking-wider">
+              🤝 RECRUIT COMPANIONS
+            </span>
+            <p className="text-[9px] font-retro text-slate-400 leading-normal uppercase">
+              Earn 15% life commission of all secure banks from recruited climbers.
+            </p>
+            <div className="flex bg-slate-950 border-2 border-pink-500 p-1.5 justify-between items-center">
+              <span className="text-[9px] text-pink-400 font-mono overflow-hidden whitespace-nowrap text-ellipsis pr-2 select-all uppercase">
+                summit.game/ref/{activeUserRef}
+              </span>
+              <button
+                onClick={handleCopyReferral}
+                className="bg-pink-500 hover:bg-pink-400 text-slate-950 font-retro text-[10px] px-3.5 py-1.5 transition-colors cursor-pointer"
+                title="Copy Invite Link"
+              >
+                COPY
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* achievements section */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-              <Award className="h-4 w-4 text-yellow-400" /> Climber Achievements
+      {/* Main achievements & Climbs Dashboard layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Achievements list */}
+        <div className="lg:col-span-8 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-pink-500/30">
+            <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2">
+              <Award className="h-4 w-4 text-pink-500 animate-pulse" /> CLIMBER ACHIEVEMENTS
             </h3>
-            <span className="text-xs font-mono text-slate-500">
-              {achievements.filter(a => a.unlocked).length} / {achievements.length} Unlocked
+            <span className="text-[10px] font-retro text-cyan-400 uppercase bg-cyan-400/10 px-2 py-0.5 border border-cyan-500/20">
+              {achievements.filter(a => a.unlocked).length} / {achievements.length} UNLOCKED
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {achievements.map((item) => (
               <div
                 key={item.id}
-                className={`p-4 rounded-xl border transition-all ${
+                className={`border-2 p-4 relative group transition-all rounded-none ${
                   item.unlocked
-                    ? 'border-white/10 bg-slate-900/40'
-                    : 'border-white/5 bg-slate-950/20 opacity-60'
+                    ? 'border-pink-500/50 bg-slate-950/60 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:border-pink-500'
+                    : 'border-white/5 bg-slate-950/20 opacity-55'
                 }`}
               >
-                <div className="flex gap-3 items-start">
-                  <div className="text-3xl p-1 bg-white/5 rounded-lg leading-none select-none">
+                {/* Rarity Tag */}
+                <span className={`absolute top-2 right-2 text-[7px] font-retro border px-1.5 py-0.5 uppercase tracking-widest ${getRarityStyle(item.rarity)}`}>
+                  {item.rarity}
+                </span>
+
+                <div className="flex gap-4 items-start pt-2">
+                  <div className="text-3xl p-2.5 bg-slate-900 border border-white/10 select-none leading-none shrink-0">
                     {item.unlocked ? item.icon : '🔒'}
                   </div>
-                  <div>
-                    <div className="font-bold text-sm text-white flex items-center gap-1">
+                  <div className="min-w-0 space-y-1">
+                    <h4 className="font-retro text-[10px] text-white tracking-wide truncate">
                       {item.title}
+                    </h4>
+                    <p className="text-[9px] font-retro text-slate-400 leading-relaxed uppercase">
+                      {item.desc}
+                    </p>
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className="text-[8px] font-retro text-yellow-400 font-bold">
+                        +{item.xpReward} XP
+                      </span>
                       {item.unlocked && (
-                        <span className="text-[9px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">
-                          Unlocked
+                        <span className="text-[8px] font-retro text-green-400 bg-green-400/10 px-1.5 rounded-none font-bold uppercase">
+                          COMPLETED
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-1 leading-snug">{item.desc}</p>
-                    <div className="text-[10px] text-indigo-400 font-bold mt-2">+{item.xpReward} XP</div>
                   </div>
                 </div>
               </div>
@@ -172,32 +218,32 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
           </div>
         </div>
 
-        {/* win history logs / watch replies quick link */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-            <Compass className="h-4 w-4 text-indigo-400" /> Recent Climbs log
+        {/* History tape Quick Link */}
+        <div className="lg:col-span-4 space-y-4">
+          <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2 pb-3 border-b-2 border-dashed border-pink-500/30">
+            <Compass className="h-4 w-4 text-pink-500" /> FLIGHT LOG RECORD
           </h3>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {[
-              { multiplier: 4.82, result: 'banked', score: 482, date: '1 hour ago' },
-              { multiplier: 12.43, result: 'collapsed', score: 0, date: '3 hours ago' },
-              { multiplier: 1.95, result: 'banked', score: 195, date: 'Yesterday' },
+              { multiplier: 4.82, result: 'banked', score: 482, date: '1 HOUR AGO' },
+              { multiplier: 12.43, result: 'collapsed', score: 0, date: '3 HOURS AGO' },
+              { multiplier: 1.95, result: 'banked', score: 195, date: 'YESTERDAY' },
             ].map((run, index) => (
               <div
                 key={index}
-                className="p-3 bg-slate-950/40 rounded-xl border border-white/5 flex items-center justify-between text-xs"
+                className="p-3 bg-slate-950/60 border-2 border-pink-500/20 hover:border-pink-500/50 transition-colors flex items-center justify-between text-xs font-retro uppercase"
               >
-                <div>
-                  <div className="font-bold text-white">Climb {index + 1}</div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">{run.date}</div>
+                <div className="space-y-1">
+                  <div className="text-white text-[10px]">CLIMB RUN {index + 1}</div>
+                  <div className="text-[8px] text-slate-500 font-mono">{run.date}</div>
                 </div>
-                <div className="text-right">
-                  <div className={`font-black ${run.result === 'banked' ? 'text-emerald-400' : 'text-rose-500'}`}>
-                    {run.multiplier.toFixed(2)}
+                <div className="text-right space-y-1">
+                  <div className={`text-[11px] font-black ${run.result === 'banked' ? 'text-green-400' : 'text-rose-500'}`}>
+                    {run.multiplier.toFixed(2)}x
                   </div>
-                  <div className="text-[10px] text-slate-500">
-                    {run.result === 'banked' ? `Earned +${run.score} coins` : 'Collapsed'}
+                  <div className="text-[8px] text-slate-400 font-mono">
+                    {run.result === 'banked' ? `+${run.score} PTS` : 'COLLAPSED'}
                   </div>
                 </div>
               </div>
@@ -205,13 +251,15 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
 
             <button
               onClick={onOpenReplays}
-              className="w-full bg-white/5 hover:bg-white/10 text-white font-bold p-3 rounded-xl border border-white/5 text-xs transition-all flex items-center justify-center gap-2 mt-4"
+              className="w-full bg-slate-950 hover:bg-slate-900 text-yellow-400 hover:text-yellow-300 font-retro text-[10px] py-4 border-2 border-yellow-400 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer uppercase shadow-[4px_4px_0px_rgba(236,72,153,0.3)]"
             >
-              <Play className="h-3.5 w-3.5 text-violet-400" /> View Detailed Replay Console
+              <Play className="h-3.5 w-3.5 stroke-[3px]" /> VIEW REPLAY CONSOLE
             </button>
           </div>
         </div>
+
       </div>
+
     </div>
   );
 };
