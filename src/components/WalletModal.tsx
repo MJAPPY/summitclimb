@@ -50,6 +50,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       const connection = await protonService.connect();
       setWalletAddress(connection.actor);
       setWalletConnected(true);
+      localStorage.setItem('proton_connected', 'true');
       onSyncBalances();
       toast({
         title: "Proton Connected",
@@ -70,6 +71,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     setWalletAddress('');
     setBalance(0);
     setGuyBalance(0);
+    localStorage.removeItem('proton_connected');
     toast({
       title: "Disconnected",
       description: "Ended active Proton link protocol session.",

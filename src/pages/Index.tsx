@@ -280,6 +280,11 @@ const Index = () => {
     fetchLivePots();
 
     const autoLogin = async () => {
+      // ONLY attempt silent automatic session restore if explicitly connected in past
+      if (localStorage.getItem('proton_connected') !== 'true') {
+        return;
+      }
+
       const activeSession = await protonService.restore();
       if (activeSession) {
         setWalletAddress(activeSession.actor);
@@ -505,6 +510,7 @@ const Index = () => {
       const connection = await protonService.connect();
       setWalletAddress(connection.actor);
       setWalletConnected(true);
+      localStorage.setItem('proton_connected', 'true');
       handleSyncBalances(connection.actor);
       toast({
         title: "Proton Connected",
