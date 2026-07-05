@@ -27,12 +27,12 @@ export const RunSummaryModal: React.FC<RunSummaryModalProps> = ({
   const nextLevelXp = level * 100;
   const xpPercent = Math.min(100, (xp / nextLevelXp) * 100);
 
-  // Generate customized message for X sharing
+  // Generate customized message for X sharing with the official deployment link appended
   const getShareText = () => {
     if (result === 'banked') {
-      return `Just secured a ${multiplier.toFixed(2)}x altitude multiplier on Summit Climb! 🏔️ Level ${level} peak climber. Can you beat my score? @777Guyxpr #XPR #GUY`;
+      return `Just secured a ${multiplier.toFixed(2)}x altitude multiplier on Summit Climb! 🏔️ Level ${level} peak climber. Can you beat my score? @777Guyxpr #XPR #GUY https://summitclimb.vercel.app/`;
     } else {
-      return `The mountain collapsed on me at ${multiplier.toFixed(2)}x on Summit Climb! 💥 Dusting off my boots to climb again. @777Guyxpr #XPR #GUY`;
+      return `The mountain collapsed on me at ${multiplier.toFixed(2)}x on Summit Climb! 💥 Dusting off my boots to climb again. @777Guyxpr #XPR #GUY https://summitclimb.vercel.app/`;
     }
   };
 
