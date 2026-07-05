@@ -491,12 +491,23 @@ const Index = () => {
         </div>
 
         {/* Global info ticks with the live wallet pot */}
-        <div className="hidden md:flex items-center gap-6">
-          <div className="flex items-center gap-2.5 bg-pink-500/15 border-2 border-pink-500 px-3.5 py-2 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+        <div className="hidden md:flex items-center gap-4">
+          <div className="flex items-center gap-2.5 bg-pink-500/15 border-2 border-pink-500 px-3 py-1.5 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
             <PotIcon className="h-4 w-4 text-pink-400 animate-bounce" />
-            <span className="font-retro text-[10px] text-pink-300 uppercase leading-none">WALLET POT:</span>
-            <span className="font-retro text-[11px] text-yellow-300 font-extrabold leading-none">{prizePool.toLocaleString()} XPR</span>
+            <div className="flex flex-col">
+              <span className="font-retro text-[8px] text-pink-300 uppercase leading-none">XPR POT:</span>
+              <span className="font-retro text-[11px] text-yellow-300 font-black leading-none mt-1">{prizePool.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} XPR</span>
+            </div>
           </div>
+          
+          <div className="flex items-center gap-2.5 bg-purple-500/15 border-2 border-purple-500 px-3 py-1.5 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+            <Flame className="h-4 w-4 text-purple-400 animate-pulse" />
+            <div className="flex flex-col">
+              <span className="font-retro text-[8px] text-purple-300 uppercase leading-none">GUY POT:</span>
+              <span className="font-retro text-[11px] text-cyan-300 font-black leading-none mt-1">{guyPrizePool.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} GUY</span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 bg-green-400 animate-pulse border border-black rounded-none" />
             <span className="font-retro uppercase text-[9px] text-green-400 tracking-wider">1,420 ONLINE</span>
