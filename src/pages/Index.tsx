@@ -786,21 +786,21 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="arcade-panel-cyan p-6 space-y-4">
+          <div className="arcade-panel-cyan p-6 space-y-4 relative overflow-hidden">
             <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
               <Gift className="h-36 w-36 text-cyan-400" />
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="p-1.5 bg-cyan-500/20 text-cyan-400 text-xs font-retro">
-                JACKPOT
+              <span className="p-1.5 bg-cyan-500/20 text-cyan-400 text-[10px] font-retro tracking-widest uppercase">
+                DISTRIBUTION PROTOCOL
               </span>
             </div>
 
-            <div className="space-y-1">
-              <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
-              <p className="text-[10px] text-slate-400 leading-normal">
-                Stake tokens pool permanently into the grand pots. 93% is distributed to the Top 15 players on the cabinet ledger. 7% remains at @tripseven and @askguy.
+            <div className="space-y-2">
+              <h4 className="text-[10px] font-retro text-white tracking-wider leading-tight uppercase">PROPORTIONAL SPLIT</h4>
+              <p className="text-[10px] text-slate-400 leading-relaxed font-sans font-medium">
+                Every loaded coin directly expands the prize pool. <strong className="text-cyan-400">93%</strong> of accumulated tokens is split among the top 15 ranked climbers. The remaining <strong className="text-pink-400">7%</strong> supports the server operators.
               </p>
             </div>
           </div>
