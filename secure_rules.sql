@@ -33,7 +33,7 @@ BEGIN
 END;
 $$;
 
--- 2. Create a secure RPC function for users to increment the pot when purchasing goes (Prevents arbitrary overwrites)
+-- 2. Create a secure RPC function for users to increment the pot when purchasing goes
 CREATE OR REPLACE FUNCTION public.increment_pot_on_purchase(
   p_amount NUMERIC,
   p_type TEXT
@@ -62,13 +62,25 @@ BEGIN
 END;
 $$;
 
--- Grant execution privileges to public anonymous and authenticated roles
-GRANT EXECUTE ON FUNCTION public.boost_global_pot(TEXT, NUMERIC, TEXT) TO anon;
-GRANT EXECUTE ON FUNCTION public.boost_global_pot(TEXT, NUMERIC, TEXT) TO authenticated;
+-- =========================================================================
+-- SECURE PRIVILEGES: Revoke public execution to satisfy Security Advisor
+-- =========================================================================
+
+-- Revoke default execute from PUBLIC on both functions
+REVOKE EXECUTE ON FUNCTION public.boost_global_pot(TEXT, NUMERIC, TEXT) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.increment_pot_on_purchase(NUMERIC, TEXT) FROM PUBLIC;
+
+-- Revoke execute from anon and authenticated on the admin-only boost function to satisfy signed-in user warning
+REVOKE EXECUTE ON FUNCTION public.boost_global_pot(TEXT, NUMERIC, TEXT) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.boost_global_pot(TEXT, NUMERIC, TEXT) FROM authenticated;
+
+-- Allow controlled client-side execution for the gameplay purchase increment function
 GRANT EXECUTE ON FUNCTION public.increment_pot_on_purchase(NUMERIC, TEXT) TO anon;
 GRANT EXECUTE ON FUNCTION public.increment_pot_on_purchase(NUMERIC, TEXT) TO authenticated;
 
--- 3. Tighten the Row-Level Security Policy for updates on profiles to prevent modifying the global config directly
+-- =========================================================================
+
+-- Tighten the Row-Level Security Policy for updates on profiles to prevent modifying the global config directly
 DROP POLICY IF EXISTS "Allow public update profiles" ON public.climber_profiles;
 
 CREATE POLICY "Allow public update profiles" ON public.climber_profiles
