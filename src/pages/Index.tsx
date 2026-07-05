@@ -58,9 +58,9 @@ const Index = () => {
   // Remaining climb Goes Counter (Default starts with 0 for unauthenticated users)
   const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
-  // Pots states
-  const [prizePool, setPrizePool] = useState<number>(45000);
-  const [guyPrizePool, setGuyPrizePool] = useState<number>(12000);
+  // Pots states backed by actual blockchain balances of @tripseven
+  const [prizePool, setPrizePool] = useState<number>(0);
+  const [guyPrizePool, setGuyPrizePool] = useState<number>(0);
 
   // Stats reset
   const [lifetimeGames, setLifetimeGames] = useState<number>(0);
@@ -106,6 +106,17 @@ const Index = () => {
       setActiveTab('climb');
     }
   }, [activeTab, isAdmin]);
+
+  // Fetch the actual real on-chain pot balances from the @tripseven account
+  const fetchTripSevenPots = async () => {
+    try {
+      const pots = await protonService.getBalances('tripseven');
+      setPrizePool(pots.XPR);
+      setGuyPrizePool(pots.GUY);
+    } catch (e) {
+      console.warn("Could not query live tripseven pot balances:", e);
+    }
+  };
 
   // Sync balances and fetch persistent player stats from Supabase
   const handleSyncBalances = async (actorName: string) => {
@@ -173,8 +184,10 @@ const Index = () => {
     }
   };
 
-  // Attempt to restore user's verified session silently when loading the app
+  // Load pots on mount and attempt silent session restore
   useEffect(() => {
+    fetchTripSevenPots();
+
     const autoLogin = async () => {
       const activeSession = await protonService.restore();
       if (activeSession) {
@@ -190,14 +203,15 @@ const Index = () => {
     autoLogin();
   }, []);
 
-  // Poll balances and scores every 15 seconds
+  // Poll balances, pots and scores every 15 seconds
   useEffect(() => {
-    if (walletConnected && walletAddress) {
-      const interval = setInterval(() => {
+    const interval = setInterval(() => {
+      fetchTripSevenPots();
+      if (walletConnected && walletAddress) {
         handleSyncBalances(walletAddress);
-      }, 15000);
-      return () => clearInterval(interval);
-    }
+      }
+    }, 15000);
+    return () => clearInterval(interval);
   }, [walletConnected, walletAddress]);
 
   // Toggle sound
@@ -247,8 +261,6 @@ const Index = () => {
       return;
     }
 
-    const poolContribution = cost * 0.93;
-
     if (tokenType === 'XPR') {
       setBalance(prev => prev - cost);
     } else {
@@ -257,12 +269,6 @@ const Index = () => {
 
     const nextGoes = remainingGoes + count;
     setRemainingGoes(nextGoes);
-    
-    if (tokenType === 'XPR') {
-      setPrizePool(prev => prev + poolContribution);
-    } else {
-      setGuyPrizePool(prev => prev + poolContribution);
-    }
 
     // Persist immediately to live database
     await savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
@@ -272,6 +278,8 @@ const Index = () => {
       description: `Bought ${count} games for ${cost} ${tokenType}. persistent credits locked.`,
     });
 
+    // Re-fetch pots & balances immediately
+    fetchTripSevenPots();
     handleSyncBalances(walletAddress);
   };
 
