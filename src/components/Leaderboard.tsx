@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Trophy, Clock, Users, Award, ShieldAlert, Sparkles, Flame } from 'lucide-react';
 
 interface Competitor {
@@ -16,53 +16,10 @@ interface LeaderboardProps {
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
-  const [timeLeft, setTimeLeft] = useState<string>('07D : 00H : 00M : 00S');
-  const [participants, setParticipants] = useState<number>(142);
+  const [participants, setParticipants] = useState<number>(1420);
   
   // Real high score mock contenders
-  const [competitors, setCompetitors] = useState<Competitor[]>([
-    { rank: 1, username: 'cyber_goat', bestScore: 24.50, gamesPlayed: 148, country: 'AUT', avatar: '', prizeFraction: 40 },
-    { rank: 2, username: 'tripseven', bestScore: 18.92, gamesPlayed: 84, country: 'USA', avatar: '', prizeFraction: 25 },
-    { rank: 3, username: 'snow_shredder', bestScore: 14.11, gamesPlayed: 120, country: 'SUI', avatar: '', prizeFraction: 15 },
-    { rank: 4, username: 'yodel_king', bestScore: 9.35, gamesPlayed: 56, country: 'GER', avatar: '', prizeFraction: 8 },
-    { rank: 5, username: 'peak_chaser', bestScore: 7.20, gamesPlayed: 92, country: 'CAN', avatar: '', prizeFraction: 5 },
-  ]);
-
-  // Live countdown calculating precise duration to upcoming Sunday 00:00 UTC
-  useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date();
-      const nextSunday = new Date();
-      
-      // Calculate days to next Sunday
-      const currentDay = now.getUTCDay();
-      const daysRemaining = currentDay === 0 ? 7 : 7 - currentDay;
-      
-      nextSunday.setUTCDate(now.getUTCDate() + daysRemaining);
-      nextSunday.setUTCHours(0, 0, 0, 0);
-
-      const msDiff = nextSunday.getTime() - now.getTime();
-      
-      if (msDiff <= 0) {
-        setTimeLeft('00D : 00H : 00M : 00S');
-        return;
-      }
-
-      const totalSecs = Math.floor(msDiff / 1000);
-      const days = Math.floor(totalSecs / (3600 * 24));
-      const hours = Math.floor((totalSecs % (3600 * 24)) / 3600);
-      const mins = Math.floor((totalSecs % 3600) / 60);
-      const secs = totalSecs % 60;
-
-      setTimeLeft(
-        `${days.toString().padStart(2, '0')}D : ${hours.toString().padStart(2, '0')}H : ${mins.toString().padStart(2, '0')}M : ${secs.toString().padStart(2, '0')}S`
-      );
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const [competitors, setCompetitors] = useState<Competitor[]>([]);
 
   return (
     <div className="space-y-6 crt-screen">
@@ -82,23 +39,23 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
           </div>
         </div>
 
-        {/* 90s Countdown Marquee */}
+        {/* All-Time Peak Record Card (Replaces the weekly countdown timer) */}
         <div className="p-6 bg-slate-950 border-4 border-pink-500 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(236,72,153,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.15),transparent_60%)]">
           <span className="text-[10px] font-retro text-pink-400 tracking-wider flex items-center gap-2">
-            <Clock className="h-4 w-4 text-pink-500" /> TIME TO RESET
+            <Trophy className="h-4 w-4 text-pink-500 animate-bounce" /> ALL-TIME APEX RECORD
           </span>
           <div className="text-lg md:text-xl font-retro font-black text-yellow-400 mt-4 tracking-widest text-shadow-gold">
-            {timeLeft}
+            42.50x
           </div>
           <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
-            WEEKLY TOURNAMENT SUNDAY SYNC
+            UNBROKEN ASCENT HELD BY @CYBER_GOAT
           </div>
         </div>
 
         {/* Contenders Box */}
         <div className="p-6 bg-slate-950 border-4 border-yellow-400 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(250,204,21,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.15),transparent_60%)]">
           <span className="text-[10px] font-retro text-yellow-400 tracking-wider flex items-center gap-2">
-            <Users className="h-4 w-4 text-yellow-400" /> CONTENDERS
+            <Users className="h-4 w-4 text-yellow-400" /> TOTAL CONTENDERS
           </span>
           <div className="text-2xl font-retro font-black text-white mt-4 leading-none">
             {participants.toLocaleString()} <span className="text-[10px] font-retro text-yellow-400">GUYS</span>
@@ -120,7 +77,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
 
         <div className="flex flex-col items-center justify-center text-center py-4 border-b-2 border-dashed border-pink-500/40 mb-6">
           <h3 className="text-sm md:text-lg font-retro text-gradient-neon tracking-wider uppercase mb-2">
-            🏆 HIGH SCORE CABINET LEDGER 🏆
+            🏆 ALL-TIME HIGH SCORE CABINET LEDGER 🏆
           </h3>
           <span className="text-[8px] md:text-[10px] font-retro text-cyan-400 tracking-[0.2em] uppercase blink-fast mt-1">
             INSERT COIN TO CHALLENGE THE APEX • PLAY TO WIN
@@ -145,7 +102,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
                   <th className="py-4 px-4 text-center">Location</th>
                   <th className="py-4 px-4 text-right">Runs</th>
                   <th className="py-4 px-4 text-right text-yellow-400">Apex Altitude</th>
-                  <th className="py-4 px-5 text-right text-cyan-400">Est. Payout</th>
+                  <th className="py-4 px-5 text-right text-cyan-400">All-Time Earnings</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 font-retro text-xs bg-slate-950/40">

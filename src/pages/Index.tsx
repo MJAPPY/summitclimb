@@ -157,7 +157,7 @@ const Index = () => {
 
     toast({
       title: "Climbs Added!",
-      description: `Bought ${count} games for ${cost} XPR. (7% operator fee retained, 93% added to Weekly Prize Pool!)`,
+      description: `Bought ${count} games for ${cost} XPR. (7% operator fee retained, 93% added to All-Time Prize Pool!)`,
     });
   };
 
@@ -240,7 +240,7 @@ const Index = () => {
 
     toast({
       title: "Altitude Secured!",
-      description: `Score of ${lockedScore.toFixed(2)}x registered into Weekly Leaderboard! Earned +${xpEarned} XP.`,
+      description: `Score of ${lockedScore.toFixed(2)}x registered into All-Time Leaderboard! Earned +${xpEarned} XP.`,
     });
   };
 
@@ -477,7 +477,7 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Interactive Weekly pot explainer item block */}
+          {/* Interactive All-Time pot explainer item block */}
           <div className="arcade-panel-cyan p-6 space-y-4">
             <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
               <Gift className="h-36 w-36 text-cyan-400" />
@@ -492,7 +492,7 @@ const Index = () => {
             <div className="space-y-1">
               <h4 className="text-xs font-retro text-white leading-tight">POT SPLIT MODEL</h4>
               <p className="text-[10px] text-slate-400 leading-normal">
-                Climb runs cost exactly 2 XPR. Stake tokens pool into the grand pot. At Sunday reset, 93% is distributed to the Top 15 players on the cabinet ledger. 7% developer cut to payment contract.
+                Climb runs cost exactly 2 XPR. Stake tokens pool permanently into the grand pot. 93% is distributed to the Top 15 players on the all-time cabinet ledger. 7% developer cut to payment contract.
               </p>
             </div>
 
