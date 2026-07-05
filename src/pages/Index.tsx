@@ -1091,8 +1091,25 @@ const Index = () => {
 
       <footer className="mt-12 py-10 border-t-4 border-pink-500 text-center text-[10px] text-slate-500 space-y-6 relative z-10 bg-slate-950">
         <SummitLogo size="lg" className="mx-auto border-4 border-cyan-400 rounded-none shadow-[0_0_15px_rgba(6,182,212,0.4)]" />
+        
+        {/* X (Twitter) Stylized Link Badge */}
+        <div className="flex justify-center pt-2">
+          <a
+            href="https://x.com/777Guyxpr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2.5 px-4 py-2 bg-black border-2 border-pink-500/80 hover:border-pink-500 hover:shadow-[0_0_15px_rgba(236,72,153,0.5)] transition-all font-retro text-[9px] text-pink-400 hover:text-white uppercase tracking-wider"
+          >
+            {/* Custom vector X path rendering matching standard logo spec */}
+            <svg className="h-3.5 w-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            <span>Follow @777Guyxpr on X</span>
+          </a>
+        </div>
+
         <div>
-          <p className="max-w-md mx-auto font-retro uppercase leading-relaxed text-slate-400">
+          <p className="max-w-md mx-auto font-retro uppercase leading-relaxed text-slate-400 mt-2">
             SUMMIT CABINET © 1994 ALL RIGHT STAKED. ENJOY EXPLORATION GAMES!
           </p>
           <p className="mt-3 font-retro text-yellow-400 tracking-widest text-xs uppercase animate-pulse">
