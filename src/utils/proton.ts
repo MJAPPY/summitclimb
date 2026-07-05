@@ -83,14 +83,17 @@ class ProtonConnectionManager {
     }
   }
 
-  // Check for pre-existing verified sessions to bypass scanner dialog on reload
+  // Check for pre-existing verified sessions silently to bypass scanner dialog on reload
   async restore(): Promise<{ actor: string; session: LinkSession } | null> {
     try {
       const { session } = await ProtonSDK({
         linkOptions: {
-          endpoints: this.endpoints
+          endpoints: this.endpoints,
+          restoreSession: true // ensures it only restores silently without showing popups
         },
-        transportOptions: {} as any,
+        transportOptions: {
+          requestAccount: 'tripseven', // bound directly to tripseven
+        } as any,
         selectorOptions: {
           appName: this.appName,
           appLogo: this.appLogo
