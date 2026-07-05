@@ -1044,7 +1044,15 @@ const Index = () => {
 
           {activeTab === 'replays' && walletConnected && <ReplayManager />}
 
-          {activeTab === 'admin' && isAdmin && <AdminPanel />}
+          {activeTab === 'admin' && isAdmin && (
+            <AdminPanel 
+              prizePool={prizePool}
+              guyPrizePool={guyPrizePool}
+              onBoostPots={async (amount, type) => {
+                await incrementAccumulatedPot(amount, type);
+              }}
+            />
+          )}
 
         </main>
       </div>

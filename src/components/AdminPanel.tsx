@@ -1,14 +1,30 @@
 import React, { useState } from 'react';
-import { Settings, ShieldAlert, Key, Edit3, Save, RefreshCw } from 'lucide-react';
+import { Settings, ShieldAlert, Key, Edit3, Save, RefreshCw, Flame, Coins, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export const AdminPanel: React.FC = () => {
+interface AdminPanelProps {
+  prizePool: number;
+  guyPrizePool: number;
+  onBoostPots: (amount: number, type: 'XPR' | 'GUY') => Promise<void>;
+}
+
+export const AdminPanel: React.FC<AdminPanelProps> = ({
+  prizePool,
+  guyPrizePool,
+  onBoostPots
+}) => {
   const { toast } = useToast();
   
   // Configuration adjusters state
   const [weeklyPool, setWeeklyPool] = useState<number>(12500);
   const [seedValue, setSeedValue] = useState<string>('0x777_Summit_Decay_Seed_9a2b');
   const [announcement, setAnnouncement] = useState<string>('Climb Mount Everest Dusk with GUY! Compete in Season 4 to secure fractions of the 12,500 CLIMB prize pool.');
+
+  // Pot Boosting States
+  const [xprBoostInput, setXprBoostInput] = useState<string>('100');
+  const [guyBoostInput, setGuyBoostInput] = useState<string>('500');
+  const [isBoostingXpr, setIsBoostingXpr] = useState(false);
+  const [isBoostingGuy, setIsBoostingGuy] = useState(false);
 
   const handleSaveSettings = () => {
     toast({
@@ -26,10 +42,116 @@ export const AdminPanel: React.FC = () => {
     });
   };
 
+  const executeBoost = async (type: 'XPR' | 'GUY') => {
+    const amount = type === 'XPR' ? parseFloat(xprBoostInput) : parseFloat(guyBoostInput);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please specify a positive numeric value to boost.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (type === 'XPR') setIsBoostingXpr(true);
+    else setIsBoostingGuy(true);
+
+    try {
+      await onBoostPots(amount, type);
+      toast({
+        title: "⚡ POT BOOSTED",
+        description: `Successfully added +${amount.toLocaleString()} ${type} to the live accumulated prize pool!`,
+      });
+    } catch (e) {
+      toast({
+        title: "Boost Failed",
+        description: "Could not apply manual database allocation boost.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsBoostingXpr(false);
+      setIsBoostingGuy(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Left panel adjusters */}
       <div className="lg:col-span-2 space-y-6">
+        
+        {/* Pot Boosting Section */}
+        <div className="p-6 bg-slate-900/50 border-4 border-yellow-400 rounded-none space-y-4 shadow-[0_0_15px_rgba(250,204,21,0.25)]">
+          <h3 className="text-sm font-retro text-yellow-400 uppercase tracking-widest flex items-center gap-2 pb-2 border-b-2 border-dashed border-yellow-400/20">
+            <PlusCircle className="h-4 w-4 animate-pulse" /> Live Pot Booster Chute
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* XPR Pot booster */}
+            <div className="p-4 bg-slate-950 border border-white/5 space-y-3">
+              <span className="text-[10px] font-retro text-cyan-400 block">XPR POT (CURRENT: {prizePool.toFixed(1)} XPR)</span>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={xprBoostInput}
+                  onChange={(e) => setXprBoostInput(e.target.value)}
+                  placeholder="Amount..."
+                  className="w-full bg-slate-900 border-2 border-cyan-500 p-2 text-white font-mono text-xs focus:outline-none"
+                />
+                <button
+                  onClick={() => executeBoost('XPR')}
+                  disabled={isBoostingXpr}
+                  className="px-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-retro text-xs font-bold whitespace-nowrap active:translate-y-0.5 transition-transform"
+                >
+                  {isBoostingXpr ? '...' : 'BOOST'}
+                </button>
+              </div>
+              <div className="flex gap-1.5 pt-1">
+                {[50, 100, 500, 1000].map((val) => (
+                  <button
+                    key={val}
+                    onClick={() => setXprBoostInput(val.toString())}
+                    className="px-2 py-1 bg-slate-900 border border-cyan-500/30 hover:border-cyan-500 text-[9px] font-mono text-cyan-400 transition-colors"
+                  >
+                    +{val}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* GUY Pot booster */}
+            <div className="p-4 bg-slate-950 border border-white/5 space-y-3">
+              <span className="text-[10px] font-retro text-purple-400 block">GUY POT (CURRENT: {guyPrizePool.toFixed(1)} GUY)</span>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={guyBoostInput}
+                  onChange={(e) => setGuyBoostInput(e.target.value)}
+                  placeholder="Amount..."
+                  className="w-full bg-slate-900 border-2 border-purple-500 p-2 text-white font-mono text-xs focus:outline-none"
+                />
+                <button
+                  onClick={() => executeBoost('GUY')}
+                  disabled={isBoostingGuy}
+                  className="px-4 bg-purple-500 hover:bg-purple-400 text-white font-retro text-xs font-bold whitespace-nowrap active:translate-y-0.5 transition-transform"
+                >
+                  {isBoostingGuy ? '...' : 'BOOST'}
+                </button>
+              </div>
+              <div className="flex gap-1.5 pt-1">
+                {[250, 500, 2500, 5000].map((val) => (
+                  <button
+                    key={val}
+                    onClick={() => setGuyBoostInput(val.toString())}
+                    className="px-2 py-1 bg-slate-900 border border-purple-500/30 hover:border-purple-500 text-[9px] font-mono text-purple-400 transition-colors"
+                  >
+                    +{val}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="p-6 bg-slate-900/50 border border-white/5 rounded-2xl space-y-4">
           <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5 pb-2 border-b border-white/5">
             <Settings className="h-4 w-4 text-violet-400" /> Season & Prize Controls
@@ -112,6 +234,7 @@ export const AdminPanel: React.FC = () => {
 
         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {[
+            { tag: 'POT BOOST', desc: 'Manual injection capability enabled for account @tripseven', date: 'Just now' },
             { tag: 'COMMISSION', desc: 'Web3 payout set to 93% prize pool, operator retains 7%', date: 'Just now' },
             { tag: 'SEED', desc: 'Secure hash cycled successfully', date: '5 mins ago' },
             { tag: 'WALLET', desc: 'Payment contract audit confirmed with zero flags', date: '1 hour ago' },
