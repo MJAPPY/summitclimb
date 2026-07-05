@@ -688,13 +688,6 @@ const Index = () => {
                 Stake tokens pool permanently into the grand pot. 93% is distributed to the Top 15 players on the all-time cabinet ledger. 7% developer cut to payment contract.
               </p>
             </div>
-
-            <button 
-              onClick={() => setActiveTab('leaderboard')}
-              className="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-slate-950 font-retro text-[9px] transition-all"
-            >
-              PRIZE RULES
-            </button>
           </div>
 
           {/* Mini active player badge */}
