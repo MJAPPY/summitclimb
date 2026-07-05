@@ -17,7 +17,7 @@ interface LeaderboardProps {
   guyPrizePool: number;
 }
 
-export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePool }) => {
+export function Leaderboard({ prizePool, guyPrizePool }: LeaderboardProps) {
   const [participants, setParticipants] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<string>('00D : 00H : 00M : 00S');
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
@@ -273,6 +273,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePoo
       </div>
     </div>
   );
-};
+}
 
 export default Leaderboard;
