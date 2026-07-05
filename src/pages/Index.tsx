@@ -592,7 +592,7 @@ const Index = () => {
               SUMMIT <span className="text-gradient-neon flash-fast">CLIMB</span>
             </h1>
             <span className="text-[10px] font-retro text-cyan-400 tracking-wider block leading-none mt-2 uppercase">
-              INSERT COIN - PRESS TO PLAY
+              REACH THE PINNACLE
             </span>
           </div>
         </div>
