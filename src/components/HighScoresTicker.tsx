@@ -28,10 +28,10 @@ export const HighScoresTicker: React.FC = () => {
         }
 
         if (data && data.length > 0) {
-          // Construct high-energy dynamic ticker statements out of the actual live database scores
+          // Construct high-energy dynamic ticker statements without the country tag
           const feeds = data.map((row, idx) => {
             const prefix = idx === 0 ? "🏆 APEX CLIMBER" : idx < 3 ? "⭐ ELITE RUN" : "🧗 CLIMB";
-            return `${prefix}: @${row.wallet_address} REACHED ${parseFloat(row.score).toFixed(2)}x (${row.country})`;
+            return `${prefix}: @${row.wallet_address} REACHED ${parseFloat(row.score).toFixed(2)}x`;
           });
 
           // Mix in a few global system status checks to keep the aesthetic intact
