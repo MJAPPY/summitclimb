@@ -36,19 +36,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   const [amountInput, setAmountInput] = useState<string>('');
   const [signingOnChain, setSigningOnChain] = useState<boolean>(false);
 
-  const [transactions, setTransactions] = useState<Array<{
-    id: string;
-    type: 'deposit' | 'withdraw' | 'win' | 'purchase';
-    amount: number;
-    token: string;
-    time: string;
-    status: 'completed' | 'pending';
-  }>>([
-    { id: 'TX-901', type: 'deposit', amount: 250, token: 'XPR', time: '10 mins ago', status: 'completed' },
-    { id: 'TX-802', type: 'deposit', amount: 15, token: 'GUY', time: '1 hour ago', status: 'completed' },
-    { id: 'TX-703', type: 'withdraw', amount: 100, token: 'XPR', time: 'Yesterday', status: 'completed' },
-  ]);
-
   // Active balance dynamically switching based on tokenType state
   const activeBalance = tokenType === 'XPR' ? balance : guyBalance;
 
@@ -97,7 +84,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
     setSigningOnChain(true);
     try {
       // Dispatches request directly to connected mobile WebAuth/Anchor for real-world cryptographic signing!
-      const txResult = await protonService.transfer(
+      await protonService.transfer(
         'tripseven', 
         amt, 
         tokenType, 
@@ -110,22 +97,11 @@ export const WalletModal: React.FC<WalletModalProps> = ({
         setGuyBalance(prev => prev + amt);
       }
 
-      setTransactions(prev => [
-        {
-          id: txResult.processed.id.slice(0, 10).toUpperCase(),
-          type: 'deposit',
-          amount: amt,
-          token: tokenType,
-          time: 'Just now',
-          status: 'completed'
-        },
-        ...prev
-      ]);
       setAmountInput('');
       onSyncBalances();
       toast({
         title: "Transaction Broadcasted",
-        description: `Successfully processed transaction ${txResult.processed.id.slice(0, 8)} on Proton mainnet!`,
+        description: `Successfully processed transaction on Proton mainnet!`,
       });
     } catch (error) {
       toast({
@@ -163,17 +139,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
       setGuyBalance(prev => prev - amt);
     }
 
-    setTransactions(prev => [
-      {
-        id: 'TX-' + Math.floor(Math.random() * 900 + 100),
-        type: 'withdraw',
-        amount: amt,
-        token: tokenType,
-        time: 'Just now',
-        status: 'completed'
-      },
-      ...prev
-    ]);
     setAmountInput('');
     toast({
       title: "Withdrawal Initialized",
@@ -351,49 +316,6 @@ export const WalletModal: React.FC<WalletModalProps> = ({
               </div>
             </div>
           )}
-
-          {/* History ledger log */}
-          <div>
-            <h3 className="text-xs font-bold text-slate-400 mb-2.5 uppercase tracking-widest font-mono">XPR MAINNET LOG</h3>
-            <div className="max-h-[120px] overflow-y-auto space-y-2 pr-1">
-              {transactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="p-2.5 bg-slate-900 rounded-xl border border-white/5 flex items-center justify-between text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    {tx.type === 'deposit' ? (
-                      <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
-                        <ArrowDownRight className="h-3.5 w-3.5" />
-                      </div>
-                    ) : tx.type === 'win' ? (
-                      <div className="p-1.5 bg-yellow-500/10 text-yellow-400 rounded-lg">
-                        <CheckCircle className="h-3.5 w-3.5" />
-                      </div>
-                    ) : tx.type === 'purchase' ? (
-                      <div className="p-1.5 bg-purple-500/10 text-purple-400 rounded-lg">
-                        <RefreshCw className="h-3.5 w-3.5" />
-                      </div>
-                    ) : (
-                      <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg">
-                        <ArrowUpRight className="h-3.5 w-3.5" />
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-bold text-white capitalize">{tx.type}</div>
-                      <div className="text-[10px] text-slate-500 font-mono">{tx.id} • {tx.time}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`font-black ${tx.type === 'deposit' || tx.type === 'win' ? 'text-emerald-400' : 'text-slate-300'}`}>
-                      {tx.type === 'deposit' || tx.type === 'win' ? '+' : '-'}{tx.amount}
-                    </span>{' '}
-                    <span className="font-mono text-slate-400">{tx.token}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
