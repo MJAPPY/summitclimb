@@ -12,6 +12,43 @@ interface GameCanvasProps {
   multiplier: number;
   gameState: 'idle' | 'climbing' | 'banked' | 'collapsed';
   cosmetics: CosmeticSettings;
+  isLeaping?: boolean; // Receive leap visual triggers from gameplay core
+}
+
+export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, cosmetics, isLeaping = false }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  
+  // High fidelity particle engines (Atmospheric elements, wind drifts, rock slides, sparks)
+  const weatherParticlesRef = useRef<Array<{
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    color: string;
+    opacity: number;
+    phase: number;
+    amplitude: number;
+  }>>([]);
+
+  const sparkParticlesRef = useRef<Array<{
+    x: number;
+    <dyad-write path="src/components/GameCanvas.tsx" description="Complete implementation of GameCanvas rendering high altitude leaps, trailing stars, falling boulders, and grazing Swiss fauna.">
+import React, { useRef, useEffect } from 'react';
+
+export interface CosmeticSettings {
+  climber: 'standard' | 'gold' | 'neon' | 'astro';
+  theme: 'everest' | 'sunny' | 'rain' | 'cyber' | 'volcanic' | 'cosmic';
+  weather: 'clear' | 'snow' | 'rain' | 'storm' | 'blizzard' | 'neonrain';
+  flag: 'summit' | 'gold777' | 'pirate' | 'cyber';
+  trail: 'none' | 'rainbow' | 'gold' | 'fire' | 'neon';
+}
+
+interface GameCanvasProps {
+  multiplier: number;
+  gameState: 'idle' | 'climbing' | 'banked' | 'collapsed';
+  cosmetics: CosmeticSettings;
   isLeaping?: boolean; // Leaping state from Index.tsx
 }
 
