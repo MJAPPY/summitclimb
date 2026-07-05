@@ -107,9 +107,10 @@ const Index = () => {
     }
   }, [activeTab, isAdmin]);
 
-  // Fetch only the accumulated game pots from the persistent Supabase row
+  // Fetch only the accumulated game pots from both the database and the actual Proton RPC wallet balances
   const fetchLivePots = async () => {
     try {
+      // 1. Fetch fallback from Supabase configurations
       const { data, error } = await supabase
         .from('climber_profiles')
         .select('highest_multiplier, xp')
@@ -118,24 +119,25 @@ const Index = () => {
 
       if (error) {
         console.error("Error loading global pots from database:", error);
-        return;
       }
 
-      if (data) {
-        setPrizePool(data.highest_multiplier ?? 5000);
-        setGuyPrizePool(data.xp ?? 25000);
-      } else {
-        // Initialize global pots config row with base seed parameters
-        await supabase
-          .from('climber_profiles')
-          .insert([{
-            wallet_address: 'global_pots_config',
-            highest_multiplier: 5000, // Seed XPR Pot
-            xp: 25000,                // Seed GUY Pot
-            remaining_goes: 0,
-            level: 1,
-            lifetime_games: 0
-          }]);
+      // 2. Query exact on-chain balances for tripseven and askguy directly via Proton Web SDK/RPC
+      try {
+        const tripsevenBalance = await protonService.getBalances('tripseven');
+        const askguyBalance = await protonService.getBalances('askguy');
+
+        // Verify we got valid real-world balances back, otherwise fall back to database values
+        const realXPR = tripsevenBalance.XPR > 0 ? tripsevenBalance.XPR : (data?.highest_multiplier ?? 5000);
+        const realGUY = askguyBalance.GUY > 0 ? askguyBalance.GUY : (data?.xp ?? 25000);
+
+        setPrizePool(realXPR);
+        setGuyPrizePool(realGUY);
+      } catch (rpcErr) {
+        console.warn("Could not query live on-chain balances, using database configs:", rpcErr);
+        if (data) {
+          setPrizePool(data.highest_multiplier ?? 5000);
+          setGuyPrizePool(data.xp ?? 25000);
+        }
       }
     } catch (e) {
       console.warn("Could not query live pot balances:", e);
@@ -758,7 +760,7 @@ const Index = () => {
 
           {/* Mini active player badge */}
           <div className="arcade-panel p-5 flex items-center gap-4">
-            <div className="w-14 h-14 bg-slate-900 border-2 border-pink-500 flex items-center justify-center text-3xl shadow-inner shrink-0">
+            <div className="w-14 h-14 bg-slate-950 border-2 border-pink-500 flex items-center justify-center text-3xl shadow-inner shrink-0">
               🧗
             </div>
 
