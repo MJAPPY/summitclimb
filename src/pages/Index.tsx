@@ -58,7 +58,7 @@ const Index = () => {
   // Remaining climb Goes Counter (Default starts with 0 for unauthenticated users)
   const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
-  // Pots states backed by actual blockchain balances of @tripseven
+  // Pots states backed by actual blockchain balances of @tripseven and @askguy
   const [prizePool, setPrizePool] = useState<number>(0);
   const [guyPrizePool, setGuyPrizePool] = useState<number>(0);
 
@@ -107,14 +107,16 @@ const Index = () => {
     }
   }, [activeTab, isAdmin]);
 
-  // Fetch the actual real on-chain pot balances from the @tripseven account
-  const fetchTripSevenPots = async () => {
+  // Fetch the actual real on-chain pot balances from tripseven (XPR) and askguy (GUY)
+  const fetchLivePots = async () => {
     try {
-      const pots = await protonService.getBalances('tripseven');
-      setPrizePool(pots.XPR);
-      setGuyPrizePool(pots.GUY);
+      const tripsevenPots = await protonService.getBalances('tripseven');
+      setPrizePool(tripsevenPots.XPR);
+
+      const askguyPots = await protonService.getBalances('askguy');
+      setGuyPrizePool(askguyPots.GUY);
     } catch (e) {
-      console.warn("Could not query live tripseven pot balances:", e);
+      console.warn("Could not query live pot balances:", e);
     }
   };
 
@@ -186,7 +188,7 @@ const Index = () => {
 
   // Load pots on mount and attempt silent session restore
   useEffect(() => {
-    fetchTripSevenPots();
+    fetchLivePots();
 
     const autoLogin = async () => {
       const activeSession = await protonService.restore();
@@ -206,7 +208,7 @@ const Index = () => {
   // Poll balances, pots and scores every 15 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchTripSevenPots();
+      fetchLivePots();
       if (walletConnected && walletAddress) {
         handleSyncBalances(walletAddress);
       }
@@ -246,12 +248,14 @@ const Index = () => {
       return;
     }
 
+    const recipient = tokenType === 'GUY' ? 'askguy' : 'tripseven';
+
     try {
       toast({
         title: "Sending Signature Request",
         description: `Authorize the ${tokenType} games purchase in your WebAuth app...`,
       });
-      await protonService.transfer('tripseven', cost, tokenType, `Purchase ${count} climbs bundle - GUYS Summit`);
+      await protonService.transfer(recipient, cost, tokenType, `Purchase ${count} climbs bundle - GUYS Summit`);
     } catch (e) {
       toast({
         title: "Transaction Failed",
@@ -279,7 +283,7 @@ const Index = () => {
     });
 
     // Re-fetch pots & balances immediately
-    fetchTripSevenPots();
+    fetchLivePots();
     handleSyncBalances(walletAddress);
   };
 
@@ -667,14 +671,14 @@ const Index = () => {
                     activeTab === 'admin' 
                       ? 'bg-red-500/10 border-red-500 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
                       : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
-                  }`}
-                >
-                  <span className="flex items-center gap-3 min-w-0">
-                    <Settings className={`h-4 w-4 shrink-0 ${activeTab === 'admin' ? 'text-red-400' : 'text-slate-500'}`} /> 
-                    <span className="truncate">SYSTEM SET</span>
-                  </span>
-                  <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                }`}
+              >
+                <span className="flex items-center gap-3 min-w-0">
+                  <Settings className={`h-4 w-4 shrink-0 ${activeTab === 'admin' ? 'text-red-400' : 'text-slate-500'}`} /> 
+                  <span className="truncate">SYSTEM SET</span>
+                </span>
+                <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+              </button>
               )}
             </div>
           </div>
