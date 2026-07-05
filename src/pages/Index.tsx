@@ -550,7 +550,7 @@ const Index = () => {
               SUMMIT <span className="text-gradient-neon flash-fast">CLIMB</span>
             </h1>
             <span className="text-[10px] font-retro text-cyan-400 tracking-wider block leading-none mt-2 uppercase">
-              INSERT COIN • CLIMB THE PEAK
+              INSERT PLAY: HERO CLIMBER GUY ONLY
             </span>
           </div>
         </div>
@@ -816,9 +816,9 @@ const Index = () => {
                     ) : (
                       <button
                         onClick={handleStartClimb}
-                        className="w-full py-7 bg-gradient-to-b from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-base border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)]"
+                        className="w-full py-7 bg-gradient-to-b from-pink-500 via-purple-600 to-pink-500 hover:from-pink-400 hover:to-purple-500 text-white font-retro text-xs border-b-8 border-purple-800 active:border-b-2 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 uppercase cursor-pointer glow-pink shadow-[0_0_40px_rgba(236,72,153,0.4)]"
                       >
-                        <span>INSERT COIN • CLIMB</span>
+                        <span>INSERT PLAY: HERO CLIMBER GUY ONLY</span>
                         <ArrowUpRight className="h-5 w-5 stroke-[4px]" />
                       </button>
                     )}
