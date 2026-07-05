@@ -597,7 +597,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           ctx.moveTo(pts[0].x, pts[0].y);
           ctx.lineTo(pts[1].x, pts[1].y);
           ctx.lineTo(pts[2].x, pts[2].y);
-          ctx.lineTo(0, 0);
           ctx.closePath();
           ctx.fill();
 
@@ -629,6 +628,204 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ multiplier, gameState, c
           ctx.stroke();
 
           ctx.restore();
+        }
+      }
+      ctx.restore();
+
+      // =========================================================================
+      // DYNAMIC COWS & GOATS GRAZING ALONG THE MOUNTAIN SLOPES
+      // =========================================================================
+      ctx.save();
+      const animalSpacing = 380;
+      const animalStartIdx = Math.floor(scrollOffset / animalSpacing) - 1;
+      const animalEndIdx = animalStartIdx + Math.ceil(canvas.width / animalSpacing) + 2;
+
+      for (let i = animalStartIdx; i <= animalEndIdx; i++) {
+        // Deterministic pseudo-random generation based on index
+        const hash = Math.abs(Math.sin(i * 123.456 + 789));
+        const animalOffset = Math.cos(i * 987.654) * 90;
+        const animalX = (i * animalSpacing) - scrollOffset + animalOffset;
+        const animalY = getSlopeY(animalX, scrollRef.current);
+
+        // Render standard animals within active screen bounds (leaving room for margins)
+        if (animalX > -80 && animalX < canvas.width + 80) {
+          // Keep away from player start spawn area
+          if (Math.abs(animalX - guyXRef.current) > 75 || gameState !== 'climbing') {
+            const animalType = hash < 0.45 ? 'goat' : hash < 0.90 ? 'cow' : 'none';
+            const lookingDir = Math.sin(i * 543.21) > 0 ? 1 : -1;
+            const chewBob = Math.sin(t * 0.06 + i) * 2;
+
+            if (animalType === 'goat') {
+              // 1. GRAZING MOUNTAIN GOAT
+              ctx.save();
+              ctx.translate(animalX, animalY);
+              ctx.scale(lookingDir, 1);
+
+              // Shadow
+              ctx.fillStyle = 'rgba(15, 23, 42, 0.25)';
+              ctx.beginPath();
+              ctx.ellipse(0, 2, 16, 5, 0, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Legs
+              ctx.strokeStyle = '#475569';
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.moveTo(-6, 0); ctx.lineTo(-6, 12);
+              ctx.moveTo(-3, 0); ctx.lineTo(-3, 12);
+              ctx.moveTo(4, 0); ctx.lineTo(4, 12);
+              ctx.moveTo(7, 0); ctx.lineTo(7, 12);
+              ctx.stroke();
+
+              // Body
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.ellipse(0, -2, 12, 8, 0, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Head with cute grazing bobbing motion
+              ctx.save();
+              ctx.translate(10, -8 + chewBob * 0.6);
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.arc(0, 0, 5, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Beard
+              ctx.strokeStyle = '#cbd5e1';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.moveTo(0, 4);
+              ctx.lineTo(2, 8);
+              ctx.stroke();
+
+              // Curved Horns
+              ctx.strokeStyle = '#facc15';
+              ctx.lineWidth = 1.8;
+              ctx.beginPath();
+              ctx.moveTo(-2, -4);
+              ctx.quadraticCurveTo(-6, -11, -10, -8);
+              ctx.stroke();
+
+              ctx.restore();
+
+              // Fluffy Tail
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.arc(-11, -5, 3, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.restore();
+            } else if (animalType === 'cow') {
+              // 2. RETRO SWISS ALPINE COW
+              ctx.save();
+              ctx.translate(animalX, animalY);
+              ctx.scale(lookingDir, 1);
+
+              // Shadow
+              ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+              ctx.beginPath();
+              ctx.ellipse(0, 4, 22, 6, 0, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Sturdy Cow Legs
+              ctx.strokeStyle = '#1e293b';
+              ctx.lineWidth = 4;
+              ctx.beginPath();
+              ctx.moveTo(-11, 0); ctx.lineTo(-11, 14);
+              ctx.moveTo(-6, 0); ctx.lineTo(-6, 14);
+              ctx.moveTo(8, 0); ctx.lineTo(8, 14);
+              ctx.moveTo(13, 0); ctx.lineTo(13, 14);
+              ctx.stroke();
+
+              // Cow pink udders
+              ctx.fillStyle = '#fda4af';
+              ctx.beginPath();
+              ctx.ellipse(0, 3, 5, 4, 0, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Large Boxy spotted Body
+              ctx.fillStyle = '#f8fafc'; // White base
+              ctx.fillRect(-18, -14, 34, 18);
+              ctx.strokeStyle = '#0f172a';
+              ctx.lineWidth = 1.5;
+              ctx.strokeRect(-18, -14, 34, 18);
+
+              // Dark Spots
+              ctx.fillStyle = '#1e293b';
+              ctx.beginPath();
+              ctx.arc(-10, -8, 5, 0, Math.PI * 2);
+              ctx.arc(4, -5, 6, 0, Math.PI * 2);
+              ctx.arc(10, -11, 4, 0, Math.PI * 2);
+              ctx.arc(-1, -12, 5, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Cow Head with dynamic grazing tilt
+              ctx.save();
+              ctx.translate(20, -11 + chewBob * 0.7);
+              
+              // Neck connector
+              ctx.fillStyle = '#f8fafc';
+              ctx.fillRect(-6, -2, 8, 8);
+
+              // Face block
+              ctx.fillRect(-2, -5, 11, 11);
+              ctx.strokeRect(-2, -5, 11, 11);
+
+              // Black spot over eye
+              ctx.fillStyle = '#1e293b';
+              ctx.fillRect(0, -4, 4, 4);
+
+              // Pink snout
+              ctx.fillStyle = '#fda4af';
+              ctx.fillRect(5, 1, 5, 5);
+
+              // Ears
+              ctx.fillStyle = '#f8fafc';
+              ctx.beginPath();
+              ctx.ellipse(-3, -4, 4, 1.8, -Math.PI/6, 0, Math.PI*2);
+              ctx.fill();
+
+              // Little Horns
+              ctx.strokeStyle = '#f59e0b';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(2, -5);
+              ctx.quadraticCurveTo(4, -10, 6, -9);
+              ctx.stroke();
+
+              // Classic Golden Swiss Neck Bell
+              ctx.fillStyle = '#facc15';
+              ctx.strokeStyle = '#d97706';
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(-4, 6);
+              ctx.lineTo(-7, 12);
+              ctx.lineTo(-2, 12);
+              ctx.closePath();
+              ctx.fill();
+              ctx.stroke();
+
+              ctx.restore();
+
+              // Tail with fluffy tip shaking
+              const tailShake = Math.sin(t * 0.12 + i) * 3;
+              ctx.strokeStyle = '#f8fafc';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(-18, -10);
+              ctx.quadraticCurveTo(-24 + tailShake, -4, -22 + tailShake, 2);
+              ctx.stroke();
+
+              // Tail tip puff
+              ctx.fillStyle = '#1e293b';
+              ctx.beginPath();
+              ctx.arc(-22 + tailShake, 2, 2.5, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.restore();
+            }
+          }
         }
       }
       ctx.restore();
