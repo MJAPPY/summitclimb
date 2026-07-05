@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Award, Zap, Compass, Trophy, Share2, Clipboard, ChevronRight, Play, Star, ShieldAlert, Sparkles, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +22,6 @@ interface ProfilePanelProps {
   highestMultiplier: number;
   weeklyBest: number;
   referrals: number;
-  onOpenReplays: () => void;
   walletAddress?: string;
   cosmetics: CosmeticSettings;
   setCosmetics: React.Dispatch<React.SetStateAction<CosmeticSettings>>;
@@ -33,7 +34,6 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   highestMultiplier,
   weeklyBest,
   referrals,
-  onOpenReplays,
   walletAddress,
   cosmetics,
   setCosmetics
@@ -188,7 +188,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
         </div>
       </div>
 
-      {/* NEW: Level Wardrobe & Cosmetics Selector Console */}
+      {/* Level Wardrobe & Cosmetics Selector Console */}
       <div className="arcade-panel p-6 space-y-4">
         <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2 pb-3 border-b-2 border-dashed border-pink-500/30">
           <Sparkles className="h-4 w-4 text-pink-500 animate-pulse" /> COSMETICS WARDROBE
@@ -264,103 +264,58 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
         </div>
       </div>
 
-      {/* Main achievements & Climbs Dashboard layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Achievements list */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-pink-500/30">
-            <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2">
-              <Award className="h-4 w-4 text-pink-500 animate-pulse" /> CLIMBER ACHIEVEMENTS
-            </h3>
-            <span className="text-[10px] font-retro text-cyan-400 uppercase bg-cyan-400/10 px-2 py-0.5 border border-cyan-500/20">
-              {achievements.filter(a => a.unlocked).length} / {achievements.length} UNLOCKED
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {achievements.map((item) => (
-              <div
-                key={item.id}
-                className={`border-2 p-4 relative group transition-all rounded-none ${
-                  item.unlocked
-                    ? 'border-pink-500/50 bg-slate-950/60 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:border-pink-500'
-                    : 'border-white/5 bg-slate-950/20 opacity-55'
-                }`}
-              >
-                {/* Rarity Tag */}
-                <span className={`absolute top-2 right-2 text-[7px] font-retro border px-1.5 py-0.5 uppercase tracking-widest ${getRarityStyle(item.rarity)}`}>
-                  {item.rarity}
-                </span>
-
-                <div className="flex gap-4 items-start pt-2">
-                  <div className="text-3xl p-2.5 bg-slate-900 border border-white/10 select-none leading-none shrink-0">
-                    {item.unlocked ? item.icon : '🔒'}
-                  </div>
-                  <div className="min-w-0 space-y-1">
-                    <h4 className="font-retro text-[10px] text-white tracking-wide truncate">
-                      {item.title}
-                    </h4>
-                    <p className="text-[9px] font-retro text-slate-400 leading-relaxed uppercase">
-                      {item.desc}
-                    </p>
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <span className="text-[8px] font-retro text-yellow-400 font-bold">
-                        +{item.xpReward} XP
-                      </span>
-                      {item.unlocked && (
-                        <span className="text-[8px] font-retro text-green-400 bg-green-400/10 px-1.5 rounded-none font-bold uppercase">
-                          COMPLETED
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* History tape Quick Link */}
-        <div className="lg:col-span-4 space-y-4">
-          <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2 pb-3 border-b-2 border-dashed border-pink-500/30">
-            <Compass className="h-4 w-4 text-pink-500" /> FLIGHT LOG RECORD
+      {/* Main achievements Layout */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-pink-500/30">
+          <h3 className="text-xs md:text-sm font-retro text-gradient-neon uppercase tracking-wider flex items-center gap-2">
+            <Award className="h-4 w-4 text-pink-500 animate-pulse" /> CLIMBER ACHIEVEMENTS
           </h3>
+          <span className="text-[10px] font-retro text-cyan-400 uppercase bg-cyan-400/10 px-2 py-0.5 border border-cyan-500/20">
+            {achievements.filter(a => a.unlocked).length} / {achievements.length} UNLOCKED
+          </span>
+        </div>
 
-          <div className="space-y-3">
-            {[
-              { multiplier: 4.82, result: 'banked', score: 482, date: '1 HOUR AGO' },
-              { multiplier: 12.43, result: 'collapsed', score: 0, date: '3 HOURS AGO' },
-              { multiplier: 1.95, result: 'banked', score: 195, date: 'YESTERDAY' },
-            ].map((run, index) => (
-              <div
-                key={index}
-                className="p-3 bg-slate-950/60 border-2 border-pink-500/20 hover:border-pink-500/50 transition-colors flex items-center justify-between text-xs font-retro uppercase"
-              >
-                <div className="space-y-1">
-                  <div className="text-white text-[10px]">CLIMB RUN {index + 1}</div>
-                  <div className="text-[8px] text-slate-500 font-mono">{run.date}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {achievements.map((item) => (
+            <div
+              key={item.id}
+              className={`border-2 p-4 relative group transition-all rounded-none ${
+                item.unlocked
+                  ? 'border-pink-500/50 bg-slate-950/60 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:border-pink-500'
+                  : 'border-white/5 bg-slate-950/20 opacity-55'
+              }`}
+            >
+              {/* Rarity Tag */}
+              <span className={`absolute top-2 right-2 text-[7px] font-retro border px-1.5 py-0.5 uppercase tracking-widest ${getRarityStyle(item.rarity)}`}>
+                {item.rarity}
+              </span>
+
+              <div className="flex gap-4 items-start pt-2">
+                <div className="text-3xl p-2.5 bg-slate-900 border border-white/10 select-none leading-none shrink-0">
+                  {item.unlocked ? item.icon : '🔒'}
                 </div>
-                <div className="text-right space-y-1">
-                  <div className={`text-[11px] font-black ${run.result === 'banked' ? 'text-green-400' : 'text-rose-500'}`}>
-                    {run.multiplier.toFixed(2)}x
-                  </div>
-                  <div className="text-[8px] text-slate-400 font-mono">
-                    {run.result === 'banked' ? `+${run.score} PTS` : 'COLLAPSED'}
+                <div className="min-w-0 space-y-1">
+                  <h4 className="font-retro text-[10px] text-white tracking-wide truncate">
+                    {item.title}
+                  </h4>
+                  <p className="text-[9px] font-retro text-slate-400 leading-relaxed uppercase">
+                    {item.desc}
+                  </p>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <span className="text-[8px] font-retro text-yellow-400 font-bold">
+                      +{item.xpReward} XP
+                    </span>
+                    {item.unlocked && (
+                      <span className="text-[8px] font-retro text-green-400 bg-green-400/10 px-1.5 rounded-none font-bold uppercase">
+                        COMPLETED
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
-
-            <button
-              onClick={onOpenReplays}
-              className="w-full bg-slate-950 hover:bg-slate-900 text-yellow-400 hover:text-yellow-300 font-retro text-[10px] py-4 border-2 border-yellow-400 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer uppercase shadow-[4px_4px_0px_rgba(236,72,153,0.3)]"
-            >
-              <Play className="h-3.5 w-3.5 stroke-[3px]" /> VIEW REPLAY CONSOLE
-            </button>
-          </div>
+            </div>
+          ))}
         </div>
-
       </div>
 
     </div>
