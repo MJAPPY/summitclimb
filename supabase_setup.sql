@@ -141,3 +141,14 @@ BEGIN
   DELETE FROM public.climber_leaderboard;
 END;
 $$ LANGUAGE plpgsql;
+
+-- 9. Setup Cron Job to automatically trigger Payout execution every Monday at 7:00 AM UTC
+-- Enabled pg_cron extension on database and register schedule safely
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+SELECT cron.unschedule('weekly-summit-payout'); -- Clear duplicate if exists
+SELECT cron.schedule(
+  'weekly-summit-payout',
+  '0 7 * * 1', -- 7:00 AM UTC on Monday
+  'SELECT public.process_weekly_payout()'
+);
