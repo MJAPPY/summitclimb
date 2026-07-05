@@ -5,6 +5,7 @@ import { GameCanvas, CosmeticSettings } from '@/components/GameCanvas';
 import { WalletModal } from '@/components/WalletModal';
 import { ProfilePanel } from '@/components/ProfilePanel';
 import { Leaderboard } from '@/components/Leaderboard';
+import { ReplayManager } from '@/components/ReplayManager';
 import { AdminPanel } from '@/components/AdminPanel';
 import { SummitLogo } from '@/components/SummitLogo';
 import { HighScoresTicker } from '@/components/HighScoresTicker';
@@ -21,6 +22,7 @@ import {
   User, 
   Trophy, 
   Settings, 
+  History, 
   ArrowUpRight,
   Mountain,
   Sparkles,
@@ -38,8 +40,8 @@ import {
 const Index = () => {
   const { toast } = useToast();
 
-  // Navigation state - removed replays from list
-  const [activeTab, setActiveTab] = useState<'climb' | 'leaderboard' | 'profile' | 'admin'>('climb');
+  // Navigation state
+  const [activeTab, setActiveTab] = useState<'climb' | 'leaderboard' | 'profile' | 'replays' | 'admin'>('climb');
   const [walletOpen, setWalletOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
@@ -745,6 +747,31 @@ const Index = () => {
                 <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
+              <button
+                onClick={() => {
+                  if (!walletConnected) {
+                    toast({
+                      title: "Wallet Required",
+                      description: "Please connect your WebAuth wallet to view flight replay tapes.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  setActiveTab('replays');
+                }}
+                className={`w-full flex items-center justify-between px-3 py-3 rounded-none text-xs font-retro transition-all border-2 group ${
+                  activeTab === 'replays' 
+                    ? 'bg-purple-500/10 border-purple-500 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]' 
+                    : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
+                }`}
+              >
+                <span className="flex items-center gap-3 min-w-0">
+                  <History className={`h-4 w-4 shrink-0 ${activeTab === 'replays' ? 'text-purple-400' : 'text-slate-500'}`} /> 
+                  <span className="truncate">REPLAY TAPE</span>
+                </span>
+                <ChevronRight className="h-3 w-3 shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
               {isAdmin && (
                 <button
                   onClick={() => setActiveTab('admin')}
@@ -1065,11 +1092,14 @@ const Index = () => {
               highestMultiplier={highestMultiplier}
               weeklyBest={weeklyBest}
               referrals={0}
+              onOpenReplays={() => setActiveTab('replays')}
               walletAddress={activeUserAddress}
               cosmetics={cosmetics}
               setCosmetics={setCosmetics}
             />
           )}
+
+          {activeTab === 'replays' && walletConnected && <ReplayManager />}
 
           {activeTab === 'admin' && isAdmin && (
             <AdminPanel 
