@@ -134,8 +134,8 @@ const Index = () => {
       } catch (rpcErr) {
         console.warn("Could not query live on-chain balances, using database configs:", rpcErr);
         if (data) {
-          setPrizePool(data.highest_multiplier ?? 0);
-          setGuyPrizePool(data.xp ?? 0);
+          setPrizePool(Number(data.highest_multiplier) || 0);
+          setGuyPrizePool(Number(data.xp) || 0);
         }
       }
     } catch (e) {
@@ -199,8 +199,11 @@ const Index = () => {
       }
 
       if (data) {
+        // Explicitly parse values to float/number to prevent any type-comparison or sorting discrepancies
+        const parsedHighestMultiplier = Number(data.highest_multiplier) || 1.00;
         setRemainingGoes(data.remaining_goes ?? 0);
-        setHighestMultiplier(data.highest_multiplier ?? 1.00);
+        setHighestMultiplier(parsedHighestMultiplier);
+        setWeeklyBest(parsedHighestMultiplier);
         setLevel(data.level ?? 1);
         setXp(data.xp ?? 0);
         setLifetimeGames(data.lifetime_games ?? 0);
