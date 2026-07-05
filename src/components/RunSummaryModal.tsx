@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Star, ShieldAlert, Award, Zap, Coins, ArrowRight } from 'lucide-react';
+import { Trophy, Star, ShieldAlert, Award, Zap, Coins, ArrowRight, Share2 } from 'lucide-react';
 
 interface RunSummaryModalProps {
   isOpen: boolean;
@@ -26,6 +26,21 @@ export const RunSummaryModal: React.FC<RunSummaryModalProps> = ({
 
   const nextLevelXp = level * 100;
   const xpPercent = Math.min(100, (xp / nextLevelXp) * 100);
+
+  // Generate customized message for X sharing
+  const getShareText = () => {
+    if (result === 'banked') {
+      return `Just secured a ${multiplier.toFixed(2)}x altitude multiplier on Summit Climb! 🏔️ Level ${level} peak climber. Can you beat my score? @777Guyxpr #XPR #GUY`;
+    } else {
+      return `The mountain collapsed on me at ${multiplier.toFixed(2)}x on Summit Climb! 💥 Dusting off my boots to climb again. @777Guyxpr #XPR #GUY`;
+    }
+  };
+
+  const handleShareOnX = () => {
+    const text = getShareText();
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
@@ -100,14 +115,29 @@ export const RunSummaryModal: React.FC<RunSummaryModalProps> = ({
           </span>
         </div>
 
-        {/* Arcade Call to Action Button */}
-        <button
-          onClick={onClose}
-          className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-retro text-xs border-b-4 border-black active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 uppercase shadow-[4px_4px_0px_#ec4899]"
-        >
-          <span>CONTINUE EXPEDITION</span>
-          <ArrowRight className="h-4 w-4 stroke-[3px]" />
-        </button>
+        {/* Actions section */}
+        <div className="space-y-3">
+          {/* Share on X Button */}
+          <button
+            onClick={handleShareOnX}
+            className="w-full py-3 bg-black hover:bg-slate-900 text-white font-retro text-[10px] border-2 border-pink-500 flex items-center justify-center gap-2 uppercase tracking-wide transition-all shadow-[4px_4px_0px_rgba(236,72,153,0.3)] hover:shadow-[0_0_15px_rgba(236,72,153,0.5)] cursor-pointer"
+          >
+            {/* Custom inline X logo */}
+            <svg className="h-3.5 w-3.5 fill-current text-pink-400" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            <span>SHARE SCORE ON X</span>
+          </button>
+
+          {/* Arcade Call to Action Button */}
+          <button
+            onClick={onClose}
+            className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-retro text-xs border-b-4 border-black active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 uppercase shadow-[4px_4px_0px_#ec4899]"
+          >
+            <span>CONTINUE EXPEDITION</span>
+            <ArrowRight className="h-4 w-4 stroke-[3px]" />
+          </button>
+        </div>
 
       </div>
     </div>
