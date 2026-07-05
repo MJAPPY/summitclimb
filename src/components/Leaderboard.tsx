@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trophy, Clock, Users, Award, ShieldAlert, Sparkles, Flame } from 'lucide-react';
 
 interface Competitor {
@@ -13,55 +13,120 @@ interface Competitor {
 
 interface LeaderboardProps {
   prizePool: number;
+  guyPrizePool: number;
 }
 
-export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool }) => {
+export const Leaderboard: React.FC<LeaderboardProps> = ({ prizePool, guyPrizePool }) => {
   const [participants, setParticipants] = useState<number>(1420);
+  const [timeLeft, setTimeLeft] = useState<string>('00D : 00H : 00M : 00S');
   
   // Real high score mock contenders
-  const [competitors, setCompetitors] = useState<Competitor[]>([]);
+  const [competitors, setCompetitors] = useState<Competitor[]>([
+    { rank: 1, username: 'cyber_goat', bestScore: 24.50, gamesPlayed: 148, country: 'AUT', avatar: '', prizeFraction: 40 },
+    { rank: 2, username: 'tripseven', bestScore: 18.92, gamesPlayed: 84, country: 'USA', avatar: '', prizeFraction: 25 },
+    { rank: 3, username: 'snow_shredder', bestScore: 14.11, gamesPlayed: 120, country: 'SUI', avatar: '', prizeFraction: 15 },
+    { rank: 4, username: 'yodel_king', bestScore: 9.35, gamesPlayed: 56, country: 'GER', avatar: '', prizeFraction: 8 },
+    { rank: 5, username: 'peak_chaser', bestScore: 7.20, gamesPlayed: 92, country: 'CAN', avatar: '', prizeFraction: 5 },
+  ]);
+
+  // Live countdown calculating precise duration to upcoming Monday 07:00 AM UTC
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const nextMonday = new Date();
+      
+      const currentDay = now.getUTCDay(); // 0 = Sun, 1 = Mon, 2 = Tue, ...
+      const currentHour = now.getUTCHours();
+      
+      // Compute days to add to reach next Monday
+      let daysToAdd = (1 - currentDay + 7) % 7;
+      
+      // If it is Monday, check if we already passed 7:00 AM UTC
+      if (currentDay === 1 && currentHour >= 7) {
+        daysToAdd = 7;
+      }
+      
+      nextMonday.setUTCDate(now.getUTCDate() + daysToAdd);
+      nextMonday.setUTCHours(7, 0, 0, 0);
+
+      const msDiff = nextMonday.getTime() - now.getTime();
+      
+      if (msDiff <= 0) {
+        setTimeLeft('00D : 00H : 00M : 00S');
+        return;
+      }
+
+      const totalSecs = Math.floor(msDiff / 1000);
+      const days = Math.floor(totalSecs / (3600 * 24));
+      const hours = Math.floor((totalSecs % (3600 * 24)) / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+
+      setTimeLeft(
+        `${days.toString().padStart(2, '0')}D : ${hours.toString().padStart(2, '0')}H : ${mins.toString().padStart(2, '0')}M : ${secs.toString().padStart(2, '0')}S`
+      );
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="space-y-6 crt-screen">
       {/* 90s Style Dynamic Stats Marquee Rows */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Arcade Pot Card */}
-        <div className="p-6 bg-slate-950 border-4 border-cyan-500 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.15),transparent_60%)]">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Arcade XPR Pot Card */}
+        <div className="p-5 bg-slate-950 border-4 border-cyan-500 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.15),transparent_60%)]">
           <span className="text-[10px] font-retro text-cyan-400 tracking-wider flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-yellow-400" /> TOTAL BANKED POT
+            <Sparkles className="h-4 w-4 text-yellow-400 animate-spin" style={{ animationDuration: '6s' }} /> ALL-TIME XPR POT
           </span>
           <div className="flex items-baseline gap-1 mt-4">
-            <span className="text-3xl font-retro font-black text-white leading-none text-gradient-neon">{prizePool.toLocaleString()}</span>
-            <span className="text-xs font-retro text-cyan-400 ml-1">XPR</span>
+            <span className="text-2xl font-retro font-black text-white leading-none text-gradient-neon">{prizePool.toFixed(1)}</span>
+            <span className="text-[10px] font-retro text-cyan-400 ml-1">XPR</span>
           </div>
           <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
-            93% redistributed to top climbers
+            Redistributed to top climbers
           </div>
         </div>
 
-        {/* All-Time Peak Record Card (Replaces the weekly countdown timer) */}
-        <div className="p-6 bg-slate-950 border-4 border-pink-500 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(236,72,153,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.15),transparent_60%)]">
-          <span className="text-[10px] font-retro text-pink-400 tracking-wider flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-pink-500 animate-bounce" /> ALL-TIME APEX RECORD
+        {/* Arcade GUY Pot Card */}
+        <div className="p-5 bg-slate-950 border-4 border-purple-500 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(168,85,247,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.15),transparent_60%)]">
+          <span className="text-[10px] font-retro text-purple-400 tracking-wider flex items-center gap-2">
+            <Flame className="h-4 w-4 text-orange-400 animate-pulse" /> WEEKLY GUY POT
           </span>
-          <div className="text-lg md:text-xl font-retro font-black text-yellow-400 mt-4 tracking-widest text-shadow-gold">
-            42.50x
+          <div className="flex items-baseline gap-1 mt-4">
+            <span className="text-2xl font-retro font-black text-white leading-none text-gradient-neon">{guyPrizePool.toFixed(1)}</span>
+            <span className="text-[10px] font-retro text-purple-400 ml-1">GUY</span>
           </div>
           <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
-            UNBROKEN ASCENT HELD BY @CYBER_GOAT
+            Payout on Monday 7am UTC
+          </div>
+        </div>
+
+        {/* Monday 7am UTC Payout Countdown */}
+        <div className="p-5 bg-slate-950 border-4 border-pink-500 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(236,72,153,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.15),transparent_60%)]">
+          <span className="text-[10px] font-retro text-pink-400 tracking-wider flex items-center gap-2">
+            <Clock className="h-4 w-4 text-pink-500" /> GUY PAYOUT IN
+          </span>
+          <div className="text-sm font-retro font-black text-yellow-400 mt-4 tracking-wider text-shadow-gold whitespace-nowrap">
+            {timeLeft}
+          </div>
+          <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
+            Monday 7:00 AM UTC Auto-Payout
           </div>
         </div>
 
         {/* Contenders Box */}
-        <div className="p-6 bg-slate-950 border-4 border-yellow-400 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(250,204,21,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.15),transparent_60%)]">
+        <div className="p-5 bg-slate-950 border-4 border-yellow-400 rounded-none relative overflow-hidden shadow-[0_0_20px_rgba(250,204,21,0.4)] bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.15),transparent_60%)]">
           <span className="text-[10px] font-retro text-yellow-400 tracking-wider flex items-center gap-2">
-            <Users className="h-4 w-4 text-yellow-400" /> TOTAL CONTENDERS
+            <Users className="h-4 w-4 text-yellow-400" /> CONTENDERS
           </span>
-          <div className="text-2xl font-retro font-black text-white mt-4 leading-none">
+          <div className="text-xl font-retro font-black text-white mt-4 leading-none">
             {participants.toLocaleString()} <span className="text-[10px] font-retro text-yellow-400">GUYS</span>
           </div>
           <div className="text-[8px] font-retro text-slate-400 mt-3 uppercase leading-normal">
-            Min. 1.50x secures score entry
+            Min. 1.50x secures entry
           </div>
         </div>
       </div>

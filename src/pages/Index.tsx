@@ -57,8 +57,9 @@ const Index = () => {
   // Starting empty Counter Panel goes
   const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
-  // Start with 0 prize pool (or basic reset state)
+  // Pots states
   const [prizePool, setPrizePool] = useState<number>(0);
+  const [guyPrizePool, setGuyPrizePool] = useState<number>(0);
 
   // Stats reset
   const [lifetimeGames, setLifetimeGames] = useState<number>(0);
@@ -185,6 +186,8 @@ const Index = () => {
     
     if (tokenType === 'XPR') {
       setPrizePool(prev => prev + poolContribution);
+    } else {
+      setGuyPrizePool(prev => prev + poolContribution);
     }
 
     toast({
@@ -787,7 +790,7 @@ const Index = () => {
           )}
 
           {/* Other displays mapping onto corresponding navigation menus */}
-          {activeTab === 'leaderboard' && <Leaderboard prizePool={prizePool} />}
+          {activeTab === 'leaderboard' && <Leaderboard prizePool={prizePool} guyPrizePool={guyPrizePool} />}
 
           {activeTab === 'profile' && (
             <ProfilePanel
