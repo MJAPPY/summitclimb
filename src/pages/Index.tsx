@@ -7,6 +7,7 @@ import { ReplayManager } from '@/components/ReplayManager';
 import { AdminPanel } from '@/components/AdminPanel';
 import { SummitLogo } from '@/components/SummitLogo';
 import { HighScoresTicker } from '@/components/HighScoresTicker';
+import { RunSummaryModal } from '@/components/RunSummaryModal';
 import { audioSynth } from '@/utils/audio';
 import { protonService } from '@/utils/proton';
 import { useToast } from '@/hooks/use-toast';
@@ -51,12 +52,12 @@ const Index = () => {
   const [level, setLevel] = useState<number>(1);
   const [xp, setXp] = useState<number>(0);
 
-  // Starting empty Counter Panel goes
-  const [remainingGoes, setRemainingGoes] = useState<number>(0);
+  // Remaining climb Goes Counter (Default starts with 5 complimentary goes for guests to play immediately)
+  const [remainingGoes, setRemainingGoes] = useState<number>(5);
 
   // Pots states
-  const [prizePool, setPrizePool] = useState<number>(0);
-  const [guyPrizePool, setGuyPrizePool] = useState<number>(0);
+  const [prizePool, setPrizePool] = useState<number>(45000);
+  const [guyPrizePool, setGuyPrizePool] = useState<number>(12000);
 
   // Stats reset
   const [lifetimeGames, setLifetimeGames] = useState<number>(0);
@@ -76,6 +77,12 @@ const Index = () => {
   // Track climb start time to enforce 10-second survival rule
   const climbStartTimeRef = useRef<number>(0);
 
+  // Post-run score summary dialog
+  const [summaryOpen, setSummaryOpen] = useState<boolean>(false);
+  const [summaryResult, setSummaryResult] = useState<'banked' | 'collapsed'>('banked');
+  const [summaryMultiplier, setSummaryMultiplier] = useState<number>(1.00);
+  const [summaryXpEarned, setSummaryXpEarned] = useState<number>(0);
+
   // Cosmetics control
   const [cosmetics, setCosmetics] = useState<CosmeticSettings>({
     climber: 'standard',
@@ -84,6 +91,18 @@ const Index = () => {
     flag: 'cyber',
     trail: 'rainbow'
   });
+
+  // Unique guest identity generator preserved locally
+  const getGuestAddress = () => {
+    let localId = localStorage.getItem('summit_guest_id');
+    if (!localId) {
+      localId = 'guest_' + Math.random().toString(36).substring(2, 8);
+      localStorage.setItem('summit_guest_id', localId);
+    }
+    return localId;
+  };
+
+  const activeUserAddress = walletConnected && walletAddress ? walletAddress : getGuestAddress();
 
   // Check if active user has administrator clearances
   const isAdmin = walletConnected && walletAddress.toLowerCase() === 'tripseven';
@@ -98,10 +117,12 @@ const Index = () => {
   // Sync balances and fetch persistent player stats from Supabase
   const handleSyncBalances = async (actorName: string) => {
     try {
-      // Fetch RPC blockchain token counts
-      const results = await protonService.getBalances(actorName);
-      setBalance(results.XPR);
-      setGuyBalance(results.GUY);
+      if (walletConnected) {
+        // Fetch RPC blockchain token counts
+        const results = await protonService.getBalances(actorName);
+        setBalance(results.XPR);
+        setGuyBalance(results.GUY);
+      }
 
       // Secure persistent cloud-saves retrieval via Supabase
       const { data, error } = await supabase
@@ -121,12 +142,12 @@ const Index = () => {
         setXp(data.xp ?? 0);
         setLifetimeGames(data.lifetime_games ?? 0);
       } else {
-        // Initialize new user row in database
+        // Initialize new user/guest row in database
         const { error: insertError } = await supabase
           .from('climber_profiles')
           .insert([{ 
             wallet_address: actorName.toLowerCase(), 
-            remaining_goes: 0, 
+            remaining_goes: walletConnected ? 0 : 5, // guests get 5 complimentary slots
             highest_multiplier: 1.00,
             level: 1,
             xp: 0,
@@ -135,13 +156,12 @@ const Index = () => {
         if (insertError) console.error("Database insert error:", insertError);
       }
     } catch (e) {
-      console.warn("Could not sync live wallet balances:", e);
+      console.warn("Could not sync live database stats:", e);
     }
   };
 
   // Sync persistent credits to DB when modified
   const savePersistentStats = async (goesCount: number, bestMult: number, lvl: number, activeXp: number, gamesCount: number) => {
-    if (!walletConnected || !walletAddress) return;
     try {
       await supabase
         .from('climber_profiles')
@@ -152,7 +172,7 @@ const Index = () => {
           xp: activeXp,
           lifetime_games: gamesCount
         })
-        .eq('wallet_address', walletAddress.toLowerCase());
+        .eq('wallet_address', activeUserAddress.toLowerCase());
     } catch (e) {
       console.error("Failed to persist stats online:", e);
     }
@@ -170,17 +190,19 @@ const Index = () => {
           title: "Session Restored",
           description: `Welcome back to the Summit, @${activeSession.actor}!`,
         });
+      } else {
+        // Fetch guest account saves immediately
+        handleSyncBalances(getGuestAddress());
       }
     };
     autoLogin();
   }, []);
 
-  // Poll balances every 20 seconds if wallet is connected
+  // Poll balances and scores every 15 seconds
   useEffect(() => {
-    if (!walletConnected || !walletAddress) return;
     const interval = setInterval(() => {
-      handleSyncBalances(walletAddress);
-    }, 20000);
+      handleSyncBalances(activeUserAddress);
+    }, 15000);
     return () => clearInterval(interval);
   }, [walletConnected, walletAddress]);
 
@@ -199,7 +221,7 @@ const Index = () => {
 
     const activeTokenBalance = tokenType === 'XPR' ? balance : guyBalance;
 
-    if (activeTokenBalance < cost) {
+    if (walletConnected && activeTokenBalance < cost) {
       toast({
         title: "Insufficient Balance",
         description: `You need ${cost} ${tokenType} to purchase ${count} games. Deposit more tokens.`,
@@ -227,10 +249,12 @@ const Index = () => {
 
     const poolContribution = cost * 0.93;
 
-    if (tokenType === 'XPR') {
-      setBalance(prev => prev - cost);
-    } else {
-      setGuyBalance(prev => prev - cost);
+    if (walletConnected) {
+      if (tokenType === 'XPR') {
+        setBalance(prev => prev - cost);
+      } else {
+        setGuyBalance(prev => prev - cost);
+      }
     }
 
     const nextGoes = remainingGoes + count;
@@ -243,19 +267,17 @@ const Index = () => {
     }
 
     // Persist immediately to live database
-    if (walletConnected) {
-      await savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
-    }
+    await savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
 
     toast({
       title: "Climbs Added!",
       description: `Bought ${count} games for ${cost} ${tokenType}. persistent credits locked.`,
     });
 
-    if (walletConnected) {
-      handleSyncBalances(walletAddress);
-    }
+    handleSyncBalances(walletAddress || activeUser);
   };
+
+  const activeUser = walletConnected ? walletAddress : "anonymous";
 
   // Start ascending summit climb (costs exactly 1 remaining go)
   const handleStartClimb = () => {
@@ -274,9 +296,7 @@ const Index = () => {
     setRemainingGoes(nextGoes);
     
     // Save state update directly to Supabase
-    if (walletConnected) {
-      savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
-    }
+    savePersistentStats(nextGoes, highestMultiplier, level, xp, lifetimeGames);
     
     setMultiplier(1.00);
     setGameState('climbing');
@@ -342,33 +362,30 @@ const Index = () => {
       setWeeklyBest(lockedScore);
 
       // Record high score dynamically to the cloud leaderboard database!
-      if (walletConnected && walletAddress) {
-        try {
-          await supabase
-            .from('climber_leaderboard')
-            .upsert({
-              wallet_address: walletAddress.toLowerCase(),
-              score: lockedScore,
-              games_played: nextGamesCount,
-              country: 'USA'
-            }, { onConflict: 'wallet_address' });
-        } catch (dbErr) {
-          console.error("Failed to commit scoreboard entry:", dbErr);
-        }
+      try {
+        await supabase
+          .from('climber_leaderboard')
+          .upsert({
+            wallet_address: activeUserAddress.toLowerCase(),
+            score: lockedScore,
+            games_played: nextGamesCount,
+            country: 'USA'
+          }, { onConflict: 'wallet_address' });
+      } catch (dbErr) {
+        console.error("Failed to commit scoreboard entry:", dbErr);
       }
     }
 
     setLevel(nextLevel);
     setXp(nextXp);
 
-    if (walletConnected) {
-      await savePersistentStats(remainingGoes, nextBest, nextLevel, nextXp, nextGamesCount);
-    }
+    await savePersistentStats(remainingGoes, nextBest, nextLevel, nextXp, nextGamesCount);
 
-    toast({
-      title: "Altitude Secured!",
-      description: `Score of ${lockedScore.toFixed(2)}x registered. Earned +${xpEarned} XP.`,
-    });
+    // Launch run results card
+    setSummaryResult('banked');
+    setSummaryMultiplier(lockedScore);
+    setSummaryXpEarned(xpEarned);
+    setSummaryOpen(true);
   };
 
   // Launch genuine wallet connection selector dialog
@@ -425,18 +442,18 @@ const Index = () => {
             const nextGamesCount = lifetimeGames + 1;
             setLifetimeGames(nextGamesCount);
 
-            if (walletConnected) {
-              savePersistentStats(remainingGoes, highestMultiplier, level, xp, nextGamesCount);
-            }
+            savePersistentStats(remainingGoes, highestMultiplier, level, xp, nextGamesCount);
 
             audioSynth.stopHeartbeat();
             audioSynth.stopYodelMusic();
             audioSynth.playCollapseSound();
-            toast({
-              title: "Mountain Collapsed!",
-              description: `A severe avalanche occurred at ${nextVal.toFixed(2)}x. Climb failed.`,
-              variant: "destructive"
-            });
+
+            // Set collapse details into card
+            setSummaryResult('collapsed');
+            setSummaryMultiplier(nextVal);
+            setSummaryXpEarned(0);
+            setSummaryOpen(true);
+
             clearInterval(interval);
             return nextVal;
           }
@@ -653,7 +670,7 @@ const Index = () => {
 
             <div className="min-w-0">
               <div className="text-xs font-retro text-white truncate">
-                {walletConnected ? `@${walletAddress}` : "PLAYER 1"}{" "}
+                @{activeUserAddress}{" "}
                 <span className="text-[8px] text-pink-400 bg-pink-400/10 px-1 py-0.5 rounded leading-none font-bold">LV.{level}</span>
               </div>
               <p className="text-[10px] font-retro text-slate-400 mt-1 leading-tight">
@@ -904,7 +921,7 @@ const Index = () => {
               weeklyBest={weeklyBest}
               referrals={0}
               onOpenReplays={() => setActiveTab('replays')}
-              walletAddress={walletAddress}
+              walletAddress={activeUserAddress}
             />
           )}
 
@@ -928,9 +945,24 @@ const Index = () => {
           setWalletConnected={setWalletConnected}
           walletAddress={walletAddress}
           setWalletAddress={setWalletAddress}
-          onSyncBalances={() => handleSyncBalances(walletAddress)}
+          onSyncBalances={() => handleSyncBalances(activeUserAddress)}
         />
       )}
+
+      {/* Summary Score Card Dialog */}
+      <RunSummaryModal
+        isOpen={summaryOpen}
+        onClose={() => {
+          setSummaryOpen(false);
+          setGameState('idle');
+        }}
+        result={summaryResult}
+        multiplier={summaryMultiplier}
+        xpEarned={summaryXpEarned}
+        level={level}
+        xp={xp}
+        remainingGoes={remainingGoes}
+      />
 
       <footer className="mt-12 py-10 border-t-4 border-pink-500 text-center text-[10px] text-slate-500 space-y-6 relative z-10 bg-slate-950">
         <SummitLogo size="lg" className="mx-auto border-4 border-cyan-400 rounded-none shadow-[0_0_15px_rgba(6,182,212,0.4)]" />
