@@ -58,9 +58,9 @@ const Index = () => {
   // Remaining climb Goes Counter (Default starts with 0 for unauthenticated users)
   const [remainingGoes, setRemainingGoes] = useState<number>(0);
 
-  // Pots states backed by actual blockchain balances of @tripseven and @askguy
-  const [prizePool, setPrizePool] = useState<number>(0);
-  const [guyPrizePool, setGuyPrizePool] = useState<number>(0);
+  // Pots states backed by game-purchased accumulated values in Supabase
+  const [prizePool, setPrizePool] = useState<number>(5000); // Seeds with 5000 XPR
+  const [guyPrizePool, setGuyPrizePool] = useState<number>(25000); // Seeds with 25000 GUY
 
   // Stats reset
   const [lifetimeGames, setLifetimeGames] = useState<number>(0);
@@ -107,16 +107,68 @@ const Index = () => {
     }
   }, [activeTab, isAdmin]);
 
-  // Fetch the actual real on-chain pot balances from tripseven (XPR) and askguy (GUY)
+  // Fetch only the accumulated game pots from the persistent Supabase row
   const fetchLivePots = async () => {
     try {
-      const tripsevenPots = await protonService.getBalances('tripseven');
-      setPrizePool(tripsevenPots.XPR);
+      const { data, error } = await supabase
+        .from('climber_profiles')
+        .select('highest_multiplier, xp')
+        .eq('wallet_address', 'global_pots_config')
+        .maybeSingle();
 
-      const askguyPots = await protonService.getBalances('askguy');
-      setGuyPrizePool(askguyPots.GUY);
+      if (error) {
+        console.error("Error loading global pots from database:", error);
+        return;
+      }
+
+      if (data) {
+        setPrizePool(data.highest_multiplier ?? 5000);
+        setGuyPrizePool(data.xp ?? 25000);
+      } else {
+        // Initialize global pots config row with base seed parameters
+        await supabase
+          .from('climber_profiles')
+          .insert([{
+            wallet_address: 'global_pots_config',
+            highest_multiplier: 5000, // Seed XPR Pot
+            xp: 25000,                // Seed GUY Pot
+            remaining_goes: 0,
+            level: 1,
+            lifetime_games: 0
+          }]);
+      }
     } catch (e) {
       console.warn("Could not query live pot balances:", e);
+    }
+  };
+
+  // Increment the accumulated pot dynamically in Supabase when a user purchases goes
+  const incrementAccumulatedPot = async (amount: number, type: 'XPR' | 'GUY') => {
+    try {
+      const { data } = await supabase
+        .from('climber_profiles')
+        .select('highest_multiplier, xp')
+        .eq('wallet_address', 'global_pots_config')
+        .maybeSingle();
+
+      const currentXPR = data?.highest_multiplier ?? 5000;
+      const currentGUY = data?.xp ?? 25000;
+
+      const nextXPR = type === 'XPR' ? currentXPR + amount : currentXPR;
+      const nextGUY = type === 'GUY' ? currentGUY + amount : currentGUY;
+
+      await supabase
+        .from('climber_profiles')
+        .update({
+          highest_multiplier: nextXPR,
+          xp: nextGUY
+        })
+        .eq('wallet_address', 'global_pots_config');
+
+      setPrizePool(nextXPR);
+      setGuyPrizePool(nextGUY);
+    } catch (e) {
+      console.error("Could not update persistent pots config:", e);
     }
   };
 
@@ -271,6 +323,9 @@ const Index = () => {
       setGuyBalance(prev => prev - cost);
     }
 
+    // Increment global persistent pots with the exact amount paid into the game
+    await incrementAccumulatedPot(cost, tokenType);
+
     const nextGoes = remainingGoes + count;
     setRemainingGoes(nextGoes);
 
@@ -282,8 +337,7 @@ const Index = () => {
       description: `Bought ${count} games for ${cost} ${tokenType}. persistent credits locked.`,
     });
 
-    // Re-fetch pots & balances immediately
-    fetchLivePots();
+    // Re-sync user stats
     handleSyncBalances(walletAddress);
   };
 
