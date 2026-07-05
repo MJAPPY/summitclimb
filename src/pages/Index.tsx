@@ -145,13 +145,12 @@ const Index = () => {
     }
   };
 
-  // Securely increment the accumulated pot via safe server-side SQL RPC
+  // Securely increment the accumulated pot via safe server-side table insert trigger
   const incrementAccumulatedPot = async (amount: number, type: 'XPR' | 'GUY') => {
     try {
-      const { error } = await supabase.rpc('increment_pot_on_purchase', {
-        p_amount: amount,
-        p_type: type
-      });
+      const { error } = await supabase
+        .from('pot_increments')
+        .insert([{ amount, type }]);
 
       if (error) {
         throw error;
@@ -456,7 +455,7 @@ const Index = () => {
     }
 
     const nextGamesCount = lifetimeGames + 1;
-    setLifetimeGames(nextGamesCount);
+    setSelfLifeTimes(nextGamesCount);
 
     let nextBest = highestMultiplier;
     if (lockedScore > highestMultiplier) {
@@ -491,6 +490,11 @@ const Index = () => {
     setSummaryMultiplier(lockedScore);
     setSummaryXpEarned(xpEarned);
     setSummaryOpen(true);
+  };
+
+  // Set local state workaround helper
+  const setSelfLifeTimes = (val: number) => {
+    setLifetimeGames(val);
   };
 
   // Launch genuine wallet connection selector dialog
